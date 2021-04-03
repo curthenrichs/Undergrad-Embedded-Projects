@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CyXmlSerializer>
+<!--This file is machine generated and read. It is not intended to be edited by hand.-->
+<!--Due to this, there is no schema for this file.-->
+<CyGuid_843a90a4-0c4b-4e44-991d-05e7fb117a21 type_name="CyDesigner.Common.ProjMgmt.Model.CyPrjMgmtWrkspcCustomData" version="4">
+<CyGuid_fdba8dfd-b15b-4469-9bbb-9e40c3e70997 type_name="CyDesigner.Common.Base.CyCustomData" version="2">
+<userData>
+<dataGuid v="1b906a0f-a7b6-4e4d-a428-82f98b53cb35">
+<CyGuid_1b906a0f-a7b6-4e4d-a428-82f98b53cb35 type_name="CyDesigner.Common.ProjMgmt.GUI.CyExplorerWindow+CyExplorerWindowState" version="3" SelectedTab="Source">
+<TreeKeys>
+<v>Source</v>
+<v>Components</v>
+<v>Output</v>
+</TreeKeys>
+<TreeStates>
+<CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237 type_name="CyDesigner.Common.Base.Controls.CyTreeViewState" version="1" SelectedNodeId="Workspace1\ce4950-term-project\Source Files\DataLinkLayer.c">
+<ExpandedNodeIds>
+<v>Workspace1</v>
+<v>Workspace1\ce4950-term-project</v>
+<v>Workspace1\ce4950-term-project\TopDesign</v>
+<v>Workspace1\ce4950-term-project\ce4950-term-project.cydwr</v>
+<v>Workspace1\ce4950-term-project\ce4950-term-project.cydwr\Pins</v>
+<v>Workspace1\ce4950-term-project\ce4950-term-project.cydwr\Analog</v>
+<v>Workspace1\ce4950-term-project\ce4950-term-project.cydwr\Clocks</v>
+<v>Workspace1\ce4950-term-project\ce4950-term-project.cydwr\Interrupts</v>
+<v>Workspace1\ce4950-term-project\ce4950-term-project.cydwr\DMA</v>
+<v>Workspace1\ce4950-term-project\ce4950-term-project.cydwr\System</v>
+<v>Workspace1\ce4950-term-project\ce4950-term-project.cydwr\Directives</v>
+<v>Workspace1\ce4950-term-project\ce4950-term-project.cydwr\Flash Security</v>
+<v>Workspace1\ce4950-term-project\ce4950-term-project.cydwr\EEPROM</v>
+<v>Workspace1\ce4950-term-project\Header Files</v>
+<v>Workspace1\ce4950-term-project\Header Files\Application.h</v>
+<v>Workspace1\ce4950-term-project\Header Files\ChannelMonitor.h</v>
+<v>Workspace1\ce4950-term-project\Header Files\CSMA_CD_Bus.h</v>
+<v>Workspace1\ce4950-term-project\Header Files\cyapicallbacks.h</v>
+<v>Workspace1\ce4950-term-project\Header Files\DataLinkLayer.h</v>
+<v>Workspace1\ce4950-term-project\Header Files\Receiver.h</v>
+<v>Workspace1\ce4950-term-project\Header Files\Tests.h</v>
+<v>Workspace1\ce4950-term-project\Header Files\Transmitter.h</v>
+<v>Workspace1\ce4950-term-project\Header Files\Uart.h</v>
+<v>Workspace1\ce4950-term-project\Header Files\UserAddressAllocation.h</v>
+<v>Workspace1\ce4950-term-project\Source Files</v>
+<v>Workspace1\ce4950-term-project\Source Files\Application.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\ChannelMonitor.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\CSMA_CD_Bus.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\DataLinkLayer.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\main.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\Receiver.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\Tests.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\Transmitter.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\Uart.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\UserAddressAllocation.c</v>
+<v>Workspace1\ce4950-term-project\Generated_Source</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5</v>
+</ExpandedNodeIds>
+<VisibleNodeIds>
+<v>Workspace1\ce4950-term-project\Header Files\Transmitter.h</v>
+<v>Workspace1\ce4950-term-project\Header Files\Uart.h</v>
+<v>Workspace1\ce4950-term-project\Header Files\UserAddressAllocation.h</v>
+<v>Workspace1\ce4950-term-project\Source Files</v>
+<v>Workspace1\ce4950-term-project\Source Files\Application.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\ChannelMonitor.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\CSMA_CD_Bus.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\DataLinkLayer.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\main.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\Receiver.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\Tests.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\Transmitter.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\Uart.c</v>
+<v>Workspace1\ce4950-term-project\Source Files\UserAddressAllocation.c</v>
+<v>Workspace1\ce4950-term-project\Generated_Source</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CapSense</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CapSense_AMuxCH0</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CapSense_CompCH0</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CapSense_IdacCH0</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CapSense_IntClock</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CM_BUSY_FLAG</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CM_COL_FLAG</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CM_COLLISION_int</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CM_IDLE_FLAG</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CM_IDLE_int</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CM_INIT_FLAG</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CM_State_Reg</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CM_Test_State_Reg</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CM_Timer</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CM_Timer_int</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CM_Timer_Trigger</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CSMA_RX</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CSMA_RX_int_falling</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CSMA_RX_int_rising</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CSMA_TX</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\cy_boot</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CyCLK_100KHz</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\CyCLK_1MHz</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\LCD</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\LCD_LCDPort</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\Rx_Timer</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\Rx_Timer_int</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\Rx_Timer_Trigger</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\Tx_Timer</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\Tx_Timer_int</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\Tx_Timer_Trigger</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\USBUART</v>
+<v>Workspace1\ce4950-term-project\Generated_Source\PSoC5\USBUART_Dm</v>
+</VisibleNodeIds>
+</CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237>
+<CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237 type_name="CyDesigner.Common.Base.Controls.CyTreeViewState" version="1" SelectedNodeId="">
+<ExpandedNodeIds>
+<v>Workspace1</v>
+<v>Workspace1\ce4950-term-project</v>
+<v>Workspace1\ce4950-term-project\TopDesign</v>
+<v>Workspace1\ce4950-term-project\TopDesign\TopDesign.cysch</v>
+</ExpandedNodeIds>
+<VisibleNodeIds>
+<v>Workspace1</v>
+<v>Workspace1\ce4950-term-project</v>
+<v>Workspace1\ce4950-term-project\TopDesign</v>
+<v>Workspace1\ce4950-term-project\TopDesign\TopDesign.cysch</v>
+</VisibleNodeIds>
+</CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237>
+<CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237 type_name="CyDesigner.Common.Base.Controls.CyTreeViewState" version="1" SelectedNodeId="">
+<ExpandedNodeIds>
+<v>Workspace1</v>
+<v>Workspace1\ce4950-term-project</v>
+<v>Workspace1\ce4950-term-project\CortexM3</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Application.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_AMuxCH0.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_CompCH0.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_CompCH0_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_CSHL.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_IdacCH0.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_IdacCH0_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_INT.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_IntClock.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_Pins.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_SMS_Wrapper.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_TunerHelper.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\ChannelMonitor.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_BUSY_FLAG.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_COL_FLAG.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_COLLISION_int.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_IDLE_FLAG.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_IDLE_int.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_INIT_FLAG.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_State_Reg.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_State_Reg_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_Test_State_Reg.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_Timer.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_Timer_int.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_Timer_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_Timer_Trigger.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_Timer_Trigger_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Cm3Start.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CSMA_CD_Bus.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CSMA_RX.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CSMA_RX_int_falling.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CSMA_RX_int_rising.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CSMA_TX.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CyBootAsmGnu.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CyCLK_100KHz.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CyCLK_1MHz.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CyDmac.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\cyfitter_cfg.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CyFlash.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CyLib.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\cymetadata.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\cyPm.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CySpc.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\cyutils.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\DataLinkLayer.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\LCD.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\LCD_LCDPort.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\LCD_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\main.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Receiver.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Rx_Timer.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Rx_Timer_int.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Rx_Timer_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Rx_Timer_Trigger.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Rx_Timer_Trigger_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Tests.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Transmitter.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Tx_Timer.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Tx_Timer_int.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Tx_Timer_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Tx_Timer_Trigger.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Tx_Timer_Trigger_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Uart.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\USBUART.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\USBUART_audio.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\USBUART_boot.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\USBUART_cdc.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\USBUART_cls.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\USBUART_descr.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\USBUART_Dm.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\USBUART_Dp.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\USBUART_drv.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\USBUART_episr.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\USBUART_hid.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\USBUART_midi.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\USBUART_msc.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\USBUART_pm.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\USBUART_std.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\USBUART_vnd.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\UserAddressAllocation.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\ce4950-term-project.elf</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\ce4950-term-project.hex</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\ce4950-term-project.map</v>
+<v>Workspace1\ce4950-term-project\ce4950-term-project.gpdsc</v>
+<v>Workspace1\ce4950-term-project\ce4950-term-project.rpt</v>
+<v>Workspace1\ce4950-term-project\ce4950-term-project_timing.html</v>
+</ExpandedNodeIds>
+<VisibleNodeIds>
+<v>Workspace1</v>
+<v>Workspace1\ce4950-term-project</v>
+<v>Workspace1\ce4950-term-project\CortexM3</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Application.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_AMuxCH0.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_CompCH0.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_CompCH0_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_CSHL.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_IdacCH0.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_IdacCH0_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_INT.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_IntClock.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_Pins.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_SMS_Wrapper.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CapSense_TunerHelper.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\ChannelMonitor.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_BUSY_FLAG.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_COL_FLAG.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_COLLISION_int.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_IDLE_FLAG.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_IDLE_int.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_INIT_FLAG.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_State_Reg.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_State_Reg_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_Test_State_Reg.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_Timer.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_Timer_int.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_Timer_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_Timer_Trigger.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CM_Timer_Trigger_PM.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\Cm3Start.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CSMA_CD_Bus.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CSMA_RX.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CSMA_RX_int_falling.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CSMA_RX_int_rising.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CSMA_TX.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CyBootAsmGnu.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CyCLK_100KHz.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CyCLK_1MHz.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CyDmac.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\cyfitter_cfg.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CyFlash.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\CyLib.lst</v>
+<v>Workspace1\ce4950-term-project\CortexM3\ARM_GCC_541\Debug\Listing Files\cymetadata.lst</v>
+</VisibleNodeIds>
+</CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237>
+</TreeStates>
+<TreeKeysV2>
+<v>Datasheet</v>
+</TreeKeysV2>
+<TreeStatesV2>
+<CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237 type_name="CyDesigner.Common.Base.Controls.CyTreeViewState" version="1" SelectedNodeId="">
+<ExpandedNodeIds>
+<v>Workspace1</v>
+<v>Workspace1\ce4950-term-project</v>
+<v>Workspace1\ce4950-term-project\PSoC 5LP Architecture TRM</v>
+<v>Workspace1\ce4950-term-project\CY8C58LP Family Datasheet</v>
+<v>Workspace1\ce4950-term-project\System Reference Guides</v>
+<v>Workspace1\ce4950-term-project\System Reference Guides\cy_boot_v5_60</v>
+<v>Workspace1\ce4950-term-project\CapSense_CSD_v3_50.pdf</v>
+<v>Workspace1\ce4950-term-project\CharLCD_v2_20.pdf</v>
+<v>Workspace1\ce4950-term-project\cy_clock_v2_20</v>
+<v>Workspace1\ce4950-term-project\cy_clock_v2_20\cy_clock_v2_20.pdf</v>
+<v>Workspace1\ce4950-term-project\cy_constant_v1_0.pdf</v>
+<v>Workspace1\ce4950-term-project\cy_isr_v1_70</v>
+<v>Workspace1\ce4950-term-project\cy_isr_v1_70\cy_isr_v1_70.pdf</v>
+<v>Workspace1\ce4950-term-project\cy_pins_v2_20</v>
+<v>Workspace1\ce4950-term-project\cy_pins_v2_20\cy_pins_v2_20.pdf</v>
+<v>Workspace1\ce4950-term-project\CyControlReg_v1_80</v>
+<v>Workspace1\ce4950-term-project\CyControlReg_v1_80\CyControlReg_v1_80.pdf</v>
+<v>Workspace1\ce4950-term-project\CyStatusReg_v1_90.pdf</v>
+<v>Workspace1\ce4950-term-project\demux_v1_10.pdf</v>
+<v>Workspace1\ce4950-term-project\not_v1_0.pdf</v>
+<v>Workspace1\ce4950-term-project\Timer_v2_80</v>
+<v>Workspace1\ce4950-term-project\Timer_v2_80\Timer_v2_80.pdf</v>
+<v>Workspace1\ce4950-term-project\USBFS_v3_20.pdf</v>
+</ExpandedNodeIds>
+<VisibleNodeIds>
+<v>Workspace1</v>
+<v>Workspace1\ce4950-term-project</v>
+<v>Workspace1\ce4950-term-project\PSoC 5LP Architecture TRM</v>
+<v>Workspace1\ce4950-term-project\CY8C58LP Family Datasheet</v>
+<v>Workspace1\ce4950-term-project\System Reference Guides</v>
+<v>Workspace1\ce4950-term-project\System Reference Guides\cy_boot_v5_60</v>
+<v>Workspace1\ce4950-term-project\CapSense_CSD_v3_50.pdf</v>
+<v>Workspace1\ce4950-term-project\CharLCD_v2_20.pdf</v>
+<v>Workspace1\ce4950-term-project\cy_clock_v2_20</v>
+<v>Workspace1\ce4950-term-project\cy_clock_v2_20\cy_clock_v2_20.pdf</v>
+<v>Workspace1\ce4950-term-project\cy_constant_v1_0.pdf</v>
+<v>Workspace1\ce4950-term-project\cy_isr_v1_70</v>
+<v>Workspace1\ce4950-term-project\cy_isr_v1_70\cy_isr_v1_70.pdf</v>
+<v>Workspace1\ce4950-term-project\cy_pins_v2_20</v>
+<v>Workspace1\ce4950-term-project\cy_pins_v2_20\cy_pins_v2_20.pdf</v>
+<v>Workspace1\ce4950-term-project\CyControlReg_v1_80</v>
+<v>Workspace1\ce4950-term-project\CyControlReg_v1_80\CyControlReg_v1_80.pdf</v>
+<v>Workspace1\ce4950-term-project\CyStatusReg_v1_90.pdf</v>
+<v>Workspace1\ce4950-term-project\demux_v1_10.pdf</v>
+<v>Workspace1\ce4950-term-project\not_v1_0.pdf</v>
+<v>Workspace1\ce4950-term-project\Timer_v2_80</v>
+<v>Workspace1\ce4950-term-project\Timer_v2_80\Timer_v2_80.pdf</v>
+<v>Workspace1\ce4950-term-project\USBFS_v3_20.pdf</v>
+</VisibleNodeIds>
+</CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237>
+</TreeStatesV2>
+</CyGuid_1b906a0f-a7b6-4e4d-a428-82f98b53cb35>
+</dataGuid>
+</userData>
+</CyGuid_fdba8dfd-b15b-4469-9bbb-9e40c3e70997>
+<Unloaded />
+<OpenDocs>
+<name v=".\ce4950-term-project.cydsn\main.c" />
+<name v=".\ce4950-term-project.cydsn\Application.c" />
+</OpenDocs>
+<OpenDocsLayout><![CDATA[<?xml version="1.0"?><!--
+
+  Actipro Docking/MDI for WinForms
+  Copyright (c) 2001-2016 Actipro Software LLC.  All rights reserved.
+  http://www.actiprosoftware.com
+
+--><DocumentLayout Version="1.0"><LayoutData><TabbedMdiRootContainer Orientation="Vertical"><TabbedMdiContainer Size="715, 487" SelectedTabbedMdiWindow="fee464e0-5e2b-4c5c-8537-93ecef5dd182"><DocumentWindow Key="C:\Users\henrichsc\Desktop\School\Senior_year\winter\ce4950\ce4950-term-project\Workspace1\ce4950-term-project.cydsn\main.c" Guid="a8da68c4-c499-4178-ba3e-425a9d52c997" /><DocumentWindow Key="C:\Users\henrichsc\Desktop\School\Senior_year\winter\ce4950\ce4950-term-project\Workspace1\ce4950-term-project.cydsn\Application.c" Guid="fee464e0-5e2b-4c5c-8537-93ecef5dd182" /></TabbedMdiContainer></TabbedMdiRootContainer><FloatingContainers /></LayoutData></DocumentLayout>]]></OpenDocsLayout>
+<config v="" />
+<AutoUpdate v="true" />
+</CyGuid_843a90a4-0c4b-4e44-991d-05e7fb117a21>
+</CyXmlSerializer>

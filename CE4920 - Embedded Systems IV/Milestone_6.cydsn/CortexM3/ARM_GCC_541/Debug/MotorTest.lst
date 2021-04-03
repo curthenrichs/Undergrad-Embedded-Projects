@@ -1,0 +1,922 @@
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccOT2Umg.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"MotorTest.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.motor_init,"ax",%progbits
+  20              		.align	2
+  21              		.global	motor_init
+  22              		.thumb
+  23              		.thumb_func
+  24              		.type	motor_init, %function
+  25              	motor_init:
+  26              	.LFB63:
+  27              		.file 1 "MotorTest.c"
+   1:MotorTest.c   **** 
+   2:MotorTest.c   **** #include "MotorTest.h"
+   3:MotorTest.c   **** 
+   4:MotorTest.c   **** void motor_init(void){
+  28              		.loc 1 4 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32 0000 08B5     		push	{r3, lr}
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 3, -8
+  35              		.cfi_offset 14, -4
+   5:MotorTest.c   ****     PWM_Start();   
+  36              		.loc 1 5 0
+  37 0002 FFF7FEFF 		bl	PWM_Start
+  38              	.LVL0:
+  39 0006 08BD     		pop	{r3, pc}
+  40              		.cfi_endproc
+  41              	.LFE63:
+  42              		.size	motor_init, .-motor_init
+  43              		.global	__aeabi_fcmplt
+  44              		.global	__aeabi_fmul
+  45              		.global	__aeabi_fcmpge
+  46              		.global	__aeabi_fadd
+  47              		.global	__aeabi_fcmpgt
+  48              		.global	__aeabi_f2uiz
+  49              		.section	.text.motor_ramp,"ax",%progbits
+  50              		.align	2
+  51              		.global	motor_ramp
+  52              		.thumb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccOT2Umg.s 			page 2
+
+
+  53              		.thumb_func
+  54              		.type	motor_ramp, %function
+  55              	motor_ramp:
+  56              	.LFB64:
+   6:MotorTest.c   **** }
+   7:MotorTest.c   **** 
+   8:MotorTest.c   **** float motor_ramp(float target, float base, float step){
+  57              		.loc 1 8 0
+  58              		.cfi_startproc
+  59              		@ args = 0, pretend = 0, frame = 0
+  60              		@ frame_needed = 0, uses_anonymous_args = 0
+  61              	.LVL1:
+  62 0000 70B5     		push	{r4, r5, r6, lr}
+  63              		.cfi_def_cfa_offset 16
+  64              		.cfi_offset 4, -16
+  65              		.cfi_offset 5, -12
+  66              		.cfi_offset 6, -8
+  67              		.cfi_offset 14, -4
+  68 0002 0446     		mov	r4, r0
+  69 0004 0E46     		mov	r6, r1
+  70 0006 1546     		mov	r5, r2
+  71              	.LVL2:
+   9:MotorTest.c   ****     float duty = 0;
+  10:MotorTest.c   ****     step = step * ((target < base) ? -1 : 1);
+  72              		.loc 1 10 0
+  73 0008 FFF7FEFF 		bl	__aeabi_fcmplt
+  74              	.LVL3:
+  75 000c 08B1     		cbz	r0, .L15
+  76 000e 1848     		ldr	r0, .L17
+  77 0010 01E0     		b	.L4
+  78              	.L15:
+  79 0012 4FF07E50 		mov	r0, #1065353216
+  80              	.L4:
+  81              		.loc 1 10 0 is_stmt 0 discriminator 4
+  82 0016 2946     		mov	r1, r5
+  83 0018 FFF7FEFF 		bl	__aeabi_fmul
+  84              	.LVL4:
+  85 001c 0546     		mov	r5, r0
+  86              	.LVL5:
+  11:MotorTest.c   ****     if(step >= 0 && (base + step) > target){
+  87              		.loc 1 11 0 is_stmt 1 discriminator 4
+  88 001e 0021     		movs	r1, #0
+  89 0020 FFF7FEFF 		bl	__aeabi_fcmpge
+  90              	.LVL6:
+  91 0024 40B1     		cbz	r0, .L6
+  92              		.loc 1 11 0 is_stmt 0 discriminator 1
+  93 0026 2946     		mov	r1, r5
+  94 0028 3046     		mov	r0, r6
+  95 002a FFF7FEFF 		bl	__aeabi_fadd
+  96              	.LVL7:
+  97 002e 0146     		mov	r1, r0
+  98 0030 2046     		mov	r0, r4
+  99 0032 FFF7FEFF 		bl	__aeabi_fcmplt
+ 100              	.LVL8:
+ 101 0036 90B9     		cbnz	r0, .L8
+ 102              	.L6:
+  12:MotorTest.c   ****         duty = target;   
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccOT2Umg.s 			page 3
+
+
+  13:MotorTest.c   ****     }else if(step < 0 && (base + step) < target){
+ 103              		.loc 1 13 0 is_stmt 1
+ 104 0038 0021     		movs	r1, #0
+ 105 003a 2846     		mov	r0, r5
+ 106 003c FFF7FEFF 		bl	__aeabi_fcmplt
+ 107              	.LVL9:
+ 108 0040 40B1     		cbz	r0, .L9
+ 109              		.loc 1 13 0 is_stmt 0 discriminator 1
+ 110 0042 2946     		mov	r1, r5
+ 111 0044 3046     		mov	r0, r6
+ 112 0046 FFF7FEFF 		bl	__aeabi_fadd
+ 113              	.LVL10:
+ 114 004a 0146     		mov	r1, r0
+ 115 004c 2046     		mov	r0, r4
+ 116 004e FFF7FEFF 		bl	__aeabi_fcmpgt
+ 117              	.LVL11:
+ 118 0052 20B9     		cbnz	r0, .L8
+ 119              	.L9:
+  14:MotorTest.c   ****         duty = target;   
+  15:MotorTest.c   ****     }else {
+  16:MotorTest.c   ****         duty = base + step;
+ 120              		.loc 1 16 0 is_stmt 1
+ 121 0054 2946     		mov	r1, r5
+ 122 0056 3046     		mov	r0, r6
+ 123 0058 FFF7FEFF 		bl	__aeabi_fadd
+ 124              	.LVL12:
+ 125 005c 0446     		mov	r4, r0
+ 126              	.LVL13:
+ 127              	.L8:
+  17:MotorTest.c   ****     }
+  18:MotorTest.c   ****     PWM_WriteCompare((uint8_t)(duty));
+ 128              		.loc 1 18 0
+ 129 005e 2046     		mov	r0, r4
+ 130 0060 FFF7FEFF 		bl	__aeabi_f2uiz
+ 131              	.LVL14:
+ 132 0064 C0B2     		uxtb	r0, r0
+ 133 0066 FFF7FEFF 		bl	PWM_WriteCompare
+ 134              	.LVL15:
+  19:MotorTest.c   ****     return duty;
+  20:MotorTest.c   **** }
+ 135              		.loc 1 20 0
+ 136 006a 2046     		mov	r0, r4
+ 137 006c 70BD     		pop	{r4, r5, r6, pc}
+ 138              	.LVL16:
+ 139              	.L18:
+ 140 006e 00BF     		.align	2
+ 141              	.L17:
+ 142 0070 000080BF 		.word	-1082130432
+ 143              		.cfi_endproc
+ 144              	.LFE64:
+ 145              		.size	motor_ramp, .-motor_ramp
+ 146              		.section	.text.motor_get_fault_status,"ax",%progbits
+ 147              		.align	2
+ 148              		.global	motor_get_fault_status
+ 149              		.thumb
+ 150              		.thumb_func
+ 151              		.type	motor_get_fault_status, %function
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccOT2Umg.s 			page 4
+
+
+ 152              	motor_get_fault_status:
+ 153              	.LFB65:
+  21:MotorTest.c   **** 
+  22:MotorTest.c   **** bool motor_get_fault_status(void){
+ 154              		.loc 1 22 0
+ 155              		.cfi_startproc
+ 156              		@ args = 0, pretend = 0, frame = 0
+ 157              		@ frame_needed = 0, uses_anonymous_args = 0
+ 158 0000 08B5     		push	{r3, lr}
+ 159              		.cfi_def_cfa_offset 8
+ 160              		.cfi_offset 3, -8
+ 161              		.cfi_offset 14, -4
+  23:MotorTest.c   ****     return Motor_Fault_Status_Read();   
+ 162              		.loc 1 23 0
+ 163 0002 FFF7FEFF 		bl	Motor_Fault_Status_Read
+ 164              	.LVL17:
+  24:MotorTest.c   **** }...
+ 165              		.loc 1 24 0
+ 166 0006 0030     		adds	r0, r0, #0
+ 167 0008 18BF     		it	ne
+ 168 000a 0120     		movne	r0, #1
+ 169 000c 08BD     		pop	{r3, pc}
+ 170              		.cfi_endproc
+ 171              	.LFE65:
+ 172              		.size	motor_get_fault_status, .-motor_get_fault_status
+ 173 000e 00BF     		.text
+ 174              	.Letext0:
+ 175              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 176              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 177              		.file 4 "Generated_Source\\PSoC5/PWM.h"
+ 178              		.file 5 "Generated_Source\\PSoC5/Motor_Fault_Status.h"
+ 179              		.file 6 "Generated_Source\\PSoC5/core_cm3.h"
+ 180              		.section	.debug_info,"",%progbits
+ 181              	.Ldebug_info0:
+ 182 0000 91010000 		.4byte	0x191
+ 183 0004 0400     		.2byte	0x4
+ 184 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 185 000a 04       		.byte	0x4
+ 186 000b 01       		.uleb128 0x1
+ 187 000c 5E000000 		.4byte	.LASF27
+ 188 0010 0C       		.byte	0xc
+ 189 0011 36020000 		.4byte	.LASF28
+ 190 0015 E6010000 		.4byte	.LASF29
+ 191 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 192 001d 00000000 		.4byte	0
+ 193 0021 00000000 		.4byte	.Ldebug_line0
+ 194 0025 02       		.uleb128 0x2
+ 195 0026 04       		.byte	0x4
+ 196 0027 04       		.byte	0x4
+ 197 0028 4A000000 		.4byte	.LASF0
+ 198 002c 02       		.uleb128 0x2
+ 199 002d 01       		.byte	0x1
+ 200 002e 06       		.byte	0x6
+ 201 002f D4010000 		.4byte	.LASF1
+ 202 0033 03       		.uleb128 0x3
+ 203 0034 00000000 		.4byte	.LASF5
+ 204 0038 02       		.byte	0x2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccOT2Umg.s 			page 5
+
+
+ 205 0039 1D       		.byte	0x1d
+ 206 003a 3E000000 		.4byte	0x3e
+ 207 003e 02       		.uleb128 0x2
+ 208 003f 01       		.byte	0x1
+ 209 0040 08       		.byte	0x8
+ 210 0041 50000000 		.4byte	.LASF2
+ 211 0045 02       		.uleb128 0x2
+ 212 0046 02       		.byte	0x2
+ 213 0047 05       		.byte	0x5
+ 214 0048 94010000 		.4byte	.LASF3
+ 215 004c 02       		.uleb128 0x2
+ 216 004d 02       		.byte	0x2
+ 217 004e 07       		.byte	0x7
+ 218 004f F1000000 		.4byte	.LASF4
+ 219 0053 03       		.uleb128 0x3
+ 220 0054 0A000000 		.4byte	.LASF6
+ 221 0058 02       		.byte	0x2
+ 222 0059 3F       		.byte	0x3f
+ 223 005a 5E000000 		.4byte	0x5e
+ 224 005e 02       		.uleb128 0x2
+ 225 005f 04       		.byte	0x4
+ 226 0060 05       		.byte	0x5
+ 227 0061 BF010000 		.4byte	.LASF7
+ 228 0065 02       		.uleb128 0x2
+ 229 0066 04       		.byte	0x4
+ 230 0067 07       		.byte	0x7
+ 231 0068 16010000 		.4byte	.LASF8
+ 232 006c 02       		.uleb128 0x2
+ 233 006d 08       		.byte	0x8
+ 234 006e 05       		.byte	0x5
+ 235 006f 81010000 		.4byte	.LASF9
+ 236 0073 02       		.uleb128 0x2
+ 237 0074 08       		.byte	0x8
+ 238 0075 07       		.byte	0x7
+ 239 0076 46010000 		.4byte	.LASF10
+ 240 007a 04       		.uleb128 0x4
+ 241 007b 04       		.byte	0x4
+ 242 007c 05       		.byte	0x5
+ 243 007d 696E7400 		.ascii	"int\000"
+ 244 0081 02       		.uleb128 0x2
+ 245 0082 04       		.byte	0x4
+ 246 0083 07       		.byte	0x7
+ 247 0084 39010000 		.4byte	.LASF11
+ 248 0088 03       		.uleb128 0x3
+ 249 0089 5D010000 		.4byte	.LASF12
+ 250 008d 03       		.byte	0x3
+ 251 008e 18       		.byte	0x18
+ 252 008f 33000000 		.4byte	0x33
+ 253 0093 03       		.uleb128 0x3
+ 254 0094 70010000 		.4byte	.LASF13
+ 255 0098 03       		.byte	0x3
+ 256 0099 2C       		.byte	0x2c
+ 257 009a 53000000 		.4byte	0x53
+ 258 009e 02       		.uleb128 0x2
+ 259 009f 08       		.byte	0x8
+ 260 00a0 04       		.byte	0x4
+ 261 00a1 3C000000 		.4byte	.LASF14
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccOT2Umg.s 			page 6
+
+
+ 262 00a5 02       		.uleb128 0x2
+ 263 00a6 01       		.byte	0x1
+ 264 00a7 08       		.byte	0x8
+ 265 00a8 8F010000 		.4byte	.LASF15
+ 266 00ac 02       		.uleb128 0x2
+ 267 00ad 08       		.byte	0x8
+ 268 00ae 04       		.byte	0x4
+ 269 00af C8010000 		.4byte	.LASF16
+ 270 00b3 02       		.uleb128 0x2
+ 271 00b4 04       		.byte	0x4
+ 272 00b5 07       		.byte	0x7
+ 273 00b6 78010000 		.4byte	.LASF17
+ 274 00ba 05       		.uleb128 0x5
+ 275 00bb 19000000 		.4byte	.LASF30
+ 276 00bf 01       		.byte	0x1
+ 277 00c0 04       		.byte	0x4
+ 278 00c1 00000000 		.4byte	.LFB63
+ 279 00c5 08000000 		.4byte	.LFE63-.LFB63
+ 280 00c9 01       		.uleb128 0x1
+ 281 00ca 9C       		.byte	0x9c
+ 282 00cb D9000000 		.4byte	0xd9
+ 283 00cf 06       		.uleb128 0x6
+ 284 00d0 06000000 		.4byte	.LVL0
+ 285 00d4 73010000 		.4byte	0x173
+ 286 00d8 00       		.byte	0
+ 287 00d9 07       		.uleb128 0x7
+ 288 00da 65010000 		.4byte	.LASF21
+ 289 00de 01       		.byte	0x1
+ 290 00df 08       		.byte	0x8
+ 291 00e0 25000000 		.4byte	0x25
+ 292 00e4 00000000 		.4byte	.LFB64
+ 293 00e8 74000000 		.4byte	.LFE64-.LFB64
+ 294 00ec 01       		.uleb128 0x1
+ 295 00ed 9C       		.byte	0x9c
+ 296 00ee 38010000 		.4byte	0x138
+ 297 00f2 08       		.uleb128 0x8
+ 298 00f3 43000000 		.4byte	.LASF18
+ 299 00f7 01       		.byte	0x1
+ 300 00f8 08       		.byte	0x8
+ 301 00f9 25000000 		.4byte	0x25
+ 302 00fd 00000000 		.4byte	.LLST0
+ 303 0101 08       		.uleb128 0x8
+ 304 0102 EC000000 		.4byte	.LASF19
+ 305 0106 01       		.byte	0x1
+ 306 0107 08       		.byte	0x8
+ 307 0108 25000000 		.4byte	0x25
+ 308 010c 2E000000 		.4byte	.LLST1
+ 309 0110 08       		.uleb128 0x8
+ 310 0111 14000000 		.4byte	.LASF20
+ 311 0115 01       		.byte	0x1
+ 312 0116 08       		.byte	0x8
+ 313 0117 25000000 		.4byte	0x25
+ 314 011b 5C000000 		.4byte	.LLST2
+ 315 011f 09       		.uleb128 0x9
+ 316 0120 04010000 		.4byte	.LASF31
+ 317 0124 01       		.byte	0x1
+ 318 0125 09       		.byte	0x9
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccOT2Umg.s 			page 7
+
+
+ 319 0126 25000000 		.4byte	0x25
+ 320 012a 90000000 		.4byte	.LLST3
+ 321 012e 06       		.uleb128 0x6
+ 322 012f 6A000000 		.4byte	.LVL15
+ 323 0133 7E010000 		.4byte	0x17e
+ 324 0137 00       		.byte	0
+ 325 0138 0A       		.uleb128 0xa
+ 326 0139 9E010000 		.4byte	.LASF22
+ 327 013d 01       		.byte	0x1
+ 328 013e 16       		.byte	0x16
+ 329 013f 5B010000 		.4byte	0x15b
+ 330 0143 00000000 		.4byte	.LFB65
+ 331 0147 0E000000 		.4byte	.LFE65-.LFB65
+ 332 014b 01       		.uleb128 0x1
+ 333 014c 9C       		.byte	0x9c
+ 334 014d 5B010000 		.4byte	0x15b
+ 335 0151 06       		.uleb128 0x6
+ 336 0152 06000000 		.4byte	.LVL17
+ 337 0156 89010000 		.4byte	0x189
+ 338 015a 00       		.byte	0
+ 339 015b 02       		.uleb128 0x2
+ 340 015c 01       		.byte	0x1
+ 341 015d 02       		.byte	0x2
+ 342 015e E0010000 		.4byte	.LASF23
+ 343 0162 0B       		.uleb128 0xb
+ 344 0163 09010000 		.4byte	.LASF32
+ 345 0167 06       		.byte	0x6
+ 346 0168 1207     		.2byte	0x712
+ 347 016a 6E010000 		.4byte	0x16e
+ 348 016e 0C       		.uleb128 0xc
+ 349 016f 93000000 		.4byte	0x93
+ 350 0173 0D       		.uleb128 0xd
+ 351 0174 B5010000 		.4byte	.LASF24
+ 352 0178 B5010000 		.4byte	.LASF24
+ 353 017c 04       		.byte	0x4
+ 354 017d 92       		.byte	0x92
+ 355 017e 0D       		.uleb128 0xd
+ 356 017f 28010000 		.4byte	.LASF25
+ 357 0183 28010000 		.4byte	.LASF25
+ 358 0187 04       		.byte	0x4
+ 359 0188 C3       		.byte	0xc3
+ 360 0189 0D       		.uleb128 0xd
+ 361 018a 24000000 		.4byte	.LASF26
+ 362 018e 24000000 		.4byte	.LASF26
+ 363 0192 05       		.byte	0x5
+ 364 0193 30       		.byte	0x30
+ 365 0194 00       		.byte	0
+ 366              		.section	.debug_abbrev,"",%progbits
+ 367              	.Ldebug_abbrev0:
+ 368 0000 01       		.uleb128 0x1
+ 369 0001 11       		.uleb128 0x11
+ 370 0002 01       		.byte	0x1
+ 371 0003 25       		.uleb128 0x25
+ 372 0004 0E       		.uleb128 0xe
+ 373 0005 13       		.uleb128 0x13
+ 374 0006 0B       		.uleb128 0xb
+ 375 0007 03       		.uleb128 0x3
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccOT2Umg.s 			page 8
+
+
+ 376 0008 0E       		.uleb128 0xe
+ 377 0009 1B       		.uleb128 0x1b
+ 378 000a 0E       		.uleb128 0xe
+ 379 000b 55       		.uleb128 0x55
+ 380 000c 17       		.uleb128 0x17
+ 381 000d 11       		.uleb128 0x11
+ 382 000e 01       		.uleb128 0x1
+ 383 000f 10       		.uleb128 0x10
+ 384 0010 17       		.uleb128 0x17
+ 385 0011 00       		.byte	0
+ 386 0012 00       		.byte	0
+ 387 0013 02       		.uleb128 0x2
+ 388 0014 24       		.uleb128 0x24
+ 389 0015 00       		.byte	0
+ 390 0016 0B       		.uleb128 0xb
+ 391 0017 0B       		.uleb128 0xb
+ 392 0018 3E       		.uleb128 0x3e
+ 393 0019 0B       		.uleb128 0xb
+ 394 001a 03       		.uleb128 0x3
+ 395 001b 0E       		.uleb128 0xe
+ 396 001c 00       		.byte	0
+ 397 001d 00       		.byte	0
+ 398 001e 03       		.uleb128 0x3
+ 399 001f 16       		.uleb128 0x16
+ 400 0020 00       		.byte	0
+ 401 0021 03       		.uleb128 0x3
+ 402 0022 0E       		.uleb128 0xe
+ 403 0023 3A       		.uleb128 0x3a
+ 404 0024 0B       		.uleb128 0xb
+ 405 0025 3B       		.uleb128 0x3b
+ 406 0026 0B       		.uleb128 0xb
+ 407 0027 49       		.uleb128 0x49
+ 408 0028 13       		.uleb128 0x13
+ 409 0029 00       		.byte	0
+ 410 002a 00       		.byte	0
+ 411 002b 04       		.uleb128 0x4
+ 412 002c 24       		.uleb128 0x24
+ 413 002d 00       		.byte	0
+ 414 002e 0B       		.uleb128 0xb
+ 415 002f 0B       		.uleb128 0xb
+ 416 0030 3E       		.uleb128 0x3e
+ 417 0031 0B       		.uleb128 0xb
+ 418 0032 03       		.uleb128 0x3
+ 419 0033 08       		.uleb128 0x8
+ 420 0034 00       		.byte	0
+ 421 0035 00       		.byte	0
+ 422 0036 05       		.uleb128 0x5
+ 423 0037 2E       		.uleb128 0x2e
+ 424 0038 01       		.byte	0x1
+ 425 0039 3F       		.uleb128 0x3f
+ 426 003a 19       		.uleb128 0x19
+ 427 003b 03       		.uleb128 0x3
+ 428 003c 0E       		.uleb128 0xe
+ 429 003d 3A       		.uleb128 0x3a
+ 430 003e 0B       		.uleb128 0xb
+ 431 003f 3B       		.uleb128 0x3b
+ 432 0040 0B       		.uleb128 0xb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccOT2Umg.s 			page 9
+
+
+ 433 0041 27       		.uleb128 0x27
+ 434 0042 19       		.uleb128 0x19
+ 435 0043 11       		.uleb128 0x11
+ 436 0044 01       		.uleb128 0x1
+ 437 0045 12       		.uleb128 0x12
+ 438 0046 06       		.uleb128 0x6
+ 439 0047 40       		.uleb128 0x40
+ 440 0048 18       		.uleb128 0x18
+ 441 0049 9742     		.uleb128 0x2117
+ 442 004b 19       		.uleb128 0x19
+ 443 004c 01       		.uleb128 0x1
+ 444 004d 13       		.uleb128 0x13
+ 445 004e 00       		.byte	0
+ 446 004f 00       		.byte	0
+ 447 0050 06       		.uleb128 0x6
+ 448 0051 898201   		.uleb128 0x4109
+ 449 0054 00       		.byte	0
+ 450 0055 11       		.uleb128 0x11
+ 451 0056 01       		.uleb128 0x1
+ 452 0057 31       		.uleb128 0x31
+ 453 0058 13       		.uleb128 0x13
+ 454 0059 00       		.byte	0
+ 455 005a 00       		.byte	0
+ 456 005b 07       		.uleb128 0x7
+ 457 005c 2E       		.uleb128 0x2e
+ 458 005d 01       		.byte	0x1
+ 459 005e 3F       		.uleb128 0x3f
+ 460 005f 19       		.uleb128 0x19
+ 461 0060 03       		.uleb128 0x3
+ 462 0061 0E       		.uleb128 0xe
+ 463 0062 3A       		.uleb128 0x3a
+ 464 0063 0B       		.uleb128 0xb
+ 465 0064 3B       		.uleb128 0x3b
+ 466 0065 0B       		.uleb128 0xb
+ 467 0066 27       		.uleb128 0x27
+ 468 0067 19       		.uleb128 0x19
+ 469 0068 49       		.uleb128 0x49
+ 470 0069 13       		.uleb128 0x13
+ 471 006a 11       		.uleb128 0x11
+ 472 006b 01       		.uleb128 0x1
+ 473 006c 12       		.uleb128 0x12
+ 474 006d 06       		.uleb128 0x6
+ 475 006e 40       		.uleb128 0x40
+ 476 006f 18       		.uleb128 0x18
+ 477 0070 9642     		.uleb128 0x2116
+ 478 0072 19       		.uleb128 0x19
+ 479 0073 01       		.uleb128 0x1
+ 480 0074 13       		.uleb128 0x13
+ 481 0075 00       		.byte	0
+ 482 0076 00       		.byte	0
+ 483 0077 08       		.uleb128 0x8
+ 484 0078 05       		.uleb128 0x5
+ 485 0079 00       		.byte	0
+ 486 007a 03       		.uleb128 0x3
+ 487 007b 0E       		.uleb128 0xe
+ 488 007c 3A       		.uleb128 0x3a
+ 489 007d 0B       		.uleb128 0xb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccOT2Umg.s 			page 10
+
+
+ 490 007e 3B       		.uleb128 0x3b
+ 491 007f 0B       		.uleb128 0xb
+ 492 0080 49       		.uleb128 0x49
+ 493 0081 13       		.uleb128 0x13
+ 494 0082 02       		.uleb128 0x2
+ 495 0083 17       		.uleb128 0x17
+ 496 0084 00       		.byte	0
+ 497 0085 00       		.byte	0
+ 498 0086 09       		.uleb128 0x9
+ 499 0087 34       		.uleb128 0x34
+ 500 0088 00       		.byte	0
+ 501 0089 03       		.uleb128 0x3
+ 502 008a 0E       		.uleb128 0xe
+ 503 008b 3A       		.uleb128 0x3a
+ 504 008c 0B       		.uleb128 0xb
+ 505 008d 3B       		.uleb128 0x3b
+ 506 008e 0B       		.uleb128 0xb
+ 507 008f 49       		.uleb128 0x49
+ 508 0090 13       		.uleb128 0x13
+ 509 0091 02       		.uleb128 0x2
+ 510 0092 17       		.uleb128 0x17
+ 511 0093 00       		.byte	0
+ 512 0094 00       		.byte	0
+ 513 0095 0A       		.uleb128 0xa
+ 514 0096 2E       		.uleb128 0x2e
+ 515 0097 01       		.byte	0x1
+ 516 0098 3F       		.uleb128 0x3f
+ 517 0099 19       		.uleb128 0x19
+ 518 009a 03       		.uleb128 0x3
+ 519 009b 0E       		.uleb128 0xe
+ 520 009c 3A       		.uleb128 0x3a
+ 521 009d 0B       		.uleb128 0xb
+ 522 009e 3B       		.uleb128 0x3b
+ 523 009f 0B       		.uleb128 0xb
+ 524 00a0 27       		.uleb128 0x27
+ 525 00a1 19       		.uleb128 0x19
+ 526 00a2 49       		.uleb128 0x49
+ 527 00a3 13       		.uleb128 0x13
+ 528 00a4 11       		.uleb128 0x11
+ 529 00a5 01       		.uleb128 0x1
+ 530 00a6 12       		.uleb128 0x12
+ 531 00a7 06       		.uleb128 0x6
+ 532 00a8 40       		.uleb128 0x40
+ 533 00a9 18       		.uleb128 0x18
+ 534 00aa 9742     		.uleb128 0x2117
+ 535 00ac 19       		.uleb128 0x19
+ 536 00ad 01       		.uleb128 0x1
+ 537 00ae 13       		.uleb128 0x13
+ 538 00af 00       		.byte	0
+ 539 00b0 00       		.byte	0
+ 540 00b1 0B       		.uleb128 0xb
+ 541 00b2 34       		.uleb128 0x34
+ 542 00b3 00       		.byte	0
+ 543 00b4 03       		.uleb128 0x3
+ 544 00b5 0E       		.uleb128 0xe
+ 545 00b6 3A       		.uleb128 0x3a
+ 546 00b7 0B       		.uleb128 0xb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccOT2Umg.s 			page 11
+
+
+ 547 00b8 3B       		.uleb128 0x3b
+ 548 00b9 05       		.uleb128 0x5
+ 549 00ba 49       		.uleb128 0x49
+ 550 00bb 13       		.uleb128 0x13
+ 551 00bc 3F       		.uleb128 0x3f
+ 552 00bd 19       		.uleb128 0x19
+ 553 00be 3C       		.uleb128 0x3c
+ 554 00bf 19       		.uleb128 0x19
+ 555 00c0 00       		.byte	0
+ 556 00c1 00       		.byte	0
+ 557 00c2 0C       		.uleb128 0xc
+ 558 00c3 35       		.uleb128 0x35
+ 559 00c4 00       		.byte	0
+ 560 00c5 49       		.uleb128 0x49
+ 561 00c6 13       		.uleb128 0x13
+ 562 00c7 00       		.byte	0
+ 563 00c8 00       		.byte	0
+ 564 00c9 0D       		.uleb128 0xd
+ 565 00ca 2E       		.uleb128 0x2e
+ 566 00cb 00       		.byte	0
+ 567 00cc 3F       		.uleb128 0x3f
+ 568 00cd 19       		.uleb128 0x19
+ 569 00ce 3C       		.uleb128 0x3c
+ 570 00cf 19       		.uleb128 0x19
+ 571 00d0 6E       		.uleb128 0x6e
+ 572 00d1 0E       		.uleb128 0xe
+ 573 00d2 03       		.uleb128 0x3
+ 574 00d3 0E       		.uleb128 0xe
+ 575 00d4 3A       		.uleb128 0x3a
+ 576 00d5 0B       		.uleb128 0xb
+ 577 00d6 3B       		.uleb128 0x3b
+ 578 00d7 0B       		.uleb128 0xb
+ 579 00d8 00       		.byte	0
+ 580 00d9 00       		.byte	0
+ 581 00da 00       		.byte	0
+ 582              		.section	.debug_loc,"",%progbits
+ 583              	.Ldebug_loc0:
+ 584              	.LLST0:
+ 585 0000 00000000 		.4byte	.LVL1
+ 586 0004 0B000000 		.4byte	.LVL3-1
+ 587 0008 0100     		.2byte	0x1
+ 588 000a 50       		.byte	0x50
+ 589 000b 0B000000 		.4byte	.LVL3-1
+ 590 000f 5E000000 		.4byte	.LVL13
+ 591 0013 0100     		.2byte	0x1
+ 592 0015 54       		.byte	0x54
+ 593 0016 5E000000 		.4byte	.LVL13
+ 594 001a 74000000 		.4byte	.LFE64
+ 595 001e 0600     		.2byte	0x6
+ 596 0020 F3       		.byte	0xf3
+ 597 0021 03       		.uleb128 0x3
+ 598 0022 F5       		.byte	0xf5
+ 599 0023 00       		.uleb128 0
+ 600 0024 25       		.uleb128 0x25
+ 601 0025 9F       		.byte	0x9f
+ 602 0026 00000000 		.4byte	0
+ 603 002a 00000000 		.4byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccOT2Umg.s 			page 12
+
+
+ 604              	.LLST1:
+ 605 002e 00000000 		.4byte	.LVL1
+ 606 0032 0B000000 		.4byte	.LVL3-1
+ 607 0036 0100     		.2byte	0x1
+ 608 0038 51       		.byte	0x51
+ 609 0039 0B000000 		.4byte	.LVL3-1
+ 610 003d 6E000000 		.4byte	.LVL16
+ 611 0041 0100     		.2byte	0x1
+ 612 0043 56       		.byte	0x56
+ 613 0044 6E000000 		.4byte	.LVL16
+ 614 0048 74000000 		.4byte	.LFE64
+ 615 004c 0600     		.2byte	0x6
+ 616 004e F3       		.byte	0xf3
+ 617 004f 03       		.uleb128 0x3
+ 618 0050 F5       		.byte	0xf5
+ 619 0051 01       		.uleb128 0x1
+ 620 0052 25       		.uleb128 0x25
+ 621 0053 9F       		.byte	0x9f
+ 622 0054 00000000 		.4byte	0
+ 623 0058 00000000 		.4byte	0
+ 624              	.LLST2:
+ 625 005c 00000000 		.4byte	.LVL1
+ 626 0060 0B000000 		.4byte	.LVL3-1
+ 627 0064 0100     		.2byte	0x1
+ 628 0066 52       		.byte	0x52
+ 629 0067 0B000000 		.4byte	.LVL3-1
+ 630 006b 1E000000 		.4byte	.LVL5
+ 631 006f 0100     		.2byte	0x1
+ 632 0071 55       		.byte	0x55
+ 633 0072 1E000000 		.4byte	.LVL5
+ 634 0076 23000000 		.4byte	.LVL6-1
+ 635 007a 0100     		.2byte	0x1
+ 636 007c 50       		.byte	0x50
+ 637 007d 23000000 		.4byte	.LVL6-1
+ 638 0081 6E000000 		.4byte	.LVL16
+ 639 0085 0100     		.2byte	0x1
+ 640 0087 55       		.byte	0x55
+ 641 0088 00000000 		.4byte	0
+ 642 008c 00000000 		.4byte	0
+ 643              	.LLST3:
+ 644 0090 08000000 		.4byte	.LVL2
+ 645 0094 5E000000 		.4byte	.LVL13
+ 646 0098 0600     		.2byte	0x6
+ 647 009a 9E       		.byte	0x9e
+ 648 009b 04       		.uleb128 0x4
+ 649 009c 00000000 		.4byte	0
+ 650 00a0 5E000000 		.4byte	.LVL13
+ 651 00a4 6E000000 		.4byte	.LVL16
+ 652 00a8 0100     		.2byte	0x1
+ 653 00aa 54       		.byte	0x54
+ 654 00ab 6E000000 		.4byte	.LVL16
+ 655 00af 74000000 		.4byte	.LFE64
+ 656 00b3 0100     		.2byte	0x1
+ 657 00b5 50       		.byte	0x50
+ 658 00b6 00000000 		.4byte	0
+ 659 00ba 00000000 		.4byte	0
+ 660              		.section	.debug_aranges,"",%progbits
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccOT2Umg.s 			page 13
+
+
+ 661 0000 2C000000 		.4byte	0x2c
+ 662 0004 0200     		.2byte	0x2
+ 663 0006 00000000 		.4byte	.Ldebug_info0
+ 664 000a 04       		.byte	0x4
+ 665 000b 00       		.byte	0
+ 666 000c 0000     		.2byte	0
+ 667 000e 0000     		.2byte	0
+ 668 0010 00000000 		.4byte	.LFB63
+ 669 0014 08000000 		.4byte	.LFE63-.LFB63
+ 670 0018 00000000 		.4byte	.LFB64
+ 671 001c 74000000 		.4byte	.LFE64-.LFB64
+ 672 0020 00000000 		.4byte	.LFB65
+ 673 0024 0E000000 		.4byte	.LFE65-.LFB65
+ 674 0028 00000000 		.4byte	0
+ 675 002c 00000000 		.4byte	0
+ 676              		.section	.debug_ranges,"",%progbits
+ 677              	.Ldebug_ranges0:
+ 678 0000 00000000 		.4byte	.LFB63
+ 679 0004 08000000 		.4byte	.LFE63
+ 680 0008 00000000 		.4byte	.LFB64
+ 681 000c 74000000 		.4byte	.LFE64
+ 682 0010 00000000 		.4byte	.LFB65
+ 683 0014 0E000000 		.4byte	.LFE65
+ 684 0018 00000000 		.4byte	0
+ 685 001c 00000000 		.4byte	0
+ 686              		.section	.debug_line,"",%progbits
+ 687              	.Ldebug_line0:
+ 688 0000 B6010000 		.section	.debug_str,"MS",%progbits,1
+ 688      02006501 
+ 688      00000201 
+ 688      FB0E0D00 
+ 688      01010101 
+ 689              	.LASF5:
+ 690 0000 5F5F7569 		.ascii	"__uint8_t\000"
+ 690      6E74385F 
+ 690      7400
+ 691              	.LASF6:
+ 692 000a 5F5F696E 		.ascii	"__int32_t\000"
+ 692      7433325F 
+ 692      7400
+ 693              	.LASF20:
+ 694 0014 73746570 		.ascii	"step\000"
+ 694      00
+ 695              	.LASF30:
+ 696 0019 6D6F746F 		.ascii	"motor_init\000"
+ 696      725F696E 
+ 696      697400
+ 697              	.LASF26:
+ 698 0024 4D6F746F 		.ascii	"Motor_Fault_Status_Read\000"
+ 698      725F4661 
+ 698      756C745F 
+ 698      53746174 
+ 698      75735F52 
+ 699              	.LASF14:
+ 700 003c 646F7562 		.ascii	"double\000"
+ 700      6C6500
+ 701              	.LASF18:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccOT2Umg.s 			page 14
+
+
+ 702 0043 74617267 		.ascii	"target\000"
+ 702      657400
+ 703              	.LASF0:
+ 704 004a 666C6F61 		.ascii	"float\000"
+ 704      7400
+ 705              	.LASF2:
+ 706 0050 756E7369 		.ascii	"unsigned char\000"
+ 706      676E6564 
+ 706      20636861 
+ 706      7200
+ 707              	.LASF27:
+ 708 005e 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 708      43313120 
+ 708      352E342E 
+ 708      31203230 
+ 708      31363036 
+ 709 0091 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m3 -mthumb -g -O"
+ 709      20726576 
+ 709      6973696F 
+ 709      6E203233 
+ 709      37373135 
+ 710 00c4 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 710      66756E63 
+ 710      74696F6E 
+ 710      2D736563 
+ 710      74696F6E 
+ 711              	.LASF19:
+ 712 00ec 62617365 		.ascii	"base\000"
+ 712      00
+ 713              	.LASF4:
+ 714 00f1 73686F72 		.ascii	"short unsigned int\000"
+ 714      7420756E 
+ 714      7369676E 
+ 714      65642069 
+ 714      6E7400
+ 715              	.LASF31:
+ 716 0104 64757479 		.ascii	"duty\000"
+ 716      00
+ 717              	.LASF32:
+ 718 0109 49544D5F 		.ascii	"ITM_RxBuffer\000"
+ 718      52784275 
+ 718      66666572 
+ 718      00
+ 719              	.LASF8:
+ 720 0116 6C6F6E67 		.ascii	"long unsigned int\000"
+ 720      20756E73 
+ 720      69676E65 
+ 720      6420696E 
+ 720      7400
+ 721              	.LASF25:
+ 722 0128 50574D5F 		.ascii	"PWM_WriteCompare\000"
+ 722      57726974 
+ 722      65436F6D 
+ 722      70617265 
+ 722      00
+ 723              	.LASF11:
+ 724 0139 756E7369 		.ascii	"unsigned int\000"
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccOT2Umg.s 			page 15
+
+
+ 724      676E6564 
+ 724      20696E74 
+ 724      00
+ 725              	.LASF10:
+ 726 0146 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 726      206C6F6E 
+ 726      6720756E 
+ 726      7369676E 
+ 726      65642069 
+ 727              	.LASF12:
+ 728 015d 75696E74 		.ascii	"uint8_t\000"
+ 728      385F7400 
+ 729              	.LASF21:
+ 730 0165 6D6F746F 		.ascii	"motor_ramp\000"
+ 730      725F7261 
+ 730      6D7000
+ 731              	.LASF13:
+ 732 0170 696E7433 		.ascii	"int32_t\000"
+ 732      325F7400 
+ 733              	.LASF17:
+ 734 0178 73697A65 		.ascii	"sizetype\000"
+ 734      74797065 
+ 734      00
+ 735              	.LASF9:
+ 736 0181 6C6F6E67 		.ascii	"long long int\000"
+ 736      206C6F6E 
+ 736      6720696E 
+ 736      7400
+ 737              	.LASF15:
+ 738 018f 63686172 		.ascii	"char\000"
+ 738      00
+ 739              	.LASF3:
+ 740 0194 73686F72 		.ascii	"short int\000"
+ 740      7420696E 
+ 740      7400
+ 741              	.LASF22:
+ 742 019e 6D6F746F 		.ascii	"motor_get_fault_status\000"
+ 742      725F6765 
+ 742      745F6661 
+ 742      756C745F 
+ 742      73746174 
+ 743              	.LASF24:
+ 744 01b5 50574D5F 		.ascii	"PWM_Start\000"
+ 744      53746172 
+ 744      7400
+ 745              	.LASF7:
+ 746 01bf 6C6F6E67 		.ascii	"long int\000"
+ 746      20696E74 
+ 746      00
+ 747              	.LASF16:
+ 748 01c8 6C6F6E67 		.ascii	"long double\000"
+ 748      20646F75 
+ 748      626C6500 
+ 749              	.LASF1:
+ 750 01d4 7369676E 		.ascii	"signed char\000"
+ 750      65642063 
+ 750      68617200 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccOT2Umg.s 			page 16
+
+
+ 751              	.LASF23:
+ 752 01e0 5F426F6F 		.ascii	"_Bool\000"
+ 752      6C00
+ 753              	.LASF29:
+ 754 01e6 433A5C55 		.ascii	"C:\\Users\\henrichsc\\Desktop\\School\\Senior_year\\"
+ 754      73657273 
+ 754      5C68656E 
+ 754      72696368 
+ 754      73635C44 
+ 755 0214 66616C6C 		.ascii	"fall\\CE4920\\lab\\Milestone_6.cydsn\000"
+ 755      5C434534 
+ 755      3932305C 
+ 755      6C61625C 
+ 755      4D696C65 
+ 756              	.LASF28:
+ 757 0236 4D6F746F 		.ascii	"MotorTest.c\000"
+ 757      72546573 
+ 757      742E6300 
+ 758              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

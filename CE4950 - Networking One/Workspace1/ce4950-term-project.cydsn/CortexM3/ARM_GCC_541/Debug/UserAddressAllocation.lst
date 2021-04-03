@@ -1,0 +1,4017 @@
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"UserAddressAllocation.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.user_init,"ax",%progbits
+  20              		.align	2
+  21              		.global	user_init
+  22              		.thumb
+  23              		.thumb_func
+  24              		.type	user_init, %function
+  25              	user_init:
+  26              	.LFB0:
+  27              		.file 1 "UserAddressAllocation.c"
+   1:UserAddressAllocation.c **** /**
+   2:UserAddressAllocation.c ****  * UserAddressAllocation
+   3:UserAddressAllocation.c ****  * @author Curt Henrichs
+   4:UserAddressAllocation.c ****  * @date 2-3-18
+   5:UserAddressAllocation.c ****  *
+   6:UserAddressAllocation.c ****  * Defines and initializes a user name lookup table that corresponds to CE4950
+   7:UserAddressAllocation.c ****  * Networking 1's class roster for Winter Term 2017-2018 academic year.
+   8:UserAddressAllocation.c ****  *
+   9:UserAddressAllocation.c ****  * Use the mapping functions to convert from string to user to addresses.
+  10:UserAddressAllocation.c ****  */
+  11:UserAddressAllocation.c **** 
+  12:UserAddressAllocation.c **** //=============================================================================
+  13:UserAddressAllocation.c **** //                                 Libraries
+  14:UserAddressAllocation.c **** //=============================================================================
+  15:UserAddressAllocation.c **** 
+  16:UserAddressAllocation.c **** #include "UserAddressAllocation.h"
+  17:UserAddressAllocation.c **** 
+  18:UserAddressAllocation.c **** #include <string.h>
+  19:UserAddressAllocation.c **** 
+  20:UserAddressAllocation.c **** //=============================================================================
+  21:UserAddressAllocation.c **** //                            Data Structure Declaration
+  22:UserAddressAllocation.c **** //=============================================================================
+  23:UserAddressAllocation.c ****     
+  24:UserAddressAllocation.c **** /**
+  25:UserAddressAllocation.c ****  * Username table element captures relevant characteristics for all users of 
+  26:UserAddressAllocation.c ****  * network bus.
+  27:UserAddressAllocation.c ****  */
+  28:UserAddressAllocation.c **** typedef struct User_Info {
+  29:UserAddressAllocation.c ****     UserName_e name;    //! Enumerated name used for networking user association
+  30:UserAddressAllocation.c ****     const char* str;    //! Stringified identity for application layer
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 2
+
+
+  31:UserAddressAllocation.c ****     uint8_t lvl_1_addr; //! First address for user
+  32:UserAddressAllocation.c ****     uint8_t lvl_2_addr; //! Second address for user
+  33:UserAddressAllocation.c ****     uint8_t lvl_3_addr; //! Third address for user
+  34:UserAddressAllocation.c **** } User_Info_t;
+  35:UserAddressAllocation.c **** 
+  36:UserAddressAllocation.c **** //=============================================================================
+  37:UserAddressAllocation.c **** //                                Private Attributes
+  38:UserAddressAllocation.c **** //=============================================================================
+  39:UserAddressAllocation.c ****     
+  40:UserAddressAllocation.c **** /**
+  41:UserAddressAllocation.c ****  * Stores all username information.
+  42:UserAddressAllocation.c ****  * Initalized during module initalization.
+  43:UserAddressAllocation.c ****  */
+  44:UserAddressAllocation.c **** static User_Info_t _userTable[_USER_TABLE_SIZE];
+  45:UserAddressAllocation.c **** 
+  46:UserAddressAllocation.c **** //=============================================================================
+  47:UserAddressAllocation.c **** //                          Public Function Iplementation
+  48:UserAddressAllocation.c **** //=============================================================================
+  49:UserAddressAllocation.c **** 
+  50:UserAddressAllocation.c **** /**
+  51:UserAddressAllocation.c ****  * Initialization for user table. Must be called before attempting to convert
+  52:UserAddressAllocation.c ****  * between username forms.
+  53:UserAddressAllocation.c ****  */
+  54:UserAddressAllocation.c **** void user_init(void){
+  28              		.loc 1 54 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+  33              		.cfi_def_cfa_offset 36
+  34              		.cfi_offset 4, -36
+  35              		.cfi_offset 5, -32
+  36              		.cfi_offset 6, -28
+  37              		.cfi_offset 7, -24
+  38              		.cfi_offset 8, -20
+  39              		.cfi_offset 9, -16
+  40              		.cfi_offset 10, -12
+  41              		.cfi_offset 11, -8
+  42              		.cfi_offset 14, -4
+  55:UserAddressAllocation.c ****     _userTable[0].name = NETWORK_BROADCAST;
+  43              		.loc 1 55 0
+  44 0004 EC4B     		ldr	r3, .L3
+  45 0006 0022     		movs	r2, #0
+  46 0008 1A70     		strb	r2, [r3]
+  56:UserAddressAllocation.c ****     _userTable[0].str = "broadcast";
+  47              		.loc 1 56 0
+  48 000a EC49     		ldr	r1, .L3+4
+  49 000c 5960     		str	r1, [r3, #4]
+  57:UserAddressAllocation.c ****     _userTable[0].lvl_1_addr = 0x00;
+  50              		.loc 1 57 0
+  51 000e 1A72     		strb	r2, [r3, #8]
+  58:UserAddressAllocation.c ****     _userTable[0].lvl_2_addr = 0x00;
+  52              		.loc 1 58 0
+  53 0010 5A72     		strb	r2, [r3, #9]
+  59:UserAddressAllocation.c ****     _userTable[0].lvl_3_addr = 0x00;
+  54              		.loc 1 59 0
+  55 0012 9A72     		strb	r2, [r3, #10]
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 3
+
+
+  60:UserAddressAllocation.c ****     
+  61:UserAddressAllocation.c ****     _userTable[1].name = PAMELA_ANTAR;
+  56              		.loc 1 61 0
+  57 0014 0122     		movs	r2, #1
+  58 0016 1A73     		strb	r2, [r3, #12]
+  62:UserAddressAllocation.c ****     _userTable[1].str = "pamela antar";
+  59              		.loc 1 62 0
+  60 0018 E949     		ldr	r1, .L3+8
+  61 001a 1961     		str	r1, [r3, #16]
+  63:UserAddressAllocation.c ****     _userTable[1].lvl_1_addr = 0x01;
+  62              		.loc 1 63 0
+  63 001c 1A75     		strb	r2, [r3, #20]
+  64:UserAddressAllocation.c ****     _userTable[1].lvl_2_addr = 0x02;
+  64              		.loc 1 64 0
+  65 001e 0221     		movs	r1, #2
+  66 0020 5975     		strb	r1, [r3, #21]
+  65:UserAddressAllocation.c ****     _userTable[1].lvl_3_addr = 0x03;
+  67              		.loc 1 65 0
+  68 0022 0322     		movs	r2, #3
+  69 0024 9A75     		strb	r2, [r3, #22]
+  66:UserAddressAllocation.c ****     
+  67:UserAddressAllocation.c ****     _userTable[2].name = SAMUEL_CONROY;
+  70              		.loc 1 67 0
+  71 0026 1976     		strb	r1, [r3, #24]
+  68:UserAddressAllocation.c ****     _userTable[2].str = "samuel conroy";
+  72              		.loc 1 68 0
+  73 0028 E649     		ldr	r1, .L3+12
+  74 002a D961     		str	r1, [r3, #28]
+  69:UserAddressAllocation.c ****     _userTable[2].lvl_1_addr = 0x04;
+  75              		.loc 1 69 0
+  76 002c 0424     		movs	r4, #4
+  77 002e 83F82040 		strb	r4, [r3, #32]
+  70:UserAddressAllocation.c ****     _userTable[2].lvl_2_addr = 0x05;
+  78              		.loc 1 70 0
+  79 0032 0520     		movs	r0, #5
+  80 0034 83F82100 		strb	r0, [r3, #33]
+  71:UserAddressAllocation.c ****     _userTable[2].lvl_3_addr = 0x06;
+  81              		.loc 1 71 0
+  82 0038 0621     		movs	r1, #6
+  83 003a 83F82210 		strb	r1, [r3, #34]
+  72:UserAddressAllocation.c ****     
+  73:UserAddressAllocation.c ****     _userTable[3].name = SAMUEL_HALLERMAN;
+  84              		.loc 1 73 0
+  85 003e 83F82420 		strb	r2, [r3, #36]
+  74:UserAddressAllocation.c ****     _userTable[3].str = "samuel hallerman";
+  86              		.loc 1 74 0
+  87 0042 E14A     		ldr	r2, .L3+16
+  88 0044 9A62     		str	r2, [r3, #40]
+  75:UserAddressAllocation.c ****     _userTable[3].lvl_1_addr = 0x07;
+  89              		.loc 1 75 0
+  90 0046 0722     		movs	r2, #7
+  91 0048 83F82C20 		strb	r2, [r3, #44]
+  76:UserAddressAllocation.c ****     _userTable[3].lvl_2_addr = 0x08;
+  92              		.loc 1 76 0
+  93 004c 4FF0080B 		mov	fp, #8
+  94 0050 83F82DB0 		strb	fp, [r3, #45]
+  77:UserAddressAllocation.c ****     _userTable[3].lvl_3_addr = 0x09;
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 4
+
+
+  95              		.loc 1 77 0
+  96 0054 4FF0090A 		mov	r10, #9
+  97 0058 83F82EA0 		strb	r10, [r3, #46]
+  78:UserAddressAllocation.c ****     
+  79:UserAddressAllocation.c ****     _userTable[4].name = CURT_HENRICHS;
+  98              		.loc 1 79 0
+  99 005c 83F83040 		strb	r4, [r3, #48]
+  80:UserAddressAllocation.c ****     _userTable[4].str = "curt henrichs";
+ 100              		.loc 1 80 0
+ 101 0060 DA4C     		ldr	r4, .L3+20
+ 102 0062 5C63     		str	r4, [r3, #52]
+  81:UserAddressAllocation.c ****     _userTable[4].lvl_1_addr = 0x0A;
+ 103              		.loc 1 81 0
+ 104 0064 4FF00A09 		mov	r9, #10
+ 105 0068 83F83890 		strb	r9, [r3, #56]
+  82:UserAddressAllocation.c ****     _userTable[4].lvl_2_addr = 0x0B;
+ 106              		.loc 1 82 0
+ 107 006c 4FF00B08 		mov	r8, #11
+ 108 0070 83F83980 		strb	r8, [r3, #57]
+  83:UserAddressAllocation.c ****     _userTable[4].lvl_3_addr = 0x0C;
+ 109              		.loc 1 83 0
+ 110 0074 4FF00C0C 		mov	ip, #12
+ 111 0078 83F83AC0 		strb	ip, [r3, #58]
+  84:UserAddressAllocation.c ****     
+  85:UserAddressAllocation.c ****     _userTable[5].name = JOSEPHINE_LOCURTO;
+ 112              		.loc 1 85 0
+ 113 007c 83F83C00 		strb	r0, [r3, #60]
+  86:UserAddressAllocation.c ****     _userTable[5].str = "josephine locurto";
+ 114              		.loc 1 86 0
+ 115 0080 D348     		ldr	r0, .L3+24
+ 116 0082 1864     		str	r0, [r3, #64]
+  87:UserAddressAllocation.c ****     _userTable[5].lvl_1_addr = 0x0D;
+ 117              		.loc 1 87 0
+ 118 0084 4FF00D0E 		mov	lr, #13
+ 119 0088 83F844E0 		strb	lr, [r3, #68]
+  88:UserAddressAllocation.c ****     _userTable[5].lvl_2_addr = 0x0E;
+ 120              		.loc 1 88 0
+ 121 008c 0E27     		movs	r7, #14
+ 122 008e 83F84570 		strb	r7, [r3, #69]
+  89:UserAddressAllocation.c ****     _userTable[5].lvl_3_addr = 0x0F;
+ 123              		.loc 1 89 0
+ 124 0092 0F26     		movs	r6, #15
+ 125 0094 83F84660 		strb	r6, [r3, #70]
+  90:UserAddressAllocation.c ****     
+  91:UserAddressAllocation.c ****     _userTable[6].name = ANTHONY_MARLOWE;
+ 126              		.loc 1 91 0
+ 127 0098 83F84810 		strb	r1, [r3, #72]
+  92:UserAddressAllocation.c ****     _userTable[6].str = "anthony marlowe";
+ 128              		.loc 1 92 0
+ 129 009c CD49     		ldr	r1, .L3+28
+ 130 009e D964     		str	r1, [r3, #76]
+  93:UserAddressAllocation.c ****     _userTable[6].lvl_1_addr = 0x10;
+ 131              		.loc 1 93 0
+ 132 00a0 1025     		movs	r5, #16
+ 133 00a2 83F85050 		strb	r5, [r3, #80]
+  94:UserAddressAllocation.c ****     _userTable[6].lvl_2_addr = 0x11;
+ 134              		.loc 1 94 0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 5
+
+
+ 135 00a6 1124     		movs	r4, #17
+ 136 00a8 83F85140 		strb	r4, [r3, #81]
+  95:UserAddressAllocation.c ****     _userTable[6].lvl_3_addr = 0x12;
+ 137              		.loc 1 95 0
+ 138 00ac 1220     		movs	r0, #18
+ 139 00ae 83F85200 		strb	r0, [r3, #82]
+  96:UserAddressAllocation.c ****     
+  97:UserAddressAllocation.c ****     _userTable[7].name = MUNAZZA_NAEEM;
+ 140              		.loc 1 97 0
+ 141 00b2 83F85420 		strb	r2, [r3, #84]
+  98:UserAddressAllocation.c ****     _userTable[7].str = "munazza naeem";
+ 142              		.loc 1 98 0
+ 143 00b6 C84A     		ldr	r2, .L3+32
+ 144 00b8 9A65     		str	r2, [r3, #88]
+  99:UserAddressAllocation.c ****     _userTable[7].lvl_1_addr = 0x13;
+ 145              		.loc 1 99 0
+ 146 00ba 1321     		movs	r1, #19
+ 147 00bc 83F85C10 		strb	r1, [r3, #92]
+ 100:UserAddressAllocation.c ****     _userTable[7].lvl_2_addr = 0x14;
+ 148              		.loc 1 100 0
+ 149 00c0 4FF01402 		mov	r2, #20
+ 150 00c4 83F85D20 		strb	r2, [r3, #93]
+ 101:UserAddressAllocation.c ****     _userTable[7].lvl_3_addr = 0x15;
+ 151              		.loc 1 101 0
+ 152 00c8 4FF01502 		mov	r2, #21
+ 153 00cc 83F85E20 		strb	r2, [r3, #94]
+ 102:UserAddressAllocation.c ****     
+ 103:UserAddressAllocation.c ****     _userTable[8].name = MATHEW_PIKE;
+ 154              		.loc 1 103 0
+ 155 00d0 83F860B0 		strb	fp, [r3, #96]
+ 104:UserAddressAllocation.c ****     _userTable[8].str = "mathew pike";
+ 156              		.loc 1 104 0
+ 157 00d4 DFF848B3 		ldr	fp, .L3+104
+ 158 00d8 C3F864B0 		str	fp, [r3, #100]
+ 105:UserAddressAllocation.c ****     _userTable[8].lvl_1_addr = 0x16;
+ 159              		.loc 1 105 0
+ 160 00dc 4FF0160B 		mov	fp, #22
+ 161 00e0 83F868B0 		strb	fp, [r3, #104]
+ 106:UserAddressAllocation.c ****     _userTable[8].lvl_2_addr = 0x17;
+ 162              		.loc 1 106 0
+ 163 00e4 4FF01702 		mov	r2, #23
+ 164 00e8 83F86920 		strb	r2, [r3, #105]
+ 107:UserAddressAllocation.c ****     _userTable[8].lvl_3_addr = 0x18;
+ 165              		.loc 1 107 0
+ 166 00ec 4FF01802 		mov	r2, #24
+ 167 00f0 83F86A20 		strb	r2, [r3, #106]
+ 108:UserAddressAllocation.c ****     
+ 109:UserAddressAllocation.c ****     _userTable[9].name = SHAHRUKE_QURESHI;
+ 168              		.loc 1 109 0
+ 169 00f4 83F86CA0 		strb	r10, [r3, #108]
+ 110:UserAddressAllocation.c ****     _userTable[9].str = "shahruke qureshi";
+ 170              		.loc 1 110 0
+ 171 00f8 DFF828A3 		ldr	r10, .L3+108
+ 172 00fc C3F870A0 		str	r10, [r3, #112]
+ 111:UserAddressAllocation.c ****     _userTable[9].lvl_1_addr = 0x19;
+ 173              		.loc 1 111 0
+ 174 0100 4FF0190A 		mov	r10, #25
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 6
+
+
+ 175 0104 83F874A0 		strb	r10, [r3, #116]
+ 112:UserAddressAllocation.c ****     _userTable[9].lvl_2_addr = 0x1A;
+ 176              		.loc 1 112 0
+ 177 0108 4FF01A02 		mov	r2, #26
+ 178 010c 83F87520 		strb	r2, [r3, #117]
+ 113:UserAddressAllocation.c ****     _userTable[9].lvl_3_addr = 0x1B;
+ 179              		.loc 1 113 0
+ 180 0110 4FF01B02 		mov	r2, #27
+ 181 0114 83F87620 		strb	r2, [r3, #118]
+ 114:UserAddressAllocation.c ****     
+ 115:UserAddressAllocation.c ****     _userTable[10].name = DIVIN_RAMACHANDRAN;
+ 182              		.loc 1 115 0
+ 183 0118 83F87890 		strb	r9, [r3, #120]
+ 116:UserAddressAllocation.c ****     _userTable[10].str = "divin ramachandran";
+ 184              		.loc 1 116 0
+ 185 011c DFF80893 		ldr	r9, .L3+112
+ 186 0120 C3F87C90 		str	r9, [r3, #124]
+ 117:UserAddressAllocation.c ****     _userTable[10].lvl_1_addr = 0x1C;
+ 187              		.loc 1 117 0
+ 188 0124 4FF01C02 		mov	r2, #28
+ 189 0128 83F88020 		strb	r2, [r3, #128]
+ 118:UserAddressAllocation.c ****     _userTable[10].lvl_2_addr = 0x1D;
+ 190              		.loc 1 118 0
+ 191 012c 4FF01D02 		mov	r2, #29
+ 192 0130 83F88120 		strb	r2, [r3, #129]
+ 119:UserAddressAllocation.c ****     _userTable[10].lvl_3_addr = 0x1E;
+ 193              		.loc 1 119 0
+ 194 0134 4FF01E02 		mov	r2, #30
+ 195 0138 83F88220 		strb	r2, [r3, #130]
+ 120:UserAddressAllocation.c ****     
+ 121:UserAddressAllocation.c ****     _userTable[11].name = ALEXANDER_ROBERTS;
+ 196              		.loc 1 121 0
+ 197 013c 83F88480 		strb	r8, [r3, #132]
+ 122:UserAddressAllocation.c ****     _userTable[11].str = "alexander roberts";
+ 198              		.loc 1 122 0
+ 199 0140 DFF8E882 		ldr	r8, .L3+116
+ 200 0144 C3F88880 		str	r8, [r3, #136]
+ 123:UserAddressAllocation.c ****     _userTable[11].lvl_1_addr = 0x1F;
+ 201              		.loc 1 123 0
+ 202 0148 4FF01F02 		mov	r2, #31
+ 203 014c 83F88C20 		strb	r2, [r3, #140]
+ 124:UserAddressAllocation.c ****     _userTable[11].lvl_2_addr = 0x20;
+ 204              		.loc 1 124 0
+ 205 0150 4FF02002 		mov	r2, #32
+ 206 0154 83F88D20 		strb	r2, [r3, #141]
+ 125:UserAddressAllocation.c ****     _userTable[11].lvl_3_addr = 0x21;
+ 207              		.loc 1 125 0
+ 208 0158 4FF02102 		mov	r2, #33
+ 209 015c 83F88E20 		strb	r2, [r3, #142]
+ 126:UserAddressAllocation.c ****     
+ 127:UserAddressAllocation.c ****     _userTable[12].name = REID_RUMACK;
+ 210              		.loc 1 127 0
+ 211 0160 83F890C0 		strb	ip, [r3, #144]
+ 128:UserAddressAllocation.c ****     _userTable[12].str = "reid rumack";
+ 212              		.loc 1 128 0
+ 213 0164 DFF8C8C2 		ldr	ip, .L3+120
+ 214 0168 C3F894C0 		str	ip, [r3, #148]
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 7
+
+
+ 129:UserAddressAllocation.c ****     _userTable[12].lvl_1_addr = 0x22;
+ 215              		.loc 1 129 0
+ 216 016c 4FF02202 		mov	r2, #34
+ 217 0170 83F89820 		strb	r2, [r3, #152]
+ 130:UserAddressAllocation.c ****     _userTable[12].lvl_2_addr = 0x23;
+ 218              		.loc 1 130 0
+ 219 0174 4FF02302 		mov	r2, #35
+ 220 0178 83F89920 		strb	r2, [r3, #153]
+ 131:UserAddressAllocation.c ****     _userTable[12].lvl_3_addr = 0x24;
+ 221              		.loc 1 131 0
+ 222 017c 4FF02402 		mov	r2, #36
+ 223 0180 83F89A20 		strb	r2, [r3, #154]
+ 132:UserAddressAllocation.c ****     
+ 133:UserAddressAllocation.c ****     _userTable[13].name = JOHN_SELFORS;
+ 224              		.loc 1 133 0
+ 225 0184 83F89CE0 		strb	lr, [r3, #156]
+ 134:UserAddressAllocation.c ****     _userTable[13].str = "john selfors";
+ 226              		.loc 1 134 0
+ 227 0188 DFF8A8E2 		ldr	lr, .L3+124
+ 228 018c C3F8A0E0 		str	lr, [r3, #160]
+ 135:UserAddressAllocation.c ****     _userTable[13].lvl_1_addr = 0x25;
+ 229              		.loc 1 135 0
+ 230 0190 4FF02502 		mov	r2, #37
+ 231 0194 83F8A420 		strb	r2, [r3, #164]
+ 136:UserAddressAllocation.c ****     _userTable[13].lvl_2_addr = 0x26;
+ 232              		.loc 1 136 0
+ 233 0198 4FF02609 		mov	r9, #38
+ 234 019c 83F8A590 		strb	r9, [r3, #165]
+ 137:UserAddressAllocation.c ****     _userTable[13].lvl_3_addr = 0x27;
+ 235              		.loc 1 137 0
+ 236 01a0 4FF02708 		mov	r8, #39
+ 237 01a4 83F8A680 		strb	r8, [r3, #166]
+ 138:UserAddressAllocation.c ****     
+ 139:UserAddressAllocation.c ****     _userTable[14].name = ZACHARY_STANKE;
+ 238              		.loc 1 139 0
+ 239 01a8 83F8A870 		strb	r7, [r3, #168]
+ 140:UserAddressAllocation.c ****     _userTable[14].str = "zachary stanke";
+ 240              		.loc 1 140 0
+ 241 01ac 8B4F     		ldr	r7, .L3+36
+ 242 01ae C3F8AC70 		str	r7, [r3, #172]
+ 141:UserAddressAllocation.c ****     _userTable[14].lvl_1_addr = 0x28;
+ 243              		.loc 1 141 0
+ 244 01b2 4FF0280C 		mov	ip, #40
+ 245 01b6 83F8B0C0 		strb	ip, [r3, #176]
+ 142:UserAddressAllocation.c ****     _userTable[14].lvl_2_addr = 0x29;
+ 246              		.loc 1 142 0
+ 247 01ba 4FF0290E 		mov	lr, #41
+ 248 01be 83F8B1E0 		strb	lr, [r3, #177]
+ 143:UserAddressAllocation.c ****     _userTable[14].lvl_3_addr = 0x2A;
+ 249              		.loc 1 143 0
+ 250 01c2 2A27     		movs	r7, #42
+ 251 01c4 83F8B270 		strb	r7, [r3, #178]
+ 144:UserAddressAllocation.c ****     
+ 145:UserAddressAllocation.c ****     _userTable[15].name = ANDREW_STOEHR;
+ 252              		.loc 1 145 0
+ 253 01c8 83F8B460 		strb	r6, [r3, #180]
+ 146:UserAddressAllocation.c ****     _userTable[15].str = "andrew stoehr";
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 8
+
+
+ 254              		.loc 1 146 0
+ 255 01cc 844E     		ldr	r6, .L3+40
+ 256 01ce C3F8B860 		str	r6, [r3, #184]
+ 147:UserAddressAllocation.c ****     _userTable[15].lvl_1_addr = 0x2B;
+ 257              		.loc 1 147 0
+ 258 01d2 2B26     		movs	r6, #43
+ 259 01d4 83F8BC60 		strb	r6, [r3, #188]
+ 148:UserAddressAllocation.c ****     _userTable[15].lvl_2_addr = 0x2C;
+ 260              		.loc 1 148 0
+ 261 01d8 2C26     		movs	r6, #44
+ 262 01da 83F8BD60 		strb	r6, [r3, #189]
+ 149:UserAddressAllocation.c ****     _userTable[15].lvl_3_addr = 0x2D;
+ 263              		.loc 1 149 0
+ 264 01de 2D26     		movs	r6, #45
+ 265 01e0 83F8BE60 		strb	r6, [r3, #190]
+ 150:UserAddressAllocation.c ****     
+ 151:UserAddressAllocation.c ****     _userTable[16].name = TYLER_WELLS;
+ 266              		.loc 1 151 0
+ 267 01e4 83F8C050 		strb	r5, [r3, #192]
+ 152:UserAddressAllocation.c ****     _userTable[16].str = "tyler wells";
+ 268              		.loc 1 152 0
+ 269 01e8 7E4D     		ldr	r5, .L3+44
+ 270 01ea C3F8C450 		str	r5, [r3, #196]
+ 153:UserAddressAllocation.c ****     _userTable[16].lvl_1_addr = 0x2E;
+ 271              		.loc 1 153 0
+ 272 01ee 2E25     		movs	r5, #46
+ 273 01f0 83F8C850 		strb	r5, [r3, #200]
+ 154:UserAddressAllocation.c ****     _userTable[16].lvl_2_addr = 0x2F;
+ 274              		.loc 1 154 0
+ 275 01f4 2F25     		movs	r5, #47
+ 276 01f6 83F8C950 		strb	r5, [r3, #201]
+ 155:UserAddressAllocation.c ****     _userTable[16].lvl_3_addr = 0x30;
+ 277              		.loc 1 155 0
+ 278 01fa 3025     		movs	r5, #48
+ 279 01fc 83F8CA50 		strb	r5, [r3, #202]
+ 156:UserAddressAllocation.c ****     
+ 157:UserAddressAllocation.c ****     _userTable[17].name = JOHNATHON_WENZEL;
+ 280              		.loc 1 157 0
+ 281 0200 83F8CC40 		strb	r4, [r3, #204]
+ 158:UserAddressAllocation.c ****     _userTable[17].str = "johnathon wenzel";
+ 282              		.loc 1 158 0
+ 283 0204 784C     		ldr	r4, .L3+48
+ 284 0206 C3F8D040 		str	r4, [r3, #208]
+ 159:UserAddressAllocation.c ****     _userTable[17].lvl_1_addr = 0x31;
+ 285              		.loc 1 159 0
+ 286 020a 3124     		movs	r4, #49
+ 287 020c 83F8D440 		strb	r4, [r3, #212]
+ 160:UserAddressAllocation.c ****     _userTable[17].lvl_2_addr = 0x32;
+ 288              		.loc 1 160 0
+ 289 0210 3224     		movs	r4, #50
+ 290 0212 83F8D540 		strb	r4, [r3, #213]
+ 161:UserAddressAllocation.c ****     _userTable[17].lvl_3_addr = 0x33;
+ 291              		.loc 1 161 0
+ 292 0216 3324     		movs	r4, #51
+ 293 0218 83F8D640 		strb	r4, [r3, #214]
+ 162:UserAddressAllocation.c ****     
+ 163:UserAddressAllocation.c ****     _userTable[18].name = JOSHUA_WIDDER;
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 9
+
+
+ 294              		.loc 1 163 0
+ 295 021c 83F8D800 		strb	r0, [r3, #216]
+ 164:UserAddressAllocation.c ****     _userTable[18].str = "joshua widder";
+ 296              		.loc 1 164 0
+ 297 0220 7248     		ldr	r0, .L3+52
+ 298 0222 C3F8DC00 		str	r0, [r3, #220]
+ 165:UserAddressAllocation.c ****     _userTable[18].lvl_1_addr = 0x34;
+ 299              		.loc 1 165 0
+ 300 0226 3420     		movs	r0, #52
+ 301 0228 83F8E000 		strb	r0, [r3, #224]
+ 166:UserAddressAllocation.c ****     _userTable[18].lvl_2_addr = 0x35;
+ 302              		.loc 1 166 0
+ 303 022c 3520     		movs	r0, #53
+ 304 022e 83F8E100 		strb	r0, [r3, #225]
+ 167:UserAddressAllocation.c ****     _userTable[18].lvl_3_addr = 0x36;
+ 305              		.loc 1 167 0
+ 306 0232 3620     		movs	r0, #54
+ 307 0234 83F8E200 		strb	r0, [r3, #226]
+ 168:UserAddressAllocation.c ****     
+ 169:UserAddressAllocation.c ****     _userTable[19].name = ANDREW_WINSTON;
+ 308              		.loc 1 169 0
+ 309 0238 83F8E410 		strb	r1, [r3, #228]
+ 170:UserAddressAllocation.c ****     _userTable[19].str = "andrew winston";
+ 310              		.loc 1 170 0
+ 311 023c 6C49     		ldr	r1, .L3+56
+ 312 023e C3F8E810 		str	r1, [r3, #232]
+ 171:UserAddressAllocation.c ****     _userTable[19].lvl_1_addr = 0x37;
+ 313              		.loc 1 171 0
+ 314 0242 3721     		movs	r1, #55
+ 315 0244 83F8EC10 		strb	r1, [r3, #236]
+ 172:UserAddressAllocation.c ****     _userTable[19].lvl_2_addr = 0x38;
+ 316              		.loc 1 172 0
+ 317 0248 3821     		movs	r1, #56
+ 318 024a 83F8ED10 		strb	r1, [r3, #237]
+ 173:UserAddressAllocation.c ****     _userTable[19].lvl_3_addr = 0x39;
+ 319              		.loc 1 173 0
+ 320 024e 3921     		movs	r1, #57
+ 321 0250 83F8EE10 		strb	r1, [r3, #238]
+ 174:UserAddressAllocation.c ****     
+ 175:UserAddressAllocation.c ****     _userTable[20].name = XU_ZHANG;
+ 322              		.loc 1 175 0
+ 323 0254 4FF01402 		mov	r2, #20
+ 324 0258 83F8F020 		strb	r2, [r3, #240]
+ 176:UserAddressAllocation.c ****     _userTable[20].str = "xu zhang";
+ 325              		.loc 1 176 0
+ 326 025c 654A     		ldr	r2, .L3+60
+ 327 025e C3F8F420 		str	r2, [r3, #244]
+ 177:UserAddressAllocation.c ****     _userTable[20].lvl_1_addr = 0x3A;
+ 328              		.loc 1 177 0
+ 329 0262 3A22     		movs	r2, #58
+ 330 0264 83F8F820 		strb	r2, [r3, #248]
+ 178:UserAddressAllocation.c ****     _userTable[20].lvl_2_addr = 0x3B;
+ 331              		.loc 1 178 0
+ 332 0268 3B22     		movs	r2, #59
+ 333 026a 83F8F920 		strb	r2, [r3, #249]
+ 179:UserAddressAllocation.c ****     _userTable[20].lvl_3_addr = 0x3C;
+ 334              		.loc 1 179 0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 10
+
+
+ 335 026e 3C22     		movs	r2, #60
+ 336 0270 83F8FA20 		strb	r2, [r3, #250]
+ 180:UserAddressAllocation.c ****     
+ 181:UserAddressAllocation.c ****     _userTable[21].name = ALWIN_ABRAHAM;
+ 337              		.loc 1 181 0
+ 338 0274 4FF01502 		mov	r2, #21
+ 339 0278 83F8FC20 		strb	r2, [r3, #252]
+ 182:UserAddressAllocation.c ****     _userTable[21].str = "alwin abraham";
+ 340              		.loc 1 182 0
+ 341 027c 5E4A     		ldr	r2, .L3+64
+ 342 027e C3F80021 		str	r2, [r3, #256]
+ 183:UserAddressAllocation.c ****     _userTable[21].lvl_1_addr = 0x3D;
+ 343              		.loc 1 183 0
+ 344 0282 3D22     		movs	r2, #61
+ 345 0284 83F80421 		strb	r2, [r3, #260]
+ 184:UserAddressAllocation.c ****     _userTable[21].lvl_2_addr = 0x3E;
+ 346              		.loc 1 184 0
+ 347 0288 3E22     		movs	r2, #62
+ 348 028a 83F80521 		strb	r2, [r3, #261]
+ 185:UserAddressAllocation.c ****     _userTable[21].lvl_3_addr = 0x3F;
+ 349              		.loc 1 185 0
+ 350 028e 3F22     		movs	r2, #63
+ 351 0290 83F80621 		strb	r2, [r3, #262]
+ 186:UserAddressAllocation.c ****     
+ 187:UserAddressAllocation.c ****     _userTable[22].name = NATHEER_ALKHUNAIZY;
+ 352              		.loc 1 187 0
+ 353 0294 83F808B1 		strb	fp, [r3, #264]
+ 188:UserAddressAllocation.c ****     _userTable[22].str = "natheer alkhunaizy";
+ 354              		.loc 1 188 0
+ 355 0298 584A     		ldr	r2, .L3+68
+ 356 029a C3F80C21 		str	r2, [r3, #268]
+ 189:UserAddressAllocation.c ****     _userTable[22].lvl_1_addr = 0x40;
+ 357              		.loc 1 189 0
+ 358 029e 4022     		movs	r2, #64
+ 359 02a0 83F81021 		strb	r2, [r3, #272]
+ 190:UserAddressAllocation.c ****     _userTable[22].lvl_2_addr = 0x41;
+ 360              		.loc 1 190 0
+ 361 02a4 4122     		movs	r2, #65
+ 362 02a6 83F81121 		strb	r2, [r3, #273]
+ 191:UserAddressAllocation.c ****     _userTable[22].lvl_3_addr = 0x42;
+ 363              		.loc 1 191 0
+ 364 02aa 4222     		movs	r2, #66
+ 365 02ac 83F81221 		strb	r2, [r3, #274]
+ 192:UserAddressAllocation.c ****     
+ 193:UserAddressAllocation.c ****     _userTable[23].name = CALEB_BAHR;
+ 366              		.loc 1 193 0
+ 367 02b0 4FF01702 		mov	r2, #23
+ 368 02b4 83F81421 		strb	r2, [r3, #276]
+ 194:UserAddressAllocation.c ****     _userTable[23].str = "caleb bahr";
+ 369              		.loc 1 194 0
+ 370 02b8 514A     		ldr	r2, .L3+72
+ 371 02ba C3F81821 		str	r2, [r3, #280]
+ 195:UserAddressAllocation.c ****     _userTable[23].lvl_1_addr = 0x43;
+ 372              		.loc 1 195 0
+ 373 02be 4322     		movs	r2, #67
+ 374 02c0 83F81C21 		strb	r2, [r3, #284]
+ 196:UserAddressAllocation.c ****     _userTable[23].lvl_2_addr = 0x44;
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 11
+
+
+ 375              		.loc 1 196 0
+ 376 02c4 4422     		movs	r2, #68
+ 377 02c6 83F81D21 		strb	r2, [r3, #285]
+ 197:UserAddressAllocation.c ****     _userTable[23].lvl_3_addr = 0x45;
+ 378              		.loc 1 197 0
+ 379 02ca 4522     		movs	r2, #69
+ 380 02cc 83F81E21 		strb	r2, [r3, #286]
+ 198:UserAddressAllocation.c ****     
+ 199:UserAddressAllocation.c ****     _userTable[24].name = PALLAV_BANIK;
+ 381              		.loc 1 199 0
+ 382 02d0 4FF01802 		mov	r2, #24
+ 383 02d4 83F82021 		strb	r2, [r3, #288]
+ 200:UserAddressAllocation.c ****     _userTable[24].str = "pallav banik";
+ 384              		.loc 1 200 0
+ 385 02d8 4A4A     		ldr	r2, .L3+76
+ 386 02da C3F82421 		str	r2, [r3, #292]
+ 201:UserAddressAllocation.c ****     _userTable[24].lvl_1_addr = 0x46;
+ 387              		.loc 1 201 0
+ 388 02de 4622     		movs	r2, #70
+ 389 02e0 83F82821 		strb	r2, [r3, #296]
+ 202:UserAddressAllocation.c ****     _userTable[24].lvl_2_addr = 0x47;
+ 390              		.loc 1 202 0
+ 391 02e4 4722     		movs	r2, #71
+ 392 02e6 83F82921 		strb	r2, [r3, #297]
+ 203:UserAddressAllocation.c ****     _userTable[24].lvl_3_addr = 0x48;
+ 393              		.loc 1 203 0
+ 394 02ea 4822     		movs	r2, #72
+ 395 02ec 83F82A21 		strb	r2, [r3, #298]
+ 204:UserAddressAllocation.c ****     
+ 205:UserAddressAllocation.c ****     _userTable[25].name = ZACHARY_BARTMER;
+ 396              		.loc 1 205 0
+ 397 02f0 83F82CA1 		strb	r10, [r3, #300]
+ 206:UserAddressAllocation.c ****     _userTable[25].str = "zachary bartmer";
+ 398              		.loc 1 206 0
+ 399 02f4 444A     		ldr	r2, .L3+80
+ 400 02f6 C3F83021 		str	r2, [r3, #304]
+ 207:UserAddressAllocation.c ****     _userTable[25].lvl_1_addr = 0x49;
+ 401              		.loc 1 207 0
+ 402 02fa 4922     		movs	r2, #73
+ 403 02fc 83F83421 		strb	r2, [r3, #308]
+ 208:UserAddressAllocation.c ****     _userTable[25].lvl_2_addr = 0x4A;
+ 404              		.loc 1 208 0
+ 405 0300 4A22     		movs	r2, #74
+ 406 0302 83F83521 		strb	r2, [r3, #309]
+ 209:UserAddressAllocation.c ****     _userTable[25].lvl_3_addr = 0x4B;
+ 407              		.loc 1 209 0
+ 408 0306 4B22     		movs	r2, #75
+ 409 0308 83F83621 		strb	r2, [r3, #310]
+ 210:UserAddressAllocation.c ****     
+ 211:UserAddressAllocation.c ****     _userTable[26].name = NICHOLAS_BOUSKA;
+ 410              		.loc 1 211 0
+ 411 030c 4FF01A02 		mov	r2, #26
+ 412 0310 83F83821 		strb	r2, [r3, #312]
+ 212:UserAddressAllocation.c ****     _userTable[26].str = "nicholas bouska";
+ 413              		.loc 1 212 0
+ 414 0314 3D4A     		ldr	r2, .L3+84
+ 415 0316 C3F83C21 		str	r2, [r3, #316]
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 12
+
+
+ 213:UserAddressAllocation.c ****     _userTable[26].lvl_1_addr = 0x4C;
+ 416              		.loc 1 213 0
+ 417 031a 4C22     		movs	r2, #76
+ 418 031c 83F84021 		strb	r2, [r3, #320]
+ 214:UserAddressAllocation.c ****     _userTable[26].lvl_2_addr = 0x4D;
+ 419              		.loc 1 214 0
+ 420 0320 4D22     		movs	r2, #77
+ 421 0322 83F84121 		strb	r2, [r3, #321]
+ 215:UserAddressAllocation.c ****     _userTable[26].lvl_3_addr = 0x4E;
+ 422              		.loc 1 215 0
+ 423 0326 4E22     		movs	r2, #78
+ 424 0328 83F84221 		strb	r2, [r3, #322]
+ 216:UserAddressAllocation.c ****     
+ 217:UserAddressAllocation.c ****     _userTable[27].name = RILEY_BRUCE;
+ 425              		.loc 1 217 0
+ 426 032c 4FF01B02 		mov	r2, #27
+ 427 0330 83F84421 		strb	r2, [r3, #324]
+ 218:UserAddressAllocation.c ****     _userTable[27].str = "riley bruce";
+ 428              		.loc 1 218 0
+ 429 0334 364A     		ldr	r2, .L3+88
+ 430 0336 C3F84821 		str	r2, [r3, #328]
+ 219:UserAddressAllocation.c ****     _userTable[27].lvl_1_addr = 0x4F;
+ 431              		.loc 1 219 0
+ 432 033a 4F22     		movs	r2, #79
+ 433 033c 83F84C21 		strb	r2, [r3, #332]
+ 220:UserAddressAllocation.c ****     _userTable[27].lvl_2_addr = 0x50;
+ 434              		.loc 1 220 0
+ 435 0340 5022     		movs	r2, #80
+ 436 0342 83F84D21 		strb	r2, [r3, #333]
+ 221:UserAddressAllocation.c ****     _userTable[27].lvl_3_addr = 0x51;
+ 437              		.loc 1 221 0
+ 438 0346 5122     		movs	r2, #81
+ 439 0348 83F84E21 		strb	r2, [r3, #334]
+ 222:UserAddressAllocation.c ****     
+ 223:UserAddressAllocation.c ****     _userTable[28].name = GERALD_GEHRKE;
+ 440              		.loc 1 223 0
+ 441 034c 4FF01C02 		mov	r2, #28
+ 442 0350 83F85021 		strb	r2, [r3, #336]
+ 224:UserAddressAllocation.c ****     _userTable[28].str = "gerlad gehrke";
+ 443              		.loc 1 224 0
+ 444 0354 2F4A     		ldr	r2, .L3+92
+ 445 0356 C3F85421 		str	r2, [r3, #340]
+ 225:UserAddressAllocation.c ****     _userTable[28].lvl_1_addr = 0x52;
+ 446              		.loc 1 225 0
+ 447 035a 5222     		movs	r2, #82
+ 448 035c 83F85821 		strb	r2, [r3, #344]
+ 226:UserAddressAllocation.c ****     _userTable[28].lvl_2_addr = 0x53;
+ 449              		.loc 1 226 0
+ 450 0360 5322     		movs	r2, #83
+ 451 0362 83F85921 		strb	r2, [r3, #345]
+ 227:UserAddressAllocation.c ****     _userTable[28].lvl_3_addr = 0x54;
+ 452              		.loc 1 227 0
+ 453 0366 5422     		movs	r2, #84
+ 454 0368 83F85A21 		strb	r2, [r3, #346]
+ 228:UserAddressAllocation.c ****     
+ 229:UserAddressAllocation.c ****     _userTable[29].name = BENTON_GEIMER;
+ 455              		.loc 1 229 0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 13
+
+
+ 456 036c 4FF01D02 		mov	r2, #29
+ 457 0370 83F85C21 		strb	r2, [r3, #348]
+ 230:UserAddressAllocation.c ****     _userTable[29].str = "benton geitmer";
+ 458              		.loc 1 230 0
+ 459 0374 284A     		ldr	r2, .L3+96
+ 460 0376 C3F86021 		str	r2, [r3, #352]
+ 231:UserAddressAllocation.c ****     _userTable[29].lvl_1_addr = 0x55;
+ 461              		.loc 1 231 0
+ 462 037a 5522     		movs	r2, #85
+ 463 037c 83F86421 		strb	r2, [r3, #356]
+ 232:UserAddressAllocation.c ****     _userTable[29].lvl_2_addr = 0x56;
+ 464              		.loc 1 232 0
+ 465 0380 5622     		movs	r2, #86
+ 466 0382 83F86521 		strb	r2, [r3, #357]
+ 233:UserAddressAllocation.c ****     _userTable[29].lvl_3_addr = 0x57;
+ 467              		.loc 1 233 0
+ 468 0386 5722     		movs	r2, #87
+ 469 0388 83F86621 		strb	r2, [r3, #358]
+ 234:UserAddressAllocation.c ****     
+ 235:UserAddressAllocation.c ****     _userTable[30].name = ADAM_HAY;
+ 470              		.loc 1 235 0
+ 471 038c 4FF01E02 		mov	r2, #30
+ 472 0390 83F86821 		strb	r2, [r3, #360]
+ 236:UserAddressAllocation.c ****     _userTable[30].str = "adam hay";
+ 473              		.loc 1 236 0
+ 474 0394 214A     		ldr	r2, .L3+100
+ 475 0396 C3F86C21 		str	r2, [r3, #364]
+ 237:UserAddressAllocation.c ****     _userTable[30].lvl_1_addr = 0x58;
+ 476              		.loc 1 237 0
+ 477 039a 5822     		movs	r2, #88
+ 478 039c 83F87021 		strb	r2, [r3, #368]
+ 238:UserAddressAllocation.c ****     _userTable[30].lvl_2_addr = 0x59;
+ 479              		.loc 1 238 0
+ 480 03a0 5922     		movs	r2, #89
+ 481 03a2 83F87121 		strb	r2, [r3, #369]
+ 239:UserAddressAllocation.c ****     _userTable[30].lvl_3_addr = 0x5A;
+ 482              		.loc 1 239 0
+ 483 03a6 5A22     		movs	r2, #90
+ 484 03a8 83F87221 		strb	r2, [r3, #370]
+ 240:UserAddressAllocation.c ****     
+ 241:UserAddressAllocation.c ****     _userTable[31].name = QUIHAO_JIN;
+ 485              		.loc 1 241 0
+ 486 03ac 4FF01F02 		mov	r2, #31
+ 487 03b0 83F87421 		strb	r2, [r3, #372]
+ 488 03b4 40E0     		b	.L4
+ 489              	.L5:
+ 490 03b6 00BF     		.align	2
+ 491              	.L3:
+ 492 03b8 00000000 		.word	.LANCHOR0
+ 493 03bc 00000000 		.word	.LC0
+ 494 03c0 0C000000 		.word	.LC1
+ 495 03c4 1C000000 		.word	.LC2
+ 496 03c8 2C000000 		.word	.LC3
+ 497 03cc 40000000 		.word	.LC4
+ 498 03d0 50000000 		.word	.LC5
+ 499 03d4 64000000 		.word	.LC6
+ 500 03d8 74000000 		.word	.LC7
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 14
+
+
+ 501 03dc E8000000 		.word	.LC14
+ 502 03e0 F8000000 		.word	.LC15
+ 503 03e4 08010000 		.word	.LC16
+ 504 03e8 14010000 		.word	.LC17
+ 505 03ec 28010000 		.word	.LC18
+ 506 03f0 38010000 		.word	.LC19
+ 507 03f4 48010000 		.word	.LC20
+ 508 03f8 54010000 		.word	.LC21
+ 509 03fc 64010000 		.word	.LC22
+ 510 0400 78010000 		.word	.LC23
+ 511 0404 84010000 		.word	.LC24
+ 512 0408 94010000 		.word	.LC25
+ 513 040c A4010000 		.word	.LC26
+ 514 0410 B4010000 		.word	.LC27
+ 515 0414 C0010000 		.word	.LC28
+ 516 0418 D0010000 		.word	.LC29
+ 517 041c E0010000 		.word	.LC30
+ 518 0420 84000000 		.word	.LC8
+ 519 0424 90000000 		.word	.LC9
+ 520 0428 A4000000 		.word	.LC10
+ 521 042c B8000000 		.word	.LC11
+ 522 0430 CC000000 		.word	.LC12
+ 523 0434 D8000000 		.word	.LC13
+ 524              	.L4:
+ 242:UserAddressAllocation.c ****     _userTable[31].str = "quihao jin";
+ 525              		.loc 1 242 0
+ 526 0438 594A     		ldr	r2, .L6
+ 527 043a C3F87821 		str	r2, [r3, #376]
+ 243:UserAddressAllocation.c ****     _userTable[31].lvl_1_addr = 0x5B;
+ 528              		.loc 1 243 0
+ 529 043e 5B22     		movs	r2, #91
+ 530 0440 83F87C21 		strb	r2, [r3, #380]
+ 244:UserAddressAllocation.c ****     _userTable[31].lvl_2_addr = 0x5C;
+ 531              		.loc 1 244 0
+ 532 0444 5C22     		movs	r2, #92
+ 533 0446 83F87D21 		strb	r2, [r3, #381]
+ 245:UserAddressAllocation.c ****     _userTable[31].lvl_3_addr = 0x5D;
+ 534              		.loc 1 245 0
+ 535 044a 5D22     		movs	r2, #93
+ 536 044c 83F87E21 		strb	r2, [r3, #382]
+ 246:UserAddressAllocation.c ****     
+ 247:UserAddressAllocation.c ****     _userTable[32].name = SETH_LIABRAATEN;
+ 537              		.loc 1 247 0
+ 538 0450 4FF02002 		mov	r2, #32
+ 539 0454 83F88021 		strb	r2, [r3, #384]
+ 248:UserAddressAllocation.c ****     _userTable[32].str = "seth liabraaten";
+ 540              		.loc 1 248 0
+ 541 0458 524A     		ldr	r2, .L6+4
+ 542 045a C3F88421 		str	r2, [r3, #388]
+ 249:UserAddressAllocation.c ****     _userTable[32].lvl_1_addr = 0x5E;
+ 543              		.loc 1 249 0
+ 544 045e 5E22     		movs	r2, #94
+ 545 0460 83F88821 		strb	r2, [r3, #392]
+ 250:UserAddressAllocation.c ****     _userTable[32].lvl_2_addr = 0x5F;
+ 546              		.loc 1 250 0
+ 547 0464 5F22     		movs	r2, #95
+ 548 0466 83F88921 		strb	r2, [r3, #393]
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 15
+
+
+ 251:UserAddressAllocation.c ****     _userTable[32].lvl_3_addr = 0x60;
+ 549              		.loc 1 251 0
+ 550 046a 6022     		movs	r2, #96
+ 551 046c 83F88A21 		strb	r2, [r3, #394]
+ 252:UserAddressAllocation.c ****     
+ 253:UserAddressAllocation.c ****     _userTable[33].name = MAURIZIO_PADILLA;
+ 552              		.loc 1 253 0
+ 553 0470 4FF02102 		mov	r2, #33
+ 554 0474 83F88C21 		strb	r2, [r3, #396]
+ 254:UserAddressAllocation.c ****     _userTable[33].str = "maurizio padilla";
+ 555              		.loc 1 254 0
+ 556 0478 4B4A     		ldr	r2, .L6+8
+ 557 047a C3F89021 		str	r2, [r3, #400]
+ 255:UserAddressAllocation.c ****     _userTable[33].lvl_1_addr = 0x61;
+ 558              		.loc 1 255 0
+ 559 047e 6122     		movs	r2, #97
+ 560 0480 83F89421 		strb	r2, [r3, #404]
+ 256:UserAddressAllocation.c ****     _userTable[33].lvl_2_addr = 0x62;
+ 561              		.loc 1 256 0
+ 562 0484 6222     		movs	r2, #98
+ 563 0486 83F89521 		strb	r2, [r3, #405]
+ 257:UserAddressAllocation.c ****     _userTable[33].lvl_3_addr = 0x63;
+ 564              		.loc 1 257 0
+ 565 048a 6322     		movs	r2, #99
+ 566 048c 83F89621 		strb	r2, [r3, #406]
+ 258:UserAddressAllocation.c ****     
+ 259:UserAddressAllocation.c ****     _userTable[34].name = HUNTER_PARKS;
+ 567              		.loc 1 259 0
+ 568 0490 4FF02202 		mov	r2, #34
+ 569 0494 83F89821 		strb	r2, [r3, #408]
+ 260:UserAddressAllocation.c ****     _userTable[34].str = "hunter parks";
+ 570              		.loc 1 260 0
+ 571 0498 444A     		ldr	r2, .L6+12
+ 572 049a C3F89C21 		str	r2, [r3, #412]
+ 261:UserAddressAllocation.c ****     _userTable[34].lvl_1_addr = 0x64;
+ 573              		.loc 1 261 0
+ 574 049e 6422     		movs	r2, #100
+ 575 04a0 83F8A021 		strb	r2, [r3, #416]
+ 262:UserAddressAllocation.c ****     _userTable[34].lvl_2_addr = 0x65;
+ 576              		.loc 1 262 0
+ 577 04a4 6522     		movs	r2, #101
+ 578 04a6 83F8A121 		strb	r2, [r3, #417]
+ 263:UserAddressAllocation.c ****     _userTable[34].lvl_3_addr = 0x66;
+ 579              		.loc 1 263 0
+ 580 04aa 6622     		movs	r2, #102
+ 581 04ac 83F8A221 		strb	r2, [r3, #418]
+ 264:UserAddressAllocation.c ****     
+ 265:UserAddressAllocation.c ****     _userTable[35].name = NIRVAN_POONACHA_THEETHIRA;
+ 582              		.loc 1 265 0
+ 583 04b0 4FF02302 		mov	r2, #35
+ 584 04b4 83F8A421 		strb	r2, [r3, #420]
+ 266:UserAddressAllocation.c ****     _userTable[35].str = "nirvam poonacha theethira";
+ 585              		.loc 1 266 0
+ 586 04b8 3D4A     		ldr	r2, .L6+16
+ 587 04ba C3F8A821 		str	r2, [r3, #424]
+ 267:UserAddressAllocation.c ****     _userTable[35].lvl_1_addr = 0x67;
+ 588              		.loc 1 267 0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 16
+
+
+ 589 04be 6722     		movs	r2, #103
+ 590 04c0 83F8AC21 		strb	r2, [r3, #428]
+ 268:UserAddressAllocation.c ****     _userTable[35].lvl_2_addr = 0x68;
+ 591              		.loc 1 268 0
+ 592 04c4 6822     		movs	r2, #104
+ 593 04c6 83F8AD21 		strb	r2, [r3, #429]
+ 269:UserAddressAllocation.c ****     _userTable[35].lvl_3_addr = 0x69;
+ 594              		.loc 1 269 0
+ 595 04ca 6922     		movs	r2, #105
+ 596 04cc 83F8AE21 		strb	r2, [r3, #430]
+ 270:UserAddressAllocation.c ****     
+ 271:UserAddressAllocation.c ****     _userTable[36].name = JOHN_SCHLEDERER;
+ 597              		.loc 1 271 0
+ 598 04d0 4FF02402 		mov	r2, #36
+ 599 04d4 83F8B021 		strb	r2, [r3, #432]
+ 272:UserAddressAllocation.c ****     _userTable[36].str = "john schlederer";
+ 600              		.loc 1 272 0
+ 601 04d8 364A     		ldr	r2, .L6+20
+ 602 04da C3F8B421 		str	r2, [r3, #436]
+ 273:UserAddressAllocation.c ****     _userTable[36].lvl_1_addr = 0x6A;
+ 603              		.loc 1 273 0
+ 604 04de 6A22     		movs	r2, #106
+ 605 04e0 83F8B821 		strb	r2, [r3, #440]
+ 274:UserAddressAllocation.c ****     _userTable[36].lvl_2_addr = 0x6B;
+ 606              		.loc 1 274 0
+ 607 04e4 6B22     		movs	r2, #107
+ 608 04e6 83F8B921 		strb	r2, [r3, #441]
+ 275:UserAddressAllocation.c ****     _userTable[36].lvl_3_addr = 0x6C;
+ 609              		.loc 1 275 0
+ 610 04ea 6C22     		movs	r2, #108
+ 611 04ec 83F8BA21 		strb	r2, [r3, #442]
+ 276:UserAddressAllocation.c ****     
+ 277:UserAddressAllocation.c ****     _userTable[37].name = JAMES_SHIPP;
+ 612              		.loc 1 277 0
+ 613 04f0 4FF02502 		mov	r2, #37
+ 614 04f4 83F8BC21 		strb	r2, [r3, #444]
+ 278:UserAddressAllocation.c ****     _userTable[37].str = "james shipp";
+ 615              		.loc 1 278 0
+ 616 04f8 2F4A     		ldr	r2, .L6+24
+ 617 04fa C3F8C021 		str	r2, [r3, #448]
+ 279:UserAddressAllocation.c ****     _userTable[37].lvl_1_addr = 0x6D;
+ 618              		.loc 1 279 0
+ 619 04fe 6D22     		movs	r2, #109
+ 620 0500 83F8C421 		strb	r2, [r3, #452]
+ 280:UserAddressAllocation.c ****     _userTable[37].lvl_2_addr = 0x6E;
+ 621              		.loc 1 280 0
+ 622 0504 6E22     		movs	r2, #110
+ 623 0506 83F8C521 		strb	r2, [r3, #453]
+ 281:UserAddressAllocation.c ****     _userTable[37].lvl_3_addr = 0x6F;
+ 624              		.loc 1 281 0
+ 625 050a 6F22     		movs	r2, #111
+ 626 050c 83F8C621 		strb	r2, [r3, #454]
+ 282:UserAddressAllocation.c ****     
+ 283:UserAddressAllocation.c ****     _userTable[38].name = LAWRENCE_SKUSE;
+ 627              		.loc 1 283 0
+ 628 0510 83F8C891 		strb	r9, [r3, #456]
+ 284:UserAddressAllocation.c ****     _userTable[38].str = "lawrence skuse";
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 17
+
+
+ 629              		.loc 1 284 0
+ 630 0514 294A     		ldr	r2, .L6+28
+ 631 0516 C3F8CC21 		str	r2, [r3, #460]
+ 285:UserAddressAllocation.c ****     _userTable[38].lvl_1_addr = 0x70;
+ 632              		.loc 1 285 0
+ 633 051a 7022     		movs	r2, #112
+ 634 051c 83F8D021 		strb	r2, [r3, #464]
+ 286:UserAddressAllocation.c ****     _userTable[38].lvl_2_addr = 0x71;
+ 635              		.loc 1 286 0
+ 636 0520 7122     		movs	r2, #113
+ 637 0522 83F8D121 		strb	r2, [r3, #465]
+ 287:UserAddressAllocation.c ****     _userTable[38].lvl_3_addr = 0x72;
+ 638              		.loc 1 287 0
+ 639 0526 7222     		movs	r2, #114
+ 640 0528 83F8D221 		strb	r2, [r3, #466]
+ 288:UserAddressAllocation.c ****     
+ 289:UserAddressAllocation.c ****     _userTable[39].name = WOODROW_WALKER;
+ 641              		.loc 1 289 0
+ 642 052c 83F8D481 		strb	r8, [r3, #468]
+ 290:UserAddressAllocation.c ****     _userTable[39].str = "woodrow walker";
+ 643              		.loc 1 290 0
+ 644 0530 234A     		ldr	r2, .L6+32
+ 645 0532 C3F8D821 		str	r2, [r3, #472]
+ 291:UserAddressAllocation.c ****     _userTable[39].lvl_1_addr = 0x73;
+ 646              		.loc 1 291 0
+ 647 0536 7321     		movs	r1, #115
+ 648 0538 83F8DC11 		strb	r1, [r3, #476]
+ 292:UserAddressAllocation.c ****     _userTable[39].lvl_2_addr = 0x74;
+ 649              		.loc 1 292 0
+ 650 053c 7421     		movs	r1, #116
+ 651 053e 83F8DD11 		strb	r1, [r3, #477]
+ 293:UserAddressAllocation.c ****     _userTable[39].lvl_3_addr = 0x75;
+ 652              		.loc 1 293 0
+ 653 0542 7521     		movs	r1, #117
+ 654 0544 83F8DE11 		strb	r1, [r3, #478]
+ 294:UserAddressAllocation.c ****     
+ 295:UserAddressAllocation.c ****     _userTable[40].name = DMITRI_WATERS;
+ 655              		.loc 1 295 0
+ 656 0548 83F8E0C1 		strb	ip, [r3, #480]
+ 296:UserAddressAllocation.c ****     _userTable[40].str = "woodrow walker";
+ 657              		.loc 1 296 0
+ 658 054c C3F8E421 		str	r2, [r3, #484]
+ 297:UserAddressAllocation.c ****     _userTable[40].lvl_1_addr = 0x76;
+ 659              		.loc 1 297 0
+ 660 0550 7622     		movs	r2, #118
+ 661 0552 83F8E821 		strb	r2, [r3, #488]
+ 298:UserAddressAllocation.c ****     _userTable[40].lvl_2_addr = 0x77;
+ 662              		.loc 1 298 0
+ 663 0556 7722     		movs	r2, #119
+ 664 0558 83F8E921 		strb	r2, [r3, #489]
+ 299:UserAddressAllocation.c ****     _userTable[40].lvl_3_addr = 0x78;
+ 665              		.loc 1 299 0
+ 666 055c 7822     		movs	r2, #120
+ 667 055e 83F8EA21 		strb	r2, [r3, #490]
+ 300:UserAddressAllocation.c ****     
+ 301:UserAddressAllocation.c ****     _userTable[41].name = JAMES_WINDORJJ;
+ 668              		.loc 1 301 0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 18
+
+
+ 669 0562 83F8ECE1 		strb	lr, [r3, #492]
+ 302:UserAddressAllocation.c ****     _userTable[41].str = "james windorjj";
+ 670              		.loc 1 302 0
+ 671 0566 174A     		ldr	r2, .L6+36
+ 672 0568 C3F8F021 		str	r2, [r3, #496]
+ 303:UserAddressAllocation.c ****     _userTable[41].lvl_1_addr = 0x79;
+ 673              		.loc 1 303 0
+ 674 056c 7922     		movs	r2, #121
+ 675 056e 83F8F421 		strb	r2, [r3, #500]
+ 304:UserAddressAllocation.c ****     _userTable[41].lvl_2_addr = 0x7A;
+ 676              		.loc 1 304 0
+ 677 0572 7A22     		movs	r2, #122
+ 678 0574 83F8F521 		strb	r2, [r3, #501]
+ 305:UserAddressAllocation.c ****     _userTable[41].lvl_3_addr = 0x7B;
+ 679              		.loc 1 305 0
+ 680 0578 7B22     		movs	r2, #123
+ 681 057a 83F8F621 		strb	r2, [r3, #502]
+ 306:UserAddressAllocation.c ****     
+ 307:UserAddressAllocation.c ****     _userTable[42].name = KAMITH_MIRISSAGE;
+ 682              		.loc 1 307 0
+ 683 057e 83F8F871 		strb	r7, [r3, #504]
+ 308:UserAddressAllocation.c ****     _userTable[42].str = "kamith mirissage";
+ 684              		.loc 1 308 0
+ 685 0582 114A     		ldr	r2, .L6+40
+ 686 0584 C3F8FC21 		str	r2, [r3, #508]
+ 309:UserAddressAllocation.c ****     _userTable[42].lvl_1_addr = 0x7C;
+ 687              		.loc 1 309 0
+ 688 0588 7C22     		movs	r2, #124
+ 689 058a 83F80022 		strb	r2, [r3, #512]
+ 310:UserAddressAllocation.c ****     _userTable[42].lvl_2_addr = 0x7D;
+ 690              		.loc 1 310 0
+ 691 058e 7D22     		movs	r2, #125
+ 692 0590 83F80122 		strb	r2, [r3, #513]
+ 311:UserAddressAllocation.c ****     _userTable[42].lvl_3_addr = 0x7E;
+ 693              		.loc 1 311 0
+ 694 0594 7E22     		movs	r2, #126
+ 695 0596 83F80222 		strb	r2, [r3, #514]
+ 696 059a BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 697              	.L7:
+ 698 059e 00BF     		.align	2
+ 699              	.L6:
+ 700 05a0 EC010000 		.word	.LC31
+ 701 05a4 F8010000 		.word	.LC32
+ 702 05a8 08020000 		.word	.LC33
+ 703 05ac 1C020000 		.word	.LC34
+ 704 05b0 2C020000 		.word	.LC35
+ 705 05b4 48020000 		.word	.LC36
+ 706 05b8 58020000 		.word	.LC37
+ 707 05bc 64020000 		.word	.LC38
+ 708 05c0 74020000 		.word	.LC39
+ 709 05c4 84020000 		.word	.LC40
+ 710 05c8 94020000 		.word	.LC41
+ 711              		.cfi_endproc
+ 712              	.LFE0:
+ 713              		.size	user_init, .-user_init
+ 714              		.section	.text.user_id_to_address,"ax",%progbits
+ 715              		.align	2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 19
+
+
+ 716              		.global	user_id_to_address
+ 717              		.thumb
+ 718              		.thumb_func
+ 719              		.type	user_id_to_address, %function
+ 720              	user_id_to_address:
+ 721              	.LFB1:
+ 312:UserAddressAllocation.c **** }
+ 313:UserAddressAllocation.c **** 
+ 314:UserAddressAllocation.c **** /**
+ 315:UserAddressAllocation.c ****  * Map enumerated ID to an address as specified by the level desired.
+ 316:UserAddressAllocation.c ****  * @name is enumerated user identity
+ 317:UserAddressAllocation.c ****  * @lvl is to select which of the allocated addresses to return
+ 318:UserAddressAllocation.c ****  * @return 7-bit address (8th MSB is 0) or 0xFF if not found
+ 319:UserAddressAllocation.c ****  */
+ 320:UserAddressAllocation.c **** uint8_t user_id_to_address(UserName_e name, UserAddressLevel_e lvl){
+ 722              		.loc 1 320 0
+ 723              		.cfi_startproc
+ 724              		@ args = 0, pretend = 0, frame = 0
+ 725              		@ frame_needed = 0, uses_anonymous_args = 0
+ 726              		@ link register save eliminated.
+ 727              	.LVL0:
+ 728 0000 30B4     		push	{r4, r5}
+ 729              		.cfi_def_cfa_offset 8
+ 730              		.cfi_offset 4, -8
+ 731              		.cfi_offset 5, -4
+ 732              	.LVL1:
+ 321:UserAddressAllocation.c ****     uint8_t retval = 0xFF; //default invalid address
+ 322:UserAddressAllocation.c ****     
+ 323:UserAddressAllocation.c ****     uint8_t i;
+ 324:UserAddressAllocation.c ****     for(i=0; i<_USER_TABLE_SIZE; i++){
+ 733              		.loc 1 324 0
+ 734 0002 0023     		movs	r3, #0
+ 735 0004 23E0     		b	.L9
+ 736              	.LVL2:
+ 737              	.L15:
+ 325:UserAddressAllocation.c ****         if(_userTable[i].name == name){
+ 738              		.loc 1 325 0
+ 739 0006 03EB4304 		add	r4, r3, r3, lsl #1
+ 740 000a A200     		lsls	r2, r4, #2
+ 741 000c 134C     		ldr	r4, .L19
+ 742 000e A25C     		ldrb	r2, [r4, r2]	@ zero_extendqisi2
+ 743 0010 8242     		cmp	r2, r0
+ 744 0012 1AD1     		bne	.L10
+ 326:UserAddressAllocation.c ****             switch(lvl){
+ 745              		.loc 1 326 0
+ 746 0014 0129     		cmp	r1, #1
+ 747 0016 0AD0     		beq	.L12
+ 748 0018 11B1     		cbz	r1, .L13
+ 749 001a 0229     		cmp	r1, #2
+ 750 001c 0ED0     		beq	.L14
+ 751 001e 1AE0     		b	.L17
+ 752              	.L13:
+ 327:UserAddressAllocation.c ****                 case USER_ADDRESS_LVL_1:
+ 328:UserAddressAllocation.c ****                     retval = _userTable[i].lvl_1_addr;
+ 753              		.loc 1 328 0
+ 754 0020 03EB4305 		add	r5, r3, r3, lsl #1
+ 755 0024 AB00     		lsls	r3, r5, #2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 20
+
+
+ 756              	.LVL3:
+ 757 0026 0D4A     		ldr	r2, .L19
+ 758 0028 1344     		add	r3, r3, r2
+ 759 002a 187A     		ldrb	r0, [r3, #8]	@ zero_extendqisi2
+ 760              	.LVL4:
+ 329:UserAddressAllocation.c ****                     break;
+ 761              		.loc 1 329 0
+ 762 002c 14E0     		b	.L11
+ 763              	.LVL5:
+ 764              	.L12:
+ 330:UserAddressAllocation.c ****                 case USER_ADDRESS_LVL_2:
+ 331:UserAddressAllocation.c ****                     retval = _userTable[i].lvl_2_addr;
+ 765              		.loc 1 331 0
+ 766 002e 03EB4305 		add	r5, r3, r3, lsl #1
+ 767 0032 AB00     		lsls	r3, r5, #2
+ 768              	.LVL6:
+ 769 0034 094A     		ldr	r2, .L19
+ 770 0036 1344     		add	r3, r3, r2
+ 771 0038 587A     		ldrb	r0, [r3, #9]	@ zero_extendqisi2
+ 772              	.LVL7:
+ 332:UserAddressAllocation.c ****                     break;
+ 773              		.loc 1 332 0
+ 774 003a 0DE0     		b	.L11
+ 775              	.LVL8:
+ 776              	.L14:
+ 333:UserAddressAllocation.c ****                 case USER_ADDRESS_LVL_3:
+ 334:UserAddressAllocation.c ****                     retval = _userTable[i].lvl_3_addr;
+ 777              		.loc 1 334 0
+ 778 003c 03EB4305 		add	r5, r3, r3, lsl #1
+ 779 0040 AB00     		lsls	r3, r5, #2
+ 780              	.LVL9:
+ 781 0042 064A     		ldr	r2, .L19
+ 782 0044 1344     		add	r3, r3, r2
+ 783 0046 987A     		ldrb	r0, [r3, #10]	@ zero_extendqisi2
+ 784              	.LVL10:
+ 335:UserAddressAllocation.c ****                     break;
+ 785              		.loc 1 335 0
+ 786 0048 06E0     		b	.L11
+ 787              	.LVL11:
+ 788              	.L10:
+ 324:UserAddressAllocation.c ****         if(_userTable[i].name == name){
+ 789              		.loc 1 324 0 discriminator 2
+ 790 004a 0133     		adds	r3, r3, #1
+ 791              	.LVL12:
+ 792 004c DBB2     		uxtb	r3, r3
+ 793              	.LVL13:
+ 794              	.L9:
+ 324:UserAddressAllocation.c ****         if(_userTable[i].name == name){
+ 795              		.loc 1 324 0 is_stmt 0 discriminator 1
+ 796 004e 2A2B     		cmp	r3, #42
+ 797 0050 D9D9     		bls	.L15
+ 321:UserAddressAllocation.c ****     
+ 798              		.loc 1 321 0 is_stmt 1
+ 799 0052 FF20     		movs	r0, #255
+ 800              	.LVL14:
+ 801 0054 00E0     		b	.L11
+ 802              	.LVL15:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 21
+
+
+ 803              	.L17:
+ 336:UserAddressAllocation.c ****                 default:
+ 337:UserAddressAllocation.c ****                     retval = 0xFF; //invalid level -> invalid address
+ 804              		.loc 1 337 0
+ 805 0056 FF20     		movs	r0, #255
+ 806              	.LVL16:
+ 807              	.L11:
+ 338:UserAddressAllocation.c ****                     break;
+ 339:UserAddressAllocation.c ****             }
+ 340:UserAddressAllocation.c ****             break;
+ 341:UserAddressAllocation.c ****         }
+ 342:UserAddressAllocation.c ****     }
+ 343:UserAddressAllocation.c ****     
+ 344:UserAddressAllocation.c ****     return retval;
+ 345:UserAddressAllocation.c **** }
+ 808              		.loc 1 345 0
+ 809 0058 30BC     		pop	{r4, r5}
+ 810              		.cfi_restore 5
+ 811              		.cfi_restore 4
+ 812              		.cfi_def_cfa_offset 0
+ 813 005a 7047     		bx	lr
+ 814              	.L20:
+ 815              		.align	2
+ 816              	.L19:
+ 817 005c 00000000 		.word	.LANCHOR0
+ 818              		.cfi_endproc
+ 819              	.LFE1:
+ 820              		.size	user_id_to_address, .-user_id_to_address
+ 821              		.section	.text.user_address_to_id,"ax",%progbits
+ 822              		.align	2
+ 823              		.global	user_address_to_id
+ 824              		.thumb
+ 825              		.thumb_func
+ 826              		.type	user_address_to_id, %function
+ 827              	user_address_to_id:
+ 828              	.LFB2:
+ 346:UserAddressAllocation.c **** 
+ 347:UserAddressAllocation.c **** /**
+ 348:UserAddressAllocation.c ****  * Map address back to an enumerated identity.
+ 349:UserAddressAllocation.c ****  * @addr is 7-bit address (8th MSB is 0) to match.
+ 350:UserAddressAllocation.c ****  * @return enumerated ID of username or _INVALID_NAME if not found
+ 351:UserAddressAllocation.c ****  */
+ 352:UserAddressAllocation.c **** UserName_e user_address_to_id(uint8_t addr){
+ 829              		.loc 1 352 0
+ 830              		.cfi_startproc
+ 831              		@ args = 0, pretend = 0, frame = 0
+ 832              		@ frame_needed = 0, uses_anonymous_args = 0
+ 833              		@ link register save eliminated.
+ 834              	.LVL17:
+ 835 0000 10B4     		push	{r4}
+ 836              		.cfi_def_cfa_offset 4
+ 837              		.cfi_offset 4, -4
+ 838              	.LVL18:
+ 353:UserAddressAllocation.c ****     UserName_e retval = _INVALID_NAME; //default invalid name
+ 354:UserAddressAllocation.c ****     
+ 355:UserAddressAllocation.c ****     uint8_t i;
+ 356:UserAddressAllocation.c ****     for(i=0; i<_USER_TABLE_SIZE; i++){
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 22
+
+
+ 839              		.loc 1 356 0
+ 840 0002 0023     		movs	r3, #0
+ 841 0004 20E0     		b	.L22
+ 842              	.LVL19:
+ 843              	.L26:
+ 357:UserAddressAllocation.c ****         if(_userTable[i].lvl_1_addr == addr || _userTable[i].lvl_2_addr == addr 
+ 844              		.loc 1 357 0
+ 845 0006 1946     		mov	r1, r3
+ 846 0008 03EB4304 		add	r4, r3, r3, lsl #1
+ 847 000c A200     		lsls	r2, r4, #2
+ 848 000e 114C     		ldr	r4, .L28
+ 849 0010 2244     		add	r2, r2, r4
+ 850 0012 127A     		ldrb	r2, [r2, #8]	@ zero_extendqisi2
+ 851 0014 8242     		cmp	r2, r0
+ 852 0016 0FD0     		beq	.L23
+ 853              		.loc 1 357 0 is_stmt 0 discriminator 1
+ 854 0018 03EB4304 		add	r4, r3, r3, lsl #1
+ 855 001c A200     		lsls	r2, r4, #2
+ 856 001e 0D4C     		ldr	r4, .L28
+ 857 0020 2244     		add	r2, r2, r4
+ 858 0022 527A     		ldrb	r2, [r2, #9]	@ zero_extendqisi2
+ 859 0024 9042     		cmp	r0, r2
+ 860 0026 07D0     		beq	.L23
+ 358:UserAddressAllocation.c ****                 || _userTable[i].lvl_3_addr == addr){
+ 861              		.loc 1 358 0 is_stmt 1
+ 862 0028 03EB4304 		add	r4, r3, r3, lsl #1
+ 863 002c A200     		lsls	r2, r4, #2
+ 864 002e 094C     		ldr	r4, .L28
+ 865 0030 2244     		add	r2, r2, r4
+ 866 0032 927A     		ldrb	r2, [r2, #10]	@ zero_extendqisi2
+ 867 0034 9042     		cmp	r0, r2
+ 868 0036 05D1     		bne	.L24
+ 869              	.L23:
+ 359:UserAddressAllocation.c ****             retval = _userTable[i].name;
+ 870              		.loc 1 359 0
+ 871 0038 01EB4101 		add	r1, r1, r1, lsl #1
+ 872 003c 8B00     		lsls	r3, r1, #2
+ 873              	.LVL20:
+ 874 003e 054A     		ldr	r2, .L28
+ 875 0040 D05C     		ldrb	r0, [r2, r3]	@ zero_extendqisi2
+ 876              	.LVL21:
+ 360:UserAddressAllocation.c ****             break;
+ 877              		.loc 1 360 0
+ 878 0042 04E0     		b	.L25
+ 879              	.LVL22:
+ 880              	.L24:
+ 356:UserAddressAllocation.c ****         if(_userTable[i].lvl_1_addr == addr || _userTable[i].lvl_2_addr == addr 
+ 881              		.loc 1 356 0 discriminator 2
+ 882 0044 0133     		adds	r3, r3, #1
+ 883              	.LVL23:
+ 884 0046 DBB2     		uxtb	r3, r3
+ 885              	.LVL24:
+ 886              	.L22:
+ 356:UserAddressAllocation.c ****         if(_userTable[i].lvl_1_addr == addr || _userTable[i].lvl_2_addr == addr 
+ 887              		.loc 1 356 0 is_stmt 0 discriminator 1
+ 888 0048 2A2B     		cmp	r3, #42
+ 889 004a DCD9     		bls	.L26
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 23
+
+
+ 353:UserAddressAllocation.c ****     
+ 890              		.loc 1 353 0 is_stmt 1
+ 891 004c 2C20     		movs	r0, #44
+ 892              	.LVL25:
+ 893              	.L25:
+ 361:UserAddressAllocation.c ****         }
+ 362:UserAddressAllocation.c ****     }
+ 363:UserAddressAllocation.c ****     
+ 364:UserAddressAllocation.c ****     return retval;
+ 365:UserAddressAllocation.c **** }
+ 894              		.loc 1 365 0
+ 895 004e 10BC     		pop	{r4}
+ 896              		.cfi_restore 4
+ 897              		.cfi_def_cfa_offset 0
+ 898 0050 7047     		bx	lr
+ 899              	.L29:
+ 900 0052 00BF     		.align	2
+ 901              	.L28:
+ 902 0054 00000000 		.word	.LANCHOR0
+ 903              		.cfi_endproc
+ 904              	.LFE2:
+ 905              		.size	user_address_to_id, .-user_address_to_id
+ 906              		.section	.text.user_string_to_id,"ax",%progbits
+ 907              		.align	2
+ 908              		.global	user_string_to_id
+ 909              		.thumb
+ 910              		.thumb_func
+ 911              		.type	user_string_to_id, %function
+ 912              	user_string_to_id:
+ 913              	.LFB3:
+ 366:UserAddressAllocation.c **** 
+ 367:UserAddressAllocation.c **** /**
+ 368:UserAddressAllocation.c ****  * Map stringified username to an enumerated identity
+ 369:UserAddressAllocation.c ****  * @str is lowervase string matching table's stringified name identity
+ 370:UserAddressAllocation.c ****  * @return enumerated ID of username or _INVALID_NAME if not found
+ 371:UserAddressAllocation.c ****  */
+ 372:UserAddressAllocation.c **** UserName_e user_string_to_id(const char* str){
+ 914              		.loc 1 372 0
+ 915              		.cfi_startproc
+ 916              		@ args = 0, pretend = 0, frame = 0
+ 917              		@ frame_needed = 0, uses_anonymous_args = 0
+ 918              	.LVL26:
+ 919 0000 70B5     		push	{r4, r5, r6, lr}
+ 920              		.cfi_def_cfa_offset 16
+ 921              		.cfi_offset 4, -16
+ 922              		.cfi_offset 5, -12
+ 923              		.cfi_offset 6, -8
+ 924              		.cfi_offset 14, -4
+ 925 0002 0646     		mov	r6, r0
+ 926              	.LVL27:
+ 373:UserAddressAllocation.c ****     UserName_e retval = _INVALID_NAME; //default invalid name
+ 374:UserAddressAllocation.c ****     
+ 375:UserAddressAllocation.c ****     uint8_t i;
+ 376:UserAddressAllocation.c ****     for(i=0; i<_USER_TABLE_SIZE; i++){
+ 927              		.loc 1 376 0
+ 928 0004 0024     		movs	r4, #0
+ 929 0006 11E0     		b	.L31
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 24
+
+
+ 930              	.LVL28:
+ 931              	.L34:
+ 377:UserAddressAllocation.c ****         if(strcmp(str,_userTable[i].str) == 0){
+ 932              		.loc 1 377 0
+ 933 0008 04EB4402 		add	r2, r4, r4, lsl #1
+ 934 000c 9300     		lsls	r3, r2, #2
+ 935 000e 094A     		ldr	r2, .L36
+ 936 0010 1344     		add	r3, r3, r2
+ 937 0012 5968     		ldr	r1, [r3, #4]
+ 938 0014 3046     		mov	r0, r6
+ 939 0016 FFF7FEFF 		bl	strcmp
+ 940              	.LVL29:
+ 941 001a 28B9     		cbnz	r0, .L32
+ 378:UserAddressAllocation.c ****             retval = _userTable[i].name;
+ 942              		.loc 1 378 0
+ 943 001c 04EB4405 		add	r5, r4, r4, lsl #1
+ 944 0020 AB00     		lsls	r3, r5, #2
+ 945 0022 044A     		ldr	r2, .L36
+ 946 0024 D05C     		ldrb	r0, [r2, r3]	@ zero_extendqisi2
+ 947              	.LVL30:
+ 379:UserAddressAllocation.c ****             break;
+ 948              		.loc 1 379 0
+ 949 0026 70BD     		pop	{r4, r5, r6, pc}
+ 950              	.LVL31:
+ 951              	.L32:
+ 376:UserAddressAllocation.c ****         if(strcmp(str,_userTable[i].str) == 0){
+ 952              		.loc 1 376 0 discriminator 2
+ 953 0028 0134     		adds	r4, r4, #1
+ 954              	.LVL32:
+ 955 002a E4B2     		uxtb	r4, r4
+ 956              	.LVL33:
+ 957              	.L31:
+ 376:UserAddressAllocation.c ****         if(strcmp(str,_userTable[i].str) == 0){
+ 958              		.loc 1 376 0 is_stmt 0 discriminator 1
+ 959 002c 2A2C     		cmp	r4, #42
+ 960 002e EBD9     		bls	.L34
+ 373:UserAddressAllocation.c ****     
+ 961              		.loc 1 373 0 is_stmt 1
+ 962 0030 2C20     		movs	r0, #44
+ 963              	.LVL34:
+ 380:UserAddressAllocation.c ****         }
+ 381:UserAddressAllocation.c ****     }
+ 382:UserAddressAllocation.c ****     
+ 383:UserAddressAllocation.c ****     return retval;
+ 384:UserAddressAllocation.c **** }
+ 964              		.loc 1 384 0
+ 965 0032 70BD     		pop	{r4, r5, r6, pc}
+ 966              	.LVL35:
+ 967              	.L37:
+ 968              		.align	2
+ 969              	.L36:
+ 970 0034 00000000 		.word	.LANCHOR0
+ 971              		.cfi_endproc
+ 972              	.LFE3:
+ 973              		.size	user_string_to_id, .-user_string_to_id
+ 974              		.section	.text.user_id_to_string,"ax",%progbits
+ 975              		.align	2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 25
+
+
+ 976              		.global	user_id_to_string
+ 977              		.thumb
+ 978              		.thumb_func
+ 979              		.type	user_id_to_string, %function
+ 980              	user_id_to_string:
+ 981              	.LFB4:
+ 385:UserAddressAllocation.c **** 
+ 386:UserAddressAllocation.c **** /**
+ 387:UserAddressAllocation.c ****  * Map enumerated identity to stringified form
+ 388:UserAddressAllocation.c ****  * @name is enumerated user identity
+ 389:UserAddressAllocation.c ****  * @return stringified version of enumerated identity else "invalid name"
+ 390:UserAddressAllocation.c ****  */
+ 391:UserAddressAllocation.c **** const char* user_id_to_string(UserName_e name){
+ 982              		.loc 1 391 0
+ 983              		.cfi_startproc
+ 984              		@ args = 0, pretend = 0, frame = 0
+ 985              		@ frame_needed = 0, uses_anonymous_args = 0
+ 986              		@ link register save eliminated.
+ 987              	.LVL36:
+ 988 0000 10B4     		push	{r4}
+ 989              		.cfi_def_cfa_offset 4
+ 990              		.cfi_offset 4, -4
+ 991              	.LVL37:
+ 392:UserAddressAllocation.c ****     const char* retval = "invalid name";
+ 393:UserAddressAllocation.c ****     
+ 394:UserAddressAllocation.c ****     uint8_t i;
+ 395:UserAddressAllocation.c ****     for(i=0; i<_USER_TABLE_SIZE; i++){
+ 992              		.loc 1 395 0
+ 993 0002 0023     		movs	r3, #0
+ 994 0004 0EE0     		b	.L39
+ 995              	.LVL38:
+ 996              	.L42:
+ 396:UserAddressAllocation.c ****         if(_userTable[i].name == name){
+ 997              		.loc 1 396 0
+ 998 0006 03EB4301 		add	r1, r3, r3, lsl #1
+ 999 000a 8A00     		lsls	r2, r1, #2
+ 1000 000c 0849     		ldr	r1, .L44
+ 1001 000e 8A5C     		ldrb	r2, [r1, r2]	@ zero_extendqisi2
+ 1002 0010 8242     		cmp	r2, r0
+ 1003 0012 05D1     		bne	.L40
+ 397:UserAddressAllocation.c ****             retval = _userTable[i].str;
+ 1004              		.loc 1 397 0
+ 1005 0014 03EB4304 		add	r4, r3, r3, lsl #1
+ 1006 0018 A300     		lsls	r3, r4, #2
+ 1007              	.LVL39:
+ 1008 001a 0B44     		add	r3, r3, r1
+ 1009 001c 5868     		ldr	r0, [r3, #4]
+ 1010              	.LVL40:
+ 398:UserAddressAllocation.c ****             break;
+ 1011              		.loc 1 398 0
+ 1012 001e 04E0     		b	.L41
+ 1013              	.LVL41:
+ 1014              	.L40:
+ 395:UserAddressAllocation.c ****         if(_userTable[i].name == name){
+ 1015              		.loc 1 395 0 discriminator 2
+ 1016 0020 0133     		adds	r3, r3, #1
+ 1017              	.LVL42:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 26
+
+
+ 1018 0022 DBB2     		uxtb	r3, r3
+ 1019              	.LVL43:
+ 1020              	.L39:
+ 395:UserAddressAllocation.c ****         if(_userTable[i].name == name){
+ 1021              		.loc 1 395 0 is_stmt 0 discriminator 1
+ 1022 0024 2A2B     		cmp	r3, #42
+ 1023 0026 EED9     		bls	.L42
+ 392:UserAddressAllocation.c ****     
+ 1024              		.loc 1 392 0 is_stmt 1
+ 1025 0028 0248     		ldr	r0, .L44+4
+ 1026              	.LVL44:
+ 1027              	.L41:
+ 399:UserAddressAllocation.c ****         }
+ 400:UserAddressAllocation.c ****     }
+ 401:UserAddressAllocation.c ****     
+ 402:UserAddressAllocation.c ****     return retval;
+ 403:UserAddressAllocation.c **** }
+ 1028              		.loc 1 403 0
+ 1029 002a 10BC     		pop	{r4}
+ 1030              		.cfi_restore 4
+ 1031              		.cfi_def_cfa_offset 0
+ 1032 002c 7047     		bx	lr
+ 1033              	.L45:
+ 1034 002e 00BF     		.align	2
+ 1035              	.L44:
+ 1036 0030 00000000 		.word	.LANCHOR0
+ 1037 0034 A8020000 		.word	.LC42
+ 1038              		.cfi_endproc
+ 1039              	.LFE4:
+ 1040              		.size	user_id_to_string, .-user_id_to_string
+ 1041              		.section	.text.user_string_to_address,"ax",%progbits
+ 1042              		.align	2
+ 1043              		.global	user_string_to_address
+ 1044              		.thumb
+ 1045              		.thumb_func
+ 1046              		.type	user_string_to_address, %function
+ 1047              	user_string_to_address:
+ 1048              	.LFB5:
+ 404:UserAddressAllocation.c **** 
+ 405:UserAddressAllocation.c **** /**
+ 406:UserAddressAllocation.c ****  * Map string username to an address as specified by the level desired.
+ 407:UserAddressAllocation.c ****  * @str is lowercase string matching table's stringified name identity
+ 408:UserAddressAllocation.c ****  * @lvl is to select which of the allocated addresses to return
+ 409:UserAddressAllocation.c ****  * @return 7-bit address (8th MSB is 0) or 0xFF if not found
+ 410:UserAddressAllocation.c ****  */
+ 411:UserAddressAllocation.c **** uint8_t user_string_to_address(const char* str, UserAddressLevel_e lvl){
+ 1049              		.loc 1 411 0
+ 1050              		.cfi_startproc
+ 1051              		@ args = 0, pretend = 0, frame = 0
+ 1052              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1053              	.LVL45:
+ 1054 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 1055              		.cfi_def_cfa_offset 24
+ 1056              		.cfi_offset 3, -24
+ 1057              		.cfi_offset 4, -20
+ 1058              		.cfi_offset 5, -16
+ 1059              		.cfi_offset 6, -12
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 27
+
+
+ 1060              		.cfi_offset 7, -8
+ 1061              		.cfi_offset 14, -4
+ 1062 0002 0546     		mov	r5, r0
+ 1063 0004 0E46     		mov	r6, r1
+ 1064              	.LVL46:
+ 412:UserAddressAllocation.c ****     uint8_t retval = 0xFF; //default invalid address
+ 413:UserAddressAllocation.c ****     
+ 414:UserAddressAllocation.c ****     uint8_t i;
+ 415:UserAddressAllocation.c ****     for(i=0; i<_USER_TABLE_SIZE; i++){
+ 1065              		.loc 1 415 0
+ 1066 0006 0024     		movs	r4, #0
+ 1067 0008 26E0     		b	.L47
+ 1068              	.LVL47:
+ 1069              	.L53:
+ 416:UserAddressAllocation.c ****         if(strcmp(str,_userTable[i].str) == 0){
+ 1070              		.loc 1 416 0
+ 1071 000a 04EB4402 		add	r2, r4, r4, lsl #1
+ 1072 000e 9300     		lsls	r3, r2, #2
+ 1073 0010 144A     		ldr	r2, .L57
+ 1074 0012 1344     		add	r3, r3, r2
+ 1075 0014 5968     		ldr	r1, [r3, #4]
+ 1076 0016 2846     		mov	r0, r5
+ 1077 0018 FFF7FEFF 		bl	strcmp
+ 1078              	.LVL48:
+ 1079 001c D0B9     		cbnz	r0, .L48
+ 417:UserAddressAllocation.c ****             switch(lvl){
+ 1080              		.loc 1 417 0
+ 1081 001e 012E     		cmp	r6, #1
+ 1082 0020 0AD0     		beq	.L50
+ 1083 0022 16B1     		cbz	r6, .L51
+ 1084 0024 022E     		cmp	r6, #2
+ 1085 0026 0ED0     		beq	.L52
+ 1086 0028 1AE0     		b	.L55
+ 1087              	.L51:
+ 418:UserAddressAllocation.c ****                 case USER_ADDRESS_LVL_1:
+ 419:UserAddressAllocation.c ****                     retval = _userTable[i].lvl_1_addr;
+ 1088              		.loc 1 419 0
+ 1089 002a 04EB4407 		add	r7, r4, r4, lsl #1
+ 1090 002e BB00     		lsls	r3, r7, #2
+ 1091 0030 0C4A     		ldr	r2, .L57
+ 1092 0032 1344     		add	r3, r3, r2
+ 1093 0034 187A     		ldrb	r0, [r3, #8]	@ zero_extendqisi2
+ 1094              	.LVL49:
+ 420:UserAddressAllocation.c ****                     break;
+ 1095              		.loc 1 420 0
+ 1096 0036 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 1097              	.LVL50:
+ 1098              	.L50:
+ 421:UserAddressAllocation.c ****                 case USER_ADDRESS_LVL_2:
+ 422:UserAddressAllocation.c ****                     retval = _userTable[i].lvl_2_addr;
+ 1099              		.loc 1 422 0
+ 1100 0038 04EB4407 		add	r7, r4, r4, lsl #1
+ 1101 003c BB00     		lsls	r3, r7, #2
+ 1102 003e 094A     		ldr	r2, .L57
+ 1103 0040 1344     		add	r3, r3, r2
+ 1104 0042 587A     		ldrb	r0, [r3, #9]	@ zero_extendqisi2
+ 1105              	.LVL51:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 28
+
+
+ 423:UserAddressAllocation.c ****                     break;
+ 1106              		.loc 1 423 0
+ 1107 0044 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 1108              	.LVL52:
+ 1109              	.L52:
+ 424:UserAddressAllocation.c ****                 case USER_ADDRESS_LVL_3:
+ 425:UserAddressAllocation.c ****                     retval = _userTable[i].lvl_3_addr;
+ 1110              		.loc 1 425 0
+ 1111 0046 04EB4407 		add	r7, r4, r4, lsl #1
+ 1112 004a BB00     		lsls	r3, r7, #2
+ 1113 004c 054A     		ldr	r2, .L57
+ 1114 004e 1344     		add	r3, r3, r2
+ 1115 0050 987A     		ldrb	r0, [r3, #10]	@ zero_extendqisi2
+ 1116              	.LVL53:
+ 426:UserAddressAllocation.c ****                     break;
+ 1117              		.loc 1 426 0
+ 1118 0052 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 1119              	.LVL54:
+ 1120              	.L48:
+ 415:UserAddressAllocation.c ****         if(strcmp(str,_userTable[i].str) == 0){
+ 1121              		.loc 1 415 0 discriminator 2
+ 1122 0054 0134     		adds	r4, r4, #1
+ 1123              	.LVL55:
+ 1124 0056 E4B2     		uxtb	r4, r4
+ 1125              	.LVL56:
+ 1126              	.L47:
+ 415:UserAddressAllocation.c ****         if(strcmp(str,_userTable[i].str) == 0){
+ 1127              		.loc 1 415 0 is_stmt 0 discriminator 1
+ 1128 0058 2A2C     		cmp	r4, #42
+ 1129 005a D6D9     		bls	.L53
+ 412:UserAddressAllocation.c ****     
+ 1130              		.loc 1 412 0 is_stmt 1
+ 1131 005c FF20     		movs	r0, #255
+ 1132 005e F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 1133              	.LVL57:
+ 1134              	.L55:
+ 427:UserAddressAllocation.c ****                 default:
+ 428:UserAddressAllocation.c ****                     retval = 0xFF; //invalid level -> invalid address
+ 1135              		.loc 1 428 0
+ 1136 0060 FF20     		movs	r0, #255
+ 1137              	.LVL58:
+ 429:UserAddressAllocation.c ****                     break;
+ 430:UserAddressAllocation.c ****             }
+ 431:UserAddressAllocation.c ****             break;
+ 432:UserAddressAllocation.c ****         }
+ 433:UserAddressAllocation.c ****     }
+ 434:UserAddressAllocation.c ****     
+ 435:UserAddressAllocation.c ****     return retval;
+ 436:UserAddressAllocation.c **** }
+ 1138              		.loc 1 436 0
+ 1139 0062 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 1140              	.LVL59:
+ 1141              	.L58:
+ 1142              		.align	2
+ 1143              	.L57:
+ 1144 0064 00000000 		.word	.LANCHOR0
+ 1145              		.cfi_endproc
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 29
+
+
+ 1146              	.LFE5:
+ 1147              		.size	user_string_to_address, .-user_string_to_address
+ 1148              		.section	.text.user_address_to_string,"ax",%progbits
+ 1149              		.align	2
+ 1150              		.global	user_address_to_string
+ 1151              		.thumb
+ 1152              		.thumb_func
+ 1153              		.type	user_address_to_string, %function
+ 1154              	user_address_to_string:
+ 1155              	.LFB6:
+ 437:UserAddressAllocation.c **** 
+ 438:UserAddressAllocation.c **** /**
+ 439:UserAddressAllocation.c ****  * Map address to stringified identity of username
+ 440:UserAddressAllocation.c ****  * @addr is 7-bit address (8th MSB is 0) to match.
+ 441:UserAddressAllocation.c ****  * @return stringified version of enumerated identity else "invalid name"
+ 442:UserAddressAllocation.c ****  */
+ 443:UserAddressAllocation.c **** const char* user_address_to_string(uint8_t addr){
+ 1156              		.loc 1 443 0
+ 1157              		.cfi_startproc
+ 1158              		@ args = 0, pretend = 0, frame = 0
+ 1159              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1160              		@ link register save eliminated.
+ 1161              	.LVL60:
+ 1162 0000 10B4     		push	{r4}
+ 1163              		.cfi_def_cfa_offset 4
+ 1164              		.cfi_offset 4, -4
+ 1165              	.LVL61:
+ 444:UserAddressAllocation.c ****     const char* retval = "invalid name";
+ 445:UserAddressAllocation.c ****     
+ 446:UserAddressAllocation.c ****     uint8_t i;
+ 447:UserAddressAllocation.c ****     for(i=0; i<_USER_TABLE_SIZE; i++){
+ 1166              		.loc 1 447 0
+ 1167 0002 0023     		movs	r3, #0
+ 1168 0004 21E0     		b	.L60
+ 1169              	.LVL62:
+ 1170              	.L64:
+ 448:UserAddressAllocation.c ****         if(_userTable[i].lvl_1_addr == addr || _userTable[i].lvl_2_addr == addr 
+ 1171              		.loc 1 448 0
+ 1172 0006 1946     		mov	r1, r3
+ 1173 0008 03EB4304 		add	r4, r3, r3, lsl #1
+ 1174 000c A200     		lsls	r2, r4, #2
+ 1175 000e 114C     		ldr	r4, .L66
+ 1176 0010 2244     		add	r2, r2, r4
+ 1177 0012 127A     		ldrb	r2, [r2, #8]	@ zero_extendqisi2
+ 1178 0014 8242     		cmp	r2, r0
+ 1179 0016 0FD0     		beq	.L61
+ 1180              		.loc 1 448 0 is_stmt 0 discriminator 1
+ 1181 0018 03EB4304 		add	r4, r3, r3, lsl #1
+ 1182 001c A200     		lsls	r2, r4, #2
+ 1183 001e 0D4C     		ldr	r4, .L66
+ 1184 0020 2244     		add	r2, r2, r4
+ 1185 0022 527A     		ldrb	r2, [r2, #9]	@ zero_extendqisi2
+ 1186 0024 9042     		cmp	r0, r2
+ 1187 0026 07D0     		beq	.L61
+ 449:UserAddressAllocation.c ****                 || _userTable[i].lvl_3_addr == addr){
+ 1188              		.loc 1 449 0 is_stmt 1
+ 1189 0028 03EB4304 		add	r4, r3, r3, lsl #1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 30
+
+
+ 1190 002c A200     		lsls	r2, r4, #2
+ 1191 002e 094C     		ldr	r4, .L66
+ 1192 0030 2244     		add	r2, r2, r4
+ 1193 0032 927A     		ldrb	r2, [r2, #10]	@ zero_extendqisi2
+ 1194 0034 9042     		cmp	r0, r2
+ 1195 0036 06D1     		bne	.L62
+ 1196              	.L61:
+ 450:UserAddressAllocation.c ****             retval = _userTable[i].str;
+ 1197              		.loc 1 450 0
+ 1198 0038 01EB4101 		add	r1, r1, r1, lsl #1
+ 1199 003c 8B00     		lsls	r3, r1, #2
+ 1200              	.LVL63:
+ 1201 003e 054A     		ldr	r2, .L66
+ 1202 0040 1344     		add	r3, r3, r2
+ 1203 0042 5868     		ldr	r0, [r3, #4]
+ 1204              	.LVL64:
+ 451:UserAddressAllocation.c ****             break;
+ 1205              		.loc 1 451 0
+ 1206 0044 04E0     		b	.L63
+ 1207              	.LVL65:
+ 1208              	.L62:
+ 447:UserAddressAllocation.c ****         if(_userTable[i].lvl_1_addr == addr || _userTable[i].lvl_2_addr == addr 
+ 1209              		.loc 1 447 0 discriminator 2
+ 1210 0046 0133     		adds	r3, r3, #1
+ 1211              	.LVL66:
+ 1212 0048 DBB2     		uxtb	r3, r3
+ 1213              	.LVL67:
+ 1214              	.L60:
+ 447:UserAddressAllocation.c ****         if(_userTable[i].lvl_1_addr == addr || _userTable[i].lvl_2_addr == addr 
+ 1215              		.loc 1 447 0 is_stmt 0 discriminator 1
+ 1216 004a 2A2B     		cmp	r3, #42
+ 1217 004c DBD9     		bls	.L64
+ 444:UserAddressAllocation.c ****     
+ 1218              		.loc 1 444 0 is_stmt 1
+ 1219 004e 0248     		ldr	r0, .L66+4
+ 1220              	.LVL68:
+ 1221              	.L63:
+ 452:UserAddressAllocation.c ****         }
+ 453:UserAddressAllocation.c ****     }
+ 454:UserAddressAllocation.c ****     
+ 455:UserAddressAllocation.c ****     return retval;
+ 456:UserAddressAllocation.c **** }...
+ 1222              		.loc 1 456 0
+ 1223 0050 10BC     		pop	{r4}
+ 1224              		.cfi_restore 4
+ 1225              		.cfi_def_cfa_offset 0
+ 1226 0052 7047     		bx	lr
+ 1227              	.L67:
+ 1228              		.align	2
+ 1229              	.L66:
+ 1230 0054 00000000 		.word	.LANCHOR0
+ 1231 0058 A8020000 		.word	.LC42
+ 1232              		.cfi_endproc
+ 1233              	.LFE6:
+ 1234              		.size	user_address_to_string, .-user_address_to_string
+ 1235              		.section	.rodata.str1.4,"aMS",%progbits,1
+ 1236              		.align	2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 31
+
+
+ 1237              	.LC0:
+ 1238 0000 62726F61 		.ascii	"broadcast\000"
+ 1238      64636173 
+ 1238      7400
+ 1239 000a 0000     		.space	2
+ 1240              	.LC1:
+ 1241 000c 70616D65 		.ascii	"pamela antar\000"
+ 1241      6C612061 
+ 1241      6E746172 
+ 1241      00
+ 1242 0019 000000   		.space	3
+ 1243              	.LC2:
+ 1244 001c 73616D75 		.ascii	"samuel conroy\000"
+ 1244      656C2063 
+ 1244      6F6E726F 
+ 1244      7900
+ 1245 002a 0000     		.space	2
+ 1246              	.LC3:
+ 1247 002c 73616D75 		.ascii	"samuel hallerman\000"
+ 1247      656C2068 
+ 1247      616C6C65 
+ 1247      726D616E 
+ 1247      00
+ 1248 003d 000000   		.space	3
+ 1249              	.LC4:
+ 1250 0040 63757274 		.ascii	"curt henrichs\000"
+ 1250      2068656E 
+ 1250      72696368 
+ 1250      7300
+ 1251 004e 0000     		.space	2
+ 1252              	.LC5:
+ 1253 0050 6A6F7365 		.ascii	"josephine locurto\000"
+ 1253      7068696E 
+ 1253      65206C6F 
+ 1253      63757274 
+ 1253      6F00
+ 1254 0062 0000     		.space	2
+ 1255              	.LC6:
+ 1256 0064 616E7468 		.ascii	"anthony marlowe\000"
+ 1256      6F6E7920 
+ 1256      6D61726C 
+ 1256      6F776500 
+ 1257              	.LC7:
+ 1258 0074 6D756E61 		.ascii	"munazza naeem\000"
+ 1258      7A7A6120 
+ 1258      6E616565 
+ 1258      6D00
+ 1259 0082 0000     		.space	2
+ 1260              	.LC8:
+ 1261 0084 6D617468 		.ascii	"mathew pike\000"
+ 1261      65772070 
+ 1261      696B6500 
+ 1262              	.LC9:
+ 1263 0090 73686168 		.ascii	"shahruke qureshi\000"
+ 1263      72756B65 
+ 1263      20717572 
+ 1263      65736869 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 32
+
+
+ 1263      00
+ 1264 00a1 000000   		.space	3
+ 1265              	.LC10:
+ 1266 00a4 64697669 		.ascii	"divin ramachandran\000"
+ 1266      6E207261 
+ 1266      6D616368 
+ 1266      616E6472 
+ 1266      616E00
+ 1267 00b7 00       		.space	1
+ 1268              	.LC11:
+ 1269 00b8 616C6578 		.ascii	"alexander roberts\000"
+ 1269      616E6465 
+ 1269      7220726F 
+ 1269      62657274 
+ 1269      7300
+ 1270 00ca 0000     		.space	2
+ 1271              	.LC12:
+ 1272 00cc 72656964 		.ascii	"reid rumack\000"
+ 1272      2072756D 
+ 1272      61636B00 
+ 1273              	.LC13:
+ 1274 00d8 6A6F686E 		.ascii	"john selfors\000"
+ 1274      2073656C 
+ 1274      666F7273 
+ 1274      00
+ 1275 00e5 000000   		.space	3
+ 1276              	.LC14:
+ 1277 00e8 7A616368 		.ascii	"zachary stanke\000"
+ 1277      61727920 
+ 1277      7374616E 
+ 1277      6B6500
+ 1278 00f7 00       		.space	1
+ 1279              	.LC15:
+ 1280 00f8 616E6472 		.ascii	"andrew stoehr\000"
+ 1280      65772073 
+ 1280      746F6568 
+ 1280      7200
+ 1281 0106 0000     		.space	2
+ 1282              	.LC16:
+ 1283 0108 74796C65 		.ascii	"tyler wells\000"
+ 1283      72207765 
+ 1283      6C6C7300 
+ 1284              	.LC17:
+ 1285 0114 6A6F686E 		.ascii	"johnathon wenzel\000"
+ 1285      6174686F 
+ 1285      6E207765 
+ 1285      6E7A656C 
+ 1285      00
+ 1286 0125 000000   		.space	3
+ 1287              	.LC18:
+ 1288 0128 6A6F7368 		.ascii	"joshua widder\000"
+ 1288      75612077 
+ 1288      69646465 
+ 1288      7200
+ 1289 0136 0000     		.space	2
+ 1290              	.LC19:
+ 1291 0138 616E6472 		.ascii	"andrew winston\000"
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 33
+
+
+ 1291      65772077 
+ 1291      696E7374 
+ 1291      6F6E00
+ 1292 0147 00       		.space	1
+ 1293              	.LC20:
+ 1294 0148 7875207A 		.ascii	"xu zhang\000"
+ 1294      68616E67 
+ 1294      00
+ 1295 0151 000000   		.space	3
+ 1296              	.LC21:
+ 1297 0154 616C7769 		.ascii	"alwin abraham\000"
+ 1297      6E206162 
+ 1297      72616861 
+ 1297      6D00
+ 1298 0162 0000     		.space	2
+ 1299              	.LC22:
+ 1300 0164 6E617468 		.ascii	"natheer alkhunaizy\000"
+ 1300      65657220 
+ 1300      616C6B68 
+ 1300      756E6169 
+ 1300      7A7900
+ 1301 0177 00       		.space	1
+ 1302              	.LC23:
+ 1303 0178 63616C65 		.ascii	"caleb bahr\000"
+ 1303      62206261 
+ 1303      687200
+ 1304 0183 00       		.space	1
+ 1305              	.LC24:
+ 1306 0184 70616C6C 		.ascii	"pallav banik\000"
+ 1306      61762062 
+ 1306      616E696B 
+ 1306      00
+ 1307 0191 000000   		.space	3
+ 1308              	.LC25:
+ 1309 0194 7A616368 		.ascii	"zachary bartmer\000"
+ 1309      61727920 
+ 1309      62617274 
+ 1309      6D657200 
+ 1310              	.LC26:
+ 1311 01a4 6E696368 		.ascii	"nicholas bouska\000"
+ 1311      6F6C6173 
+ 1311      20626F75 
+ 1311      736B6100 
+ 1312              	.LC27:
+ 1313 01b4 72696C65 		.ascii	"riley bruce\000"
+ 1313      79206272 
+ 1313      75636500 
+ 1314              	.LC28:
+ 1315 01c0 6765726C 		.ascii	"gerlad gehrke\000"
+ 1315      61642067 
+ 1315      6568726B 
+ 1315      6500
+ 1316 01ce 0000     		.space	2
+ 1317              	.LC29:
+ 1318 01d0 62656E74 		.ascii	"benton geitmer\000"
+ 1318      6F6E2067 
+ 1318      6569746D 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 34
+
+
+ 1318      657200
+ 1319 01df 00       		.space	1
+ 1320              	.LC30:
+ 1321 01e0 6164616D 		.ascii	"adam hay\000"
+ 1321      20686179 
+ 1321      00
+ 1322 01e9 000000   		.space	3
+ 1323              	.LC31:
+ 1324 01ec 71756968 		.ascii	"quihao jin\000"
+ 1324      616F206A 
+ 1324      696E00
+ 1325 01f7 00       		.space	1
+ 1326              	.LC32:
+ 1327 01f8 73657468 		.ascii	"seth liabraaten\000"
+ 1327      206C6961 
+ 1327      62726161 
+ 1327      74656E00 
+ 1328              	.LC33:
+ 1329 0208 6D617572 		.ascii	"maurizio padilla\000"
+ 1329      697A696F 
+ 1329      20706164 
+ 1329      696C6C61 
+ 1329      00
+ 1330 0219 000000   		.space	3
+ 1331              	.LC34:
+ 1332 021c 68756E74 		.ascii	"hunter parks\000"
+ 1332      65722070 
+ 1332      61726B73 
+ 1332      00
+ 1333 0229 000000   		.space	3
+ 1334              	.LC35:
+ 1335 022c 6E697276 		.ascii	"nirvam poonacha theethira\000"
+ 1335      616D2070 
+ 1335      6F6F6E61 
+ 1335      63686120 
+ 1335      74686565 
+ 1336 0246 0000     		.space	2
+ 1337              	.LC36:
+ 1338 0248 6A6F686E 		.ascii	"john schlederer\000"
+ 1338      20736368 
+ 1338      6C656465 
+ 1338      72657200 
+ 1339              	.LC37:
+ 1340 0258 6A616D65 		.ascii	"james shipp\000"
+ 1340      73207368 
+ 1340      69707000 
+ 1341              	.LC38:
+ 1342 0264 6C617772 		.ascii	"lawrence skuse\000"
+ 1342      656E6365 
+ 1342      20736B75 
+ 1342      736500
+ 1343 0273 00       		.space	1
+ 1344              	.LC39:
+ 1345 0274 776F6F64 		.ascii	"woodrow walker\000"
+ 1345      726F7720 
+ 1345      77616C6B 
+ 1345      657200
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 35
+
+
+ 1346 0283 00       		.space	1
+ 1347              	.LC40:
+ 1348 0284 6A616D65 		.ascii	"james windorjj\000"
+ 1348      73207769 
+ 1348      6E646F72 
+ 1348      6A6A00
+ 1349 0293 00       		.space	1
+ 1350              	.LC41:
+ 1351 0294 6B616D69 		.ascii	"kamith mirissage\000"
+ 1351      7468206D 
+ 1351      69726973 
+ 1351      73616765 
+ 1351      00
+ 1352 02a5 000000   		.space	3
+ 1353              	.LC42:
+ 1354 02a8 696E7661 		.ascii	"invalid name\000"
+ 1354      6C696420 
+ 1354      6E616D65 
+ 1354      00
+ 1355              		.bss
+ 1356              		.align	2
+ 1357              		.set	.LANCHOR0,. + 0
+ 1358              		.type	_userTable, %object
+ 1359              		.size	_userTable, 516
+ 1360              	_userTable:
+ 1361 0000 00000000 		.space	516
+ 1361      00000000 
+ 1361      00000000 
+ 1361      00000000 
+ 1361      00000000 
+ 1362              		.text
+ 1363              	.Letext0:
+ 1364              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 1365              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 1366              		.file 4 "UserAddressAllocation.h"
+ 1367              		.file 5 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 1368              		.section	.debug_info,"",%progbits
+ 1369              	.Ldebug_info0:
+ 1370 0000 7B040000 		.4byte	0x47b
+ 1371 0004 0400     		.2byte	0x4
+ 1372 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 1373 000a 04       		.byte	0x4
+ 1374 000b 01       		.uleb128 0x1
+ 1375 000c 5C030000 		.4byte	.LASF80
+ 1376 0010 0C       		.byte	0xc
+ 1377 0011 C9020000 		.4byte	.LASF81
+ 1378 0015 29040000 		.4byte	.LASF82
+ 1379 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 1380 001d 00000000 		.4byte	0
+ 1381 0021 00000000 		.4byte	.Ldebug_line0
+ 1382 0025 02       		.uleb128 0x2
+ 1383 0026 01       		.byte	0x1
+ 1384 0027 06       		.byte	0x6
+ 1385 0028 11010000 		.4byte	.LASF0
+ 1386 002c 03       		.uleb128 0x3
+ 1387 002d 72000000 		.4byte	.LASF9
+ 1388 0031 02       		.byte	0x2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 36
+
+
+ 1389 0032 1D       		.byte	0x1d
+ 1390 0033 37000000 		.4byte	0x37
+ 1391 0037 02       		.uleb128 0x2
+ 1392 0038 01       		.byte	0x1
+ 1393 0039 08       		.byte	0x8
+ 1394 003a 0B030000 		.4byte	.LASF1
+ 1395 003e 02       		.uleb128 0x2
+ 1396 003f 02       		.byte	0x2
+ 1397 0040 05       		.byte	0x5
+ 1398 0041 28030000 		.4byte	.LASF2
+ 1399 0045 02       		.uleb128 0x2
+ 1400 0046 02       		.byte	0x2
+ 1401 0047 07       		.byte	0x7
+ 1402 0048 15020000 		.4byte	.LASF3
+ 1403 004c 02       		.uleb128 0x2
+ 1404 004d 04       		.byte	0x4
+ 1405 004e 05       		.byte	0x5
+ 1406 004f 35010000 		.4byte	.LASF4
+ 1407 0053 02       		.uleb128 0x2
+ 1408 0054 04       		.byte	0x4
+ 1409 0055 07       		.byte	0x7
+ 1410 0056 EE010000 		.4byte	.LASF5
+ 1411 005a 02       		.uleb128 0x2
+ 1412 005b 08       		.byte	0x8
+ 1413 005c 05       		.byte	0x5
+ 1414 005d 03010000 		.4byte	.LASF6
+ 1415 0061 02       		.uleb128 0x2
+ 1416 0062 08       		.byte	0x8
+ 1417 0063 07       		.byte	0x7
+ 1418 0064 7C000000 		.4byte	.LASF7
+ 1419 0068 04       		.uleb128 0x4
+ 1420 0069 04       		.byte	0x4
+ 1421 006a 05       		.byte	0x5
+ 1422 006b 696E7400 		.ascii	"int\000"
+ 1423 006f 02       		.uleb128 0x2
+ 1424 0070 04       		.byte	0x4
+ 1425 0071 07       		.byte	0x7
+ 1426 0072 AB010000 		.4byte	.LASF8
+ 1427 0076 03       		.uleb128 0x3
+ 1428 0077 8E050000 		.4byte	.LASF10
+ 1429 007b 03       		.byte	0x3
+ 1430 007c 18       		.byte	0x18
+ 1431 007d 2C000000 		.4byte	0x2c
+ 1432 0081 05       		.uleb128 0x5
+ 1433 0082 71050000 		.4byte	.LASF15
+ 1434 0086 01       		.byte	0x1
+ 1435 0087 37000000 		.4byte	0x37
+ 1436 008b 04       		.byte	0x4
+ 1437 008c 1D       		.byte	0x1d
+ 1438 008d A4000000 		.4byte	0xa4
+ 1439 0091 06       		.uleb128 0x6
+ 1440 0092 DD000000 		.4byte	.LASF11
+ 1441 0096 00       		.byte	0
+ 1442 0097 06       		.uleb128 0x6
+ 1443 0098 F0000000 		.4byte	.LASF12
+ 1444 009c 01       		.byte	0x1
+ 1445 009d 06       		.uleb128 0x6
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 37
+
+
+ 1446 009e B1000000 		.4byte	.LASF13
+ 1447 00a2 02       		.byte	0x2
+ 1448 00a3 00       		.byte	0
+ 1449 00a4 03       		.uleb128 0x3
+ 1450 00a5 FC040000 		.4byte	.LASF14
+ 1451 00a9 04       		.byte	0x4
+ 1452 00aa 21       		.byte	0x21
+ 1453 00ab 81000000 		.4byte	0x81
+ 1454 00af 05       		.uleb128 0x5
+ 1455 00b0 20040000 		.4byte	.LASF16
+ 1456 00b4 01       		.byte	0x1
+ 1457 00b5 37000000 		.4byte	0x37
+ 1458 00b9 04       		.byte	0x4
+ 1459 00ba 26       		.byte	0x26
+ 1460 00bb CE010000 		.4byte	0x1ce
+ 1461 00bf 06       		.uleb128 0x6
+ 1462 00c0 60000000 		.4byte	.LASF17
+ 1463 00c4 00       		.byte	0
+ 1464 00c5 06       		.uleb128 0x6
+ 1465 00c6 E1040000 		.4byte	.LASF18
+ 1466 00ca 01       		.byte	0x1
+ 1467 00cb 06       		.uleb128 0x6
+ 1468 00cc 40000000 		.4byte	.LASF19
+ 1469 00d0 02       		.byte	0x2
+ 1470 00d1 06       		.uleb128 0x6
+ 1471 00d2 CA010000 		.4byte	.LASF20
+ 1472 00d6 03       		.byte	0x3
+ 1473 00d7 06       		.uleb128 0x6
+ 1474 00d8 AF040000 		.4byte	.LASF21
+ 1475 00dc 04       		.byte	0x4
+ 1476 00dd 06       		.uleb128 0x6
+ 1477 00de B8010000 		.4byte	.LASF22
+ 1478 00e2 05       		.byte	0x5
+ 1479 00e3 06       		.uleb128 0x6
+ 1480 00e4 A3050000 		.4byte	.LASF23
+ 1481 00e8 06       		.byte	0x6
+ 1482 00e9 06       		.uleb128 0x6
+ 1483 00ea A3000000 		.4byte	.LASF24
+ 1484 00ee 07       		.byte	0x7
+ 1485 00ef 06       		.uleb128 0x6
+ 1486 00f0 5B020000 		.4byte	.LASF25
+ 1487 00f4 08       		.byte	0x8
+ 1488 00f5 06       		.uleb128 0x6
+ 1489 00f6 4A020000 		.4byte	.LASF26
+ 1490 00fa 09       		.byte	0x9
+ 1491 00fb 06       		.uleb128 0x6
+ 1492 00fc DB010000 		.4byte	.LASF27
+ 1493 0100 0A       		.byte	0xa
+ 1494 0101 06       		.uleb128 0x6
+ 1495 0102 67020000 		.4byte	.LASF28
+ 1496 0106 0B       		.byte	0xb
+ 1497 0107 06       		.uleb128 0x6
+ 1498 0108 9A020000 		.4byte	.LASF29
+ 1499 010c 0C       		.byte	0xc
+ 1500 010d 06       		.uleb128 0x6
+ 1501 010e D4040000 		.4byte	.LASF30
+ 1502 0112 0D       		.byte	0xd
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 38
+
+
+ 1503 0113 06       		.uleb128 0x6
+ 1504 0114 28020000 		.4byte	.LASF31
+ 1505 0118 0E       		.byte	0xe
+ 1506 0119 06       		.uleb128 0x6
+ 1507 011a 20050000 		.4byte	.LASF32
+ 1508 011e 0F       		.byte	0xf
+ 1509 011f 06       		.uleb128 0x6
+ 1510 0120 9E040000 		.4byte	.LASF33
+ 1511 0124 10       		.byte	0x10
+ 1512 0125 06       		.uleb128 0x6
+ 1513 0126 9A010000 		.4byte	.LASF34
+ 1514 012a 11       		.byte	0x11
+ 1515 012b 06       		.uleb128 0x6
+ 1516 012c 2E050000 		.4byte	.LASF35
+ 1517 0130 12       		.byte	0x12
+ 1518 0131 06       		.uleb128 0x6
+ 1519 0132 19030000 		.4byte	.LASF36
+ 1520 0136 13       		.byte	0x13
+ 1521 0137 06       		.uleb128 0x6
+ 1522 0138 32030000 		.4byte	.LASF37
+ 1523 013c 14       		.byte	0x14
+ 1524 013d 06       		.uleb128 0x6
+ 1525 013e CF000000 		.4byte	.LASF38
+ 1526 0142 15       		.byte	0x15
+ 1527 0143 06       		.uleb128 0x6
+ 1528 0144 37020000 		.4byte	.LASF39
+ 1529 0148 16       		.byte	0x16
+ 1530 0149 06       		.uleb128 0x6
+ 1531 014a C9040000 		.4byte	.LASF40
+ 1532 014e 17       		.byte	0x17
+ 1533 014f 06       		.uleb128 0x6
+ 1534 0150 28010000 		.4byte	.LASF41
+ 1535 0154 18       		.byte	0x18
+ 1536 0155 06       		.uleb128 0x6
+ 1537 0156 EA030000 		.4byte	.LASF42
+ 1538 015a 19       		.byte	0x19
+ 1539 015b 06       		.uleb128 0x6
+ 1540 015c 65010000 		.4byte	.LASF43
+ 1541 0160 1A       		.byte	0x1a
+ 1542 0161 06       		.uleb128 0x6
+ 1543 0162 82050000 		.4byte	.LASF44
+ 1544 0166 1B       		.byte	0x1b
+ 1545 0167 06       		.uleb128 0x6
+ 1546 0168 EE040000 		.4byte	.LASF45
+ 1547 016c 1C       		.byte	0x1c
+ 1548 016d 06       		.uleb128 0x6
+ 1549 016e 3C050000 		.4byte	.LASF46
+ 1550 0172 1D       		.byte	0x1d
+ 1551 0173 06       		.uleb128 0x6
+ 1552 0174 4A050000 		.4byte	.LASF47
+ 1553 0178 1E       		.byte	0x1e
+ 1554 0179 06       		.uleb128 0x6
+ 1555 017a 98000000 		.4byte	.LASF48
+ 1556 017e 1F       		.byte	0x1f
+ 1557 017f 06       		.uleb128 0x6
+ 1558 0180 00020000 		.4byte	.LASF49
+ 1559 0184 20       		.byte	0x20
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 39
+
+
+ 1560 0185 06       		.uleb128 0x6
+ 1561 0186 0F050000 		.4byte	.LASF50
+ 1562 018a 21       		.byte	0x21
+ 1563 018b 06       		.uleb128 0x6
+ 1564 018c 96050000 		.4byte	.LASF51
+ 1565 0190 22       		.byte	0x22
+ 1566 0191 06       		.uleb128 0x6
+ 1567 0192 80020000 		.4byte	.LASF52
+ 1568 0196 23       		.byte	0x23
+ 1569 0197 06       		.uleb128 0x6
+ 1570 0198 10040000 		.4byte	.LASF53
+ 1571 019c 24       		.byte	0x24
+ 1572 019d 06       		.uleb128 0x6
+ 1573 019e BD040000 		.4byte	.LASF54
+ 1574 01a2 25       		.byte	0x25
+ 1575 01a3 06       		.uleb128 0x6
+ 1576 01a4 53050000 		.4byte	.LASF55
+ 1577 01a8 26       		.byte	0x26
+ 1578 01a9 06       		.uleb128 0x6
+ 1579 01aa 62050000 		.4byte	.LASF56
+ 1580 01ae 27       		.byte	0x27
+ 1581 01af 06       		.uleb128 0x6
+ 1582 01b0 BB020000 		.4byte	.LASF57
+ 1583 01b4 28       		.byte	0x28
+ 1584 01b5 06       		.uleb128 0x6
+ 1585 01b6 3E010000 		.4byte	.LASF58
+ 1586 01ba 29       		.byte	0x29
+ 1587 01bb 06       		.uleb128 0x6
+ 1588 01bc 4D010000 		.4byte	.LASF59
+ 1589 01c0 2A       		.byte	0x2a
+ 1590 01c1 06       		.uleb128 0x6
+ 1591 01c2 25000000 		.4byte	.LASF60
+ 1592 01c6 2B       		.byte	0x2b
+ 1593 01c7 06       		.uleb128 0x6
+ 1594 01c8 00000000 		.4byte	.LASF61
+ 1595 01cc 2C       		.byte	0x2c
+ 1596 01cd 00       		.byte	0
+ 1597 01ce 03       		.uleb128 0x3
+ 1598 01cf C4000000 		.4byte	.LASF62
+ 1599 01d3 04       		.byte	0x4
+ 1600 01d4 56       		.byte	0x56
+ 1601 01d5 AF000000 		.4byte	0xaf
+ 1602 01d9 02       		.uleb128 0x2
+ 1603 01da 08       		.byte	0x8
+ 1604 01db 04       		.byte	0x4
+ 1605 01dc AF020000 		.4byte	.LASF63
+ 1606 01e0 02       		.uleb128 0x2
+ 1607 01e1 04       		.byte	0x4
+ 1608 01e2 07       		.byte	0x7
+ 1609 01e3 A6020000 		.4byte	.LASF64
+ 1610 01e7 02       		.uleb128 0x2
+ 1611 01e8 01       		.byte	0x1
+ 1612 01e9 08       		.byte	0x8
+ 1613 01ea AA040000 		.4byte	.LASF65
+ 1614 01ee 07       		.uleb128 0x7
+ 1615 01ef 04       		.byte	0x4
+ 1616 01f0 F4010000 		.4byte	0x1f4
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 40
+
+
+ 1617 01f4 08       		.uleb128 0x8
+ 1618 01f5 E7010000 		.4byte	0x1e7
+ 1619 01f9 09       		.uleb128 0x9
+ 1620 01fa 36000000 		.4byte	.LASF83
+ 1621 01fe 0C       		.byte	0xc
+ 1622 01ff 01       		.byte	0x1
+ 1623 0200 1C       		.byte	0x1c
+ 1624 0201 42020000 		.4byte	0x242
+ 1625 0205 0A       		.uleb128 0xa
+ 1626 0206 10020000 		.4byte	.LASF66
+ 1627 020a 01       		.byte	0x1
+ 1628 020b 1D       		.byte	0x1d
+ 1629 020c CE010000 		.4byte	0x1ce
+ 1630 0210 00       		.byte	0
+ 1631 0211 0B       		.uleb128 0xb
+ 1632 0212 73747200 		.ascii	"str\000"
+ 1633 0216 01       		.byte	0x1
+ 1634 0217 1E       		.byte	0x1e
+ 1635 0218 EE010000 		.4byte	0x1ee
+ 1636 021c 04       		.byte	0x4
+ 1637 021d 0A       		.uleb128 0xa
+ 1638 021e ED020000 		.4byte	.LASF67
+ 1639 0222 01       		.byte	0x1
+ 1640 0223 1F       		.byte	0x1f
+ 1641 0224 76000000 		.4byte	0x76
+ 1642 0228 08       		.byte	0x8
+ 1643 0229 0A       		.uleb128 0xa
+ 1644 022a 05040000 		.4byte	.LASF68
+ 1645 022e 01       		.byte	0x1
+ 1646 022f 20       		.byte	0x20
+ 1647 0230 76000000 		.4byte	0x76
+ 1648 0234 09       		.byte	0x9
+ 1649 0235 0A       		.uleb128 0xa
+ 1650 0236 1D010000 		.4byte	.LASF69
+ 1651 023a 01       		.byte	0x1
+ 1652 023b 21       		.byte	0x21
+ 1653 023c 76000000 		.4byte	0x76
+ 1654 0240 0A       		.byte	0xa
+ 1655 0241 00       		.byte	0
+ 1656 0242 03       		.uleb128 0x3
+ 1657 0243 E1020000 		.4byte	.LASF70
+ 1658 0247 01       		.byte	0x1
+ 1659 0248 22       		.byte	0x22
+ 1660 0249 F9010000 		.4byte	0x1f9
+ 1661 024d 0C       		.uleb128 0xc
+ 1662 024e 52030000 		.4byte	.LASF84
+ 1663 0252 01       		.byte	0x1
+ 1664 0253 36       		.byte	0x36
+ 1665 0254 00000000 		.4byte	.LFB0
+ 1666 0258 CC050000 		.4byte	.LFE0-.LFB0
+ 1667 025c 01       		.uleb128 0x1
+ 1668 025d 9C       		.byte	0x9c
+ 1669 025e 0D       		.uleb128 0xd
+ 1670 025f F8020000 		.4byte	.LASF72
+ 1671 0263 01       		.byte	0x1
+ 1672 0264 4001     		.2byte	0x140
+ 1673 0266 76000000 		.4byte	0x76
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 41
+
+
+ 1674 026a 00000000 		.4byte	.LFB1
+ 1675 026e 60000000 		.4byte	.LFE1-.LFB1
+ 1676 0272 01       		.uleb128 0x1
+ 1677 0273 9C       		.byte	0x9c
+ 1678 0274 B5020000 		.4byte	0x2b5
+ 1679 0278 0E       		.uleb128 0xe
+ 1680 0279 10020000 		.4byte	.LASF66
+ 1681 027d 01       		.byte	0x1
+ 1682 027e 4001     		.2byte	0x140
+ 1683 0280 CE010000 		.4byte	0x1ce
+ 1684 0284 00000000 		.4byte	.LLST0
+ 1685 0288 0F       		.uleb128 0xf
+ 1686 0289 6C766C00 		.ascii	"lvl\000"
+ 1687 028d 01       		.byte	0x1
+ 1688 028e 4001     		.2byte	0x140
+ 1689 0290 A4000000 		.4byte	0xa4
+ 1690 0294 01       		.uleb128 0x1
+ 1691 0295 51       		.byte	0x51
+ 1692 0296 10       		.uleb128 0x10
+ 1693 0297 5E010000 		.4byte	.LASF71
+ 1694 029b 01       		.byte	0x1
+ 1695 029c 4101     		.2byte	0x141
+ 1696 029e 76000000 		.4byte	0x76
+ 1697 02a2 85000000 		.4byte	.LLST1
+ 1698 02a6 11       		.uleb128 0x11
+ 1699 02a7 6900     		.ascii	"i\000"
+ 1700 02a9 01       		.byte	0x1
+ 1701 02aa 4301     		.2byte	0x143
+ 1702 02ac 76000000 		.4byte	0x76
+ 1703 02b0 ED000000 		.4byte	.LLST2
+ 1704 02b4 00       		.byte	0
+ 1705 02b5 0D       		.uleb128 0xd
+ 1706 02b6 87010000 		.4byte	.LASF73
+ 1707 02ba 01       		.byte	0x1
+ 1708 02bb 6001     		.2byte	0x160
+ 1709 02bd CE010000 		.4byte	0x1ce
+ 1710 02c1 00000000 		.4byte	.LFB2
+ 1711 02c5 58000000 		.4byte	.LFE2-.LFB2
+ 1712 02c9 01       		.uleb128 0x1
+ 1713 02ca 9C       		.byte	0x9c
+ 1714 02cb FE020000 		.4byte	0x2fe
+ 1715 02cf 0E       		.uleb128 0xe
+ 1716 02d0 93000000 		.4byte	.LASF74
+ 1717 02d4 01       		.byte	0x1
+ 1718 02d5 6001     		.2byte	0x160
+ 1719 02d7 76000000 		.4byte	0x76
+ 1720 02db 38010000 		.4byte	.LLST3
+ 1721 02df 10       		.uleb128 0x10
+ 1722 02e0 5E010000 		.4byte	.LASF71
+ 1723 02e4 01       		.byte	0x1
+ 1724 02e5 6101     		.2byte	0x161
+ 1725 02e7 CE010000 		.4byte	0x1ce
+ 1726 02eb 72010000 		.4byte	.LLST4
+ 1727 02ef 11       		.uleb128 0x11
+ 1728 02f0 6900     		.ascii	"i\000"
+ 1729 02f2 01       		.byte	0x1
+ 1730 02f3 6301     		.2byte	0x163
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 42
+
+
+ 1731 02f5 76000000 		.4byte	0x76
+ 1732 02f9 AA010000 		.4byte	.LLST5
+ 1733 02fd 00       		.byte	0
+ 1734 02fe 0D       		.uleb128 0xd
+ 1735 02ff 75010000 		.4byte	.LASF75
+ 1736 0303 01       		.byte	0x1
+ 1737 0304 7401     		.2byte	0x174
+ 1738 0306 CE010000 		.4byte	0x1ce
+ 1739 030a 00000000 		.4byte	.LFB3
+ 1740 030e 38000000 		.4byte	.LFE3-.LFB3
+ 1741 0312 01       		.uleb128 0x1
+ 1742 0313 9C       		.byte	0x9c
+ 1743 0314 57030000 		.4byte	0x357
+ 1744 0318 12       		.uleb128 0x12
+ 1745 0319 73747200 		.ascii	"str\000"
+ 1746 031d 01       		.byte	0x1
+ 1747 031e 7401     		.2byte	0x174
+ 1748 0320 EE010000 		.4byte	0x1ee
+ 1749 0324 DF010000 		.4byte	.LLST6
+ 1750 0328 10       		.uleb128 0x10
+ 1751 0329 5E010000 		.4byte	.LASF71
+ 1752 032d 01       		.byte	0x1
+ 1753 032e 7501     		.2byte	0x175
+ 1754 0330 CE010000 		.4byte	0x1ce
+ 1755 0334 0B020000 		.4byte	.LLST7
+ 1756 0338 11       		.uleb128 0x11
+ 1757 0339 6900     		.ascii	"i\000"
+ 1758 033b 01       		.byte	0x1
+ 1759 033c 7701     		.2byte	0x177
+ 1760 033e 76000000 		.4byte	0x76
+ 1761 0342 43020000 		.4byte	.LLST8
+ 1762 0346 13       		.uleb128 0x13
+ 1763 0347 1A000000 		.4byte	.LVL29
+ 1764 034b 73040000 		.4byte	0x473
+ 1765 034f 14       		.uleb128 0x14
+ 1766 0350 01       		.uleb128 0x1
+ 1767 0351 50       		.byte	0x50
+ 1768 0352 02       		.uleb128 0x2
+ 1769 0353 76       		.byte	0x76
+ 1770 0354 00       		.sleb128 0
+ 1771 0355 00       		.byte	0
+ 1772 0356 00       		.byte	0
+ 1773 0357 0D       		.uleb128 0xd
+ 1774 0358 4E000000 		.4byte	.LASF76
+ 1775 035c 01       		.byte	0x1
+ 1776 035d 8701     		.2byte	0x187
+ 1777 035f EE010000 		.4byte	0x1ee
+ 1778 0363 00000000 		.4byte	.LFB4
+ 1779 0367 38000000 		.4byte	.LFE4-.LFB4
+ 1780 036b 01       		.uleb128 0x1
+ 1781 036c 9C       		.byte	0x9c
+ 1782 036d A0030000 		.4byte	0x3a0
+ 1783 0371 0E       		.uleb128 0xe
+ 1784 0372 10020000 		.4byte	.LASF66
+ 1785 0376 01       		.byte	0x1
+ 1786 0377 8701     		.2byte	0x187
+ 1787 0379 CE010000 		.4byte	0x1ce
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 43
+
+
+ 1788 037d 6D020000 		.4byte	.LLST9
+ 1789 0381 10       		.uleb128 0x10
+ 1790 0382 5E010000 		.4byte	.LASF71
+ 1791 0386 01       		.byte	0x1
+ 1792 0387 8801     		.2byte	0x188
+ 1793 0389 EE010000 		.4byte	0x1ee
+ 1794 038d A7020000 		.4byte	.LLST10
+ 1795 0391 11       		.uleb128 0x11
+ 1796 0392 6900     		.ascii	"i\000"
+ 1797 0394 01       		.byte	0x1
+ 1798 0395 8A01     		.2byte	0x18a
+ 1799 0397 76000000 		.4byte	0x76
+ 1800 039b E5020000 		.4byte	.LLST11
+ 1801 039f 00       		.byte	0
+ 1802 03a0 0D       		.uleb128 0xd
+ 1803 03a1 3B030000 		.4byte	.LASF77
+ 1804 03a5 01       		.byte	0x1
+ 1805 03a6 9B01     		.2byte	0x19b
+ 1806 03a8 76000000 		.4byte	0x76
+ 1807 03ac 00000000 		.4byte	.LFB5
+ 1808 03b0 68000000 		.4byte	.LFE5-.LFB5
+ 1809 03b4 01       		.uleb128 0x1
+ 1810 03b5 9C       		.byte	0x9c
+ 1811 03b6 09040000 		.4byte	0x409
+ 1812 03ba 12       		.uleb128 0x12
+ 1813 03bb 73747200 		.ascii	"str\000"
+ 1814 03bf 01       		.byte	0x1
+ 1815 03c0 9B01     		.2byte	0x19b
+ 1816 03c2 EE010000 		.4byte	0x1ee
+ 1817 03c6 1A030000 		.4byte	.LLST12
+ 1818 03ca 12       		.uleb128 0x12
+ 1819 03cb 6C766C00 		.ascii	"lvl\000"
+ 1820 03cf 01       		.byte	0x1
+ 1821 03d0 9B01     		.2byte	0x19b
+ 1822 03d2 A4000000 		.4byte	0xa4
+ 1823 03d6 46030000 		.4byte	.LLST13
+ 1824 03da 10       		.uleb128 0x10
+ 1825 03db 5E010000 		.4byte	.LASF71
+ 1826 03df 01       		.byte	0x1
+ 1827 03e0 9C01     		.2byte	0x19c
+ 1828 03e2 76000000 		.4byte	0x76
+ 1829 03e6 67030000 		.4byte	.LLST14
+ 1830 03ea 11       		.uleb128 0x11
+ 1831 03eb 6900     		.ascii	"i\000"
+ 1832 03ed 01       		.byte	0x1
+ 1833 03ee 9E01     		.2byte	0x19e
+ 1834 03f0 76000000 		.4byte	0x76
+ 1835 03f4 CF030000 		.4byte	.LLST15
+ 1836 03f8 13       		.uleb128 0x13
+ 1837 03f9 1C000000 		.4byte	.LVL48
+ 1838 03fd 73040000 		.4byte	0x473
+ 1839 0401 14       		.uleb128 0x14
+ 1840 0402 01       		.uleb128 0x1
+ 1841 0403 50       		.byte	0x50
+ 1842 0404 02       		.uleb128 0x2
+ 1843 0405 75       		.byte	0x75
+ 1844 0406 00       		.sleb128 0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 44
+
+
+ 1845 0407 00       		.byte	0
+ 1846 0408 00       		.byte	0
+ 1847 0409 0D       		.uleb128 0xd
+ 1848 040a 0E000000 		.4byte	.LASF78
+ 1849 040e 01       		.byte	0x1
+ 1850 040f BB01     		.2byte	0x1bb
+ 1851 0411 EE010000 		.4byte	0x1ee
+ 1852 0415 00000000 		.4byte	.LFB6
+ 1853 0419 5C000000 		.4byte	.LFE6-.LFB6
+ 1854 041d 01       		.uleb128 0x1
+ 1855 041e 9C       		.byte	0x9c
+ 1856 041f 52040000 		.4byte	0x452
+ 1857 0423 0E       		.uleb128 0xe
+ 1858 0424 93000000 		.4byte	.LASF74
+ 1859 0428 01       		.byte	0x1
+ 1860 0429 BB01     		.2byte	0x1bb
+ 1861 042b 76000000 		.4byte	0x76
+ 1862 042f F9030000 		.4byte	.LLST16
+ 1863 0433 10       		.uleb128 0x10
+ 1864 0434 5E010000 		.4byte	.LASF71
+ 1865 0438 01       		.byte	0x1
+ 1866 0439 BC01     		.2byte	0x1bc
+ 1867 043b EE010000 		.4byte	0x1ee
+ 1868 043f 33040000 		.4byte	.LLST17
+ 1869 0443 11       		.uleb128 0x11
+ 1870 0444 6900     		.ascii	"i\000"
+ 1871 0446 01       		.byte	0x1
+ 1872 0447 BE01     		.2byte	0x1be
+ 1873 0449 76000000 		.4byte	0x76
+ 1874 044d 71040000 		.4byte	.LLST18
+ 1875 0451 00       		.byte	0
+ 1876 0452 15       		.uleb128 0x15
+ 1877 0453 42020000 		.4byte	0x242
+ 1878 0457 62040000 		.4byte	0x462
+ 1879 045b 16       		.uleb128 0x16
+ 1880 045c E0010000 		.4byte	0x1e0
+ 1881 0460 2A       		.byte	0x2a
+ 1882 0461 00       		.byte	0
+ 1883 0462 17       		.uleb128 0x17
+ 1884 0463 FA030000 		.4byte	.LASF79
+ 1885 0467 01       		.byte	0x1
+ 1886 0468 2C       		.byte	0x2c
+ 1887 0469 52040000 		.4byte	0x452
+ 1888 046d 05       		.uleb128 0x5
+ 1889 046e 03       		.byte	0x3
+ 1890 046f 00000000 		.4byte	_userTable
+ 1891 0473 18       		.uleb128 0x18
+ 1892 0474 79020000 		.4byte	.LASF85
+ 1893 0478 79020000 		.4byte	.LASF85
+ 1894 047c 05       		.byte	0x5
+ 1895 047d 1C       		.byte	0x1c
+ 1896 047e 00       		.byte	0
+ 1897              		.section	.debug_abbrev,"",%progbits
+ 1898              	.Ldebug_abbrev0:
+ 1899 0000 01       		.uleb128 0x1
+ 1900 0001 11       		.uleb128 0x11
+ 1901 0002 01       		.byte	0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 45
+
+
+ 1902 0003 25       		.uleb128 0x25
+ 1903 0004 0E       		.uleb128 0xe
+ 1904 0005 13       		.uleb128 0x13
+ 1905 0006 0B       		.uleb128 0xb
+ 1906 0007 03       		.uleb128 0x3
+ 1907 0008 0E       		.uleb128 0xe
+ 1908 0009 1B       		.uleb128 0x1b
+ 1909 000a 0E       		.uleb128 0xe
+ 1910 000b 55       		.uleb128 0x55
+ 1911 000c 17       		.uleb128 0x17
+ 1912 000d 11       		.uleb128 0x11
+ 1913 000e 01       		.uleb128 0x1
+ 1914 000f 10       		.uleb128 0x10
+ 1915 0010 17       		.uleb128 0x17
+ 1916 0011 00       		.byte	0
+ 1917 0012 00       		.byte	0
+ 1918 0013 02       		.uleb128 0x2
+ 1919 0014 24       		.uleb128 0x24
+ 1920 0015 00       		.byte	0
+ 1921 0016 0B       		.uleb128 0xb
+ 1922 0017 0B       		.uleb128 0xb
+ 1923 0018 3E       		.uleb128 0x3e
+ 1924 0019 0B       		.uleb128 0xb
+ 1925 001a 03       		.uleb128 0x3
+ 1926 001b 0E       		.uleb128 0xe
+ 1927 001c 00       		.byte	0
+ 1928 001d 00       		.byte	0
+ 1929 001e 03       		.uleb128 0x3
+ 1930 001f 16       		.uleb128 0x16
+ 1931 0020 00       		.byte	0
+ 1932 0021 03       		.uleb128 0x3
+ 1933 0022 0E       		.uleb128 0xe
+ 1934 0023 3A       		.uleb128 0x3a
+ 1935 0024 0B       		.uleb128 0xb
+ 1936 0025 3B       		.uleb128 0x3b
+ 1937 0026 0B       		.uleb128 0xb
+ 1938 0027 49       		.uleb128 0x49
+ 1939 0028 13       		.uleb128 0x13
+ 1940 0029 00       		.byte	0
+ 1941 002a 00       		.byte	0
+ 1942 002b 04       		.uleb128 0x4
+ 1943 002c 24       		.uleb128 0x24
+ 1944 002d 00       		.byte	0
+ 1945 002e 0B       		.uleb128 0xb
+ 1946 002f 0B       		.uleb128 0xb
+ 1947 0030 3E       		.uleb128 0x3e
+ 1948 0031 0B       		.uleb128 0xb
+ 1949 0032 03       		.uleb128 0x3
+ 1950 0033 08       		.uleb128 0x8
+ 1951 0034 00       		.byte	0
+ 1952 0035 00       		.byte	0
+ 1953 0036 05       		.uleb128 0x5
+ 1954 0037 04       		.uleb128 0x4
+ 1955 0038 01       		.byte	0x1
+ 1956 0039 03       		.uleb128 0x3
+ 1957 003a 0E       		.uleb128 0xe
+ 1958 003b 0B       		.uleb128 0xb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 46
+
+
+ 1959 003c 0B       		.uleb128 0xb
+ 1960 003d 49       		.uleb128 0x49
+ 1961 003e 13       		.uleb128 0x13
+ 1962 003f 3A       		.uleb128 0x3a
+ 1963 0040 0B       		.uleb128 0xb
+ 1964 0041 3B       		.uleb128 0x3b
+ 1965 0042 0B       		.uleb128 0xb
+ 1966 0043 01       		.uleb128 0x1
+ 1967 0044 13       		.uleb128 0x13
+ 1968 0045 00       		.byte	0
+ 1969 0046 00       		.byte	0
+ 1970 0047 06       		.uleb128 0x6
+ 1971 0048 28       		.uleb128 0x28
+ 1972 0049 00       		.byte	0
+ 1973 004a 03       		.uleb128 0x3
+ 1974 004b 0E       		.uleb128 0xe
+ 1975 004c 1C       		.uleb128 0x1c
+ 1976 004d 0B       		.uleb128 0xb
+ 1977 004e 00       		.byte	0
+ 1978 004f 00       		.byte	0
+ 1979 0050 07       		.uleb128 0x7
+ 1980 0051 0F       		.uleb128 0xf
+ 1981 0052 00       		.byte	0
+ 1982 0053 0B       		.uleb128 0xb
+ 1983 0054 0B       		.uleb128 0xb
+ 1984 0055 49       		.uleb128 0x49
+ 1985 0056 13       		.uleb128 0x13
+ 1986 0057 00       		.byte	0
+ 1987 0058 00       		.byte	0
+ 1988 0059 08       		.uleb128 0x8
+ 1989 005a 26       		.uleb128 0x26
+ 1990 005b 00       		.byte	0
+ 1991 005c 49       		.uleb128 0x49
+ 1992 005d 13       		.uleb128 0x13
+ 1993 005e 00       		.byte	0
+ 1994 005f 00       		.byte	0
+ 1995 0060 09       		.uleb128 0x9
+ 1996 0061 13       		.uleb128 0x13
+ 1997 0062 01       		.byte	0x1
+ 1998 0063 03       		.uleb128 0x3
+ 1999 0064 0E       		.uleb128 0xe
+ 2000 0065 0B       		.uleb128 0xb
+ 2001 0066 0B       		.uleb128 0xb
+ 2002 0067 3A       		.uleb128 0x3a
+ 2003 0068 0B       		.uleb128 0xb
+ 2004 0069 3B       		.uleb128 0x3b
+ 2005 006a 0B       		.uleb128 0xb
+ 2006 006b 01       		.uleb128 0x1
+ 2007 006c 13       		.uleb128 0x13
+ 2008 006d 00       		.byte	0
+ 2009 006e 00       		.byte	0
+ 2010 006f 0A       		.uleb128 0xa
+ 2011 0070 0D       		.uleb128 0xd
+ 2012 0071 00       		.byte	0
+ 2013 0072 03       		.uleb128 0x3
+ 2014 0073 0E       		.uleb128 0xe
+ 2015 0074 3A       		.uleb128 0x3a
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 47
+
+
+ 2016 0075 0B       		.uleb128 0xb
+ 2017 0076 3B       		.uleb128 0x3b
+ 2018 0077 0B       		.uleb128 0xb
+ 2019 0078 49       		.uleb128 0x49
+ 2020 0079 13       		.uleb128 0x13
+ 2021 007a 38       		.uleb128 0x38
+ 2022 007b 0B       		.uleb128 0xb
+ 2023 007c 00       		.byte	0
+ 2024 007d 00       		.byte	0
+ 2025 007e 0B       		.uleb128 0xb
+ 2026 007f 0D       		.uleb128 0xd
+ 2027 0080 00       		.byte	0
+ 2028 0081 03       		.uleb128 0x3
+ 2029 0082 08       		.uleb128 0x8
+ 2030 0083 3A       		.uleb128 0x3a
+ 2031 0084 0B       		.uleb128 0xb
+ 2032 0085 3B       		.uleb128 0x3b
+ 2033 0086 0B       		.uleb128 0xb
+ 2034 0087 49       		.uleb128 0x49
+ 2035 0088 13       		.uleb128 0x13
+ 2036 0089 38       		.uleb128 0x38
+ 2037 008a 0B       		.uleb128 0xb
+ 2038 008b 00       		.byte	0
+ 2039 008c 00       		.byte	0
+ 2040 008d 0C       		.uleb128 0xc
+ 2041 008e 2E       		.uleb128 0x2e
+ 2042 008f 00       		.byte	0
+ 2043 0090 3F       		.uleb128 0x3f
+ 2044 0091 19       		.uleb128 0x19
+ 2045 0092 03       		.uleb128 0x3
+ 2046 0093 0E       		.uleb128 0xe
+ 2047 0094 3A       		.uleb128 0x3a
+ 2048 0095 0B       		.uleb128 0xb
+ 2049 0096 3B       		.uleb128 0x3b
+ 2050 0097 0B       		.uleb128 0xb
+ 2051 0098 27       		.uleb128 0x27
+ 2052 0099 19       		.uleb128 0x19
+ 2053 009a 11       		.uleb128 0x11
+ 2054 009b 01       		.uleb128 0x1
+ 2055 009c 12       		.uleb128 0x12
+ 2056 009d 06       		.uleb128 0x6
+ 2057 009e 40       		.uleb128 0x40
+ 2058 009f 18       		.uleb128 0x18
+ 2059 00a0 9742     		.uleb128 0x2117
+ 2060 00a2 19       		.uleb128 0x19
+ 2061 00a3 00       		.byte	0
+ 2062 00a4 00       		.byte	0
+ 2063 00a5 0D       		.uleb128 0xd
+ 2064 00a6 2E       		.uleb128 0x2e
+ 2065 00a7 01       		.byte	0x1
+ 2066 00a8 3F       		.uleb128 0x3f
+ 2067 00a9 19       		.uleb128 0x19
+ 2068 00aa 03       		.uleb128 0x3
+ 2069 00ab 0E       		.uleb128 0xe
+ 2070 00ac 3A       		.uleb128 0x3a
+ 2071 00ad 0B       		.uleb128 0xb
+ 2072 00ae 3B       		.uleb128 0x3b
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 48
+
+
+ 2073 00af 05       		.uleb128 0x5
+ 2074 00b0 27       		.uleb128 0x27
+ 2075 00b1 19       		.uleb128 0x19
+ 2076 00b2 49       		.uleb128 0x49
+ 2077 00b3 13       		.uleb128 0x13
+ 2078 00b4 11       		.uleb128 0x11
+ 2079 00b5 01       		.uleb128 0x1
+ 2080 00b6 12       		.uleb128 0x12
+ 2081 00b7 06       		.uleb128 0x6
+ 2082 00b8 40       		.uleb128 0x40
+ 2083 00b9 18       		.uleb128 0x18
+ 2084 00ba 9742     		.uleb128 0x2117
+ 2085 00bc 19       		.uleb128 0x19
+ 2086 00bd 01       		.uleb128 0x1
+ 2087 00be 13       		.uleb128 0x13
+ 2088 00bf 00       		.byte	0
+ 2089 00c0 00       		.byte	0
+ 2090 00c1 0E       		.uleb128 0xe
+ 2091 00c2 05       		.uleb128 0x5
+ 2092 00c3 00       		.byte	0
+ 2093 00c4 03       		.uleb128 0x3
+ 2094 00c5 0E       		.uleb128 0xe
+ 2095 00c6 3A       		.uleb128 0x3a
+ 2096 00c7 0B       		.uleb128 0xb
+ 2097 00c8 3B       		.uleb128 0x3b
+ 2098 00c9 05       		.uleb128 0x5
+ 2099 00ca 49       		.uleb128 0x49
+ 2100 00cb 13       		.uleb128 0x13
+ 2101 00cc 02       		.uleb128 0x2
+ 2102 00cd 17       		.uleb128 0x17
+ 2103 00ce 00       		.byte	0
+ 2104 00cf 00       		.byte	0
+ 2105 00d0 0F       		.uleb128 0xf
+ 2106 00d1 05       		.uleb128 0x5
+ 2107 00d2 00       		.byte	0
+ 2108 00d3 03       		.uleb128 0x3
+ 2109 00d4 08       		.uleb128 0x8
+ 2110 00d5 3A       		.uleb128 0x3a
+ 2111 00d6 0B       		.uleb128 0xb
+ 2112 00d7 3B       		.uleb128 0x3b
+ 2113 00d8 05       		.uleb128 0x5
+ 2114 00d9 49       		.uleb128 0x49
+ 2115 00da 13       		.uleb128 0x13
+ 2116 00db 02       		.uleb128 0x2
+ 2117 00dc 18       		.uleb128 0x18
+ 2118 00dd 00       		.byte	0
+ 2119 00de 00       		.byte	0
+ 2120 00df 10       		.uleb128 0x10
+ 2121 00e0 34       		.uleb128 0x34
+ 2122 00e1 00       		.byte	0
+ 2123 00e2 03       		.uleb128 0x3
+ 2124 00e3 0E       		.uleb128 0xe
+ 2125 00e4 3A       		.uleb128 0x3a
+ 2126 00e5 0B       		.uleb128 0xb
+ 2127 00e6 3B       		.uleb128 0x3b
+ 2128 00e7 05       		.uleb128 0x5
+ 2129 00e8 49       		.uleb128 0x49
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 49
+
+
+ 2130 00e9 13       		.uleb128 0x13
+ 2131 00ea 02       		.uleb128 0x2
+ 2132 00eb 17       		.uleb128 0x17
+ 2133 00ec 00       		.byte	0
+ 2134 00ed 00       		.byte	0
+ 2135 00ee 11       		.uleb128 0x11
+ 2136 00ef 34       		.uleb128 0x34
+ 2137 00f0 00       		.byte	0
+ 2138 00f1 03       		.uleb128 0x3
+ 2139 00f2 08       		.uleb128 0x8
+ 2140 00f3 3A       		.uleb128 0x3a
+ 2141 00f4 0B       		.uleb128 0xb
+ 2142 00f5 3B       		.uleb128 0x3b
+ 2143 00f6 05       		.uleb128 0x5
+ 2144 00f7 49       		.uleb128 0x49
+ 2145 00f8 13       		.uleb128 0x13
+ 2146 00f9 02       		.uleb128 0x2
+ 2147 00fa 17       		.uleb128 0x17
+ 2148 00fb 00       		.byte	0
+ 2149 00fc 00       		.byte	0
+ 2150 00fd 12       		.uleb128 0x12
+ 2151 00fe 05       		.uleb128 0x5
+ 2152 00ff 00       		.byte	0
+ 2153 0100 03       		.uleb128 0x3
+ 2154 0101 08       		.uleb128 0x8
+ 2155 0102 3A       		.uleb128 0x3a
+ 2156 0103 0B       		.uleb128 0xb
+ 2157 0104 3B       		.uleb128 0x3b
+ 2158 0105 05       		.uleb128 0x5
+ 2159 0106 49       		.uleb128 0x49
+ 2160 0107 13       		.uleb128 0x13
+ 2161 0108 02       		.uleb128 0x2
+ 2162 0109 17       		.uleb128 0x17
+ 2163 010a 00       		.byte	0
+ 2164 010b 00       		.byte	0
+ 2165 010c 13       		.uleb128 0x13
+ 2166 010d 898201   		.uleb128 0x4109
+ 2167 0110 01       		.byte	0x1
+ 2168 0111 11       		.uleb128 0x11
+ 2169 0112 01       		.uleb128 0x1
+ 2170 0113 31       		.uleb128 0x31
+ 2171 0114 13       		.uleb128 0x13
+ 2172 0115 00       		.byte	0
+ 2173 0116 00       		.byte	0
+ 2174 0117 14       		.uleb128 0x14
+ 2175 0118 8A8201   		.uleb128 0x410a
+ 2176 011b 00       		.byte	0
+ 2177 011c 02       		.uleb128 0x2
+ 2178 011d 18       		.uleb128 0x18
+ 2179 011e 9142     		.uleb128 0x2111
+ 2180 0120 18       		.uleb128 0x18
+ 2181 0121 00       		.byte	0
+ 2182 0122 00       		.byte	0
+ 2183 0123 15       		.uleb128 0x15
+ 2184 0124 01       		.uleb128 0x1
+ 2185 0125 01       		.byte	0x1
+ 2186 0126 49       		.uleb128 0x49
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 50
+
+
+ 2187 0127 13       		.uleb128 0x13
+ 2188 0128 01       		.uleb128 0x1
+ 2189 0129 13       		.uleb128 0x13
+ 2190 012a 00       		.byte	0
+ 2191 012b 00       		.byte	0
+ 2192 012c 16       		.uleb128 0x16
+ 2193 012d 21       		.uleb128 0x21
+ 2194 012e 00       		.byte	0
+ 2195 012f 49       		.uleb128 0x49
+ 2196 0130 13       		.uleb128 0x13
+ 2197 0131 2F       		.uleb128 0x2f
+ 2198 0132 0B       		.uleb128 0xb
+ 2199 0133 00       		.byte	0
+ 2200 0134 00       		.byte	0
+ 2201 0135 17       		.uleb128 0x17
+ 2202 0136 34       		.uleb128 0x34
+ 2203 0137 00       		.byte	0
+ 2204 0138 03       		.uleb128 0x3
+ 2205 0139 0E       		.uleb128 0xe
+ 2206 013a 3A       		.uleb128 0x3a
+ 2207 013b 0B       		.uleb128 0xb
+ 2208 013c 3B       		.uleb128 0x3b
+ 2209 013d 0B       		.uleb128 0xb
+ 2210 013e 49       		.uleb128 0x49
+ 2211 013f 13       		.uleb128 0x13
+ 2212 0140 02       		.uleb128 0x2
+ 2213 0141 18       		.uleb128 0x18
+ 2214 0142 00       		.byte	0
+ 2215 0143 00       		.byte	0
+ 2216 0144 18       		.uleb128 0x18
+ 2217 0145 2E       		.uleb128 0x2e
+ 2218 0146 00       		.byte	0
+ 2219 0147 3F       		.uleb128 0x3f
+ 2220 0148 19       		.uleb128 0x19
+ 2221 0149 3C       		.uleb128 0x3c
+ 2222 014a 19       		.uleb128 0x19
+ 2223 014b 6E       		.uleb128 0x6e
+ 2224 014c 0E       		.uleb128 0xe
+ 2225 014d 03       		.uleb128 0x3
+ 2226 014e 0E       		.uleb128 0xe
+ 2227 014f 3A       		.uleb128 0x3a
+ 2228 0150 0B       		.uleb128 0xb
+ 2229 0151 3B       		.uleb128 0x3b
+ 2230 0152 0B       		.uleb128 0xb
+ 2231 0153 00       		.byte	0
+ 2232 0154 00       		.byte	0
+ 2233 0155 00       		.byte	0
+ 2234              		.section	.debug_loc,"",%progbits
+ 2235              	.Ldebug_loc0:
+ 2236              	.LLST0:
+ 2237 0000 00000000 		.4byte	.LVL0
+ 2238 0004 2C000000 		.4byte	.LVL4
+ 2239 0008 0100     		.2byte	0x1
+ 2240 000a 50       		.byte	0x50
+ 2241 000b 2C000000 		.4byte	.LVL4
+ 2242 000f 2E000000 		.4byte	.LVL5
+ 2243 0013 0400     		.2byte	0x4
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 51
+
+
+ 2244 0015 F3       		.byte	0xf3
+ 2245 0016 01       		.uleb128 0x1
+ 2246 0017 50       		.byte	0x50
+ 2247 0018 9F       		.byte	0x9f
+ 2248 0019 2E000000 		.4byte	.LVL5
+ 2249 001d 3A000000 		.4byte	.LVL7
+ 2250 0021 0100     		.2byte	0x1
+ 2251 0023 50       		.byte	0x50
+ 2252 0024 3A000000 		.4byte	.LVL7
+ 2253 0028 3C000000 		.4byte	.LVL8
+ 2254 002c 0400     		.2byte	0x4
+ 2255 002e F3       		.byte	0xf3
+ 2256 002f 01       		.uleb128 0x1
+ 2257 0030 50       		.byte	0x50
+ 2258 0031 9F       		.byte	0x9f
+ 2259 0032 3C000000 		.4byte	.LVL8
+ 2260 0036 48000000 		.4byte	.LVL10
+ 2261 003a 0100     		.2byte	0x1
+ 2262 003c 50       		.byte	0x50
+ 2263 003d 48000000 		.4byte	.LVL10
+ 2264 0041 4A000000 		.4byte	.LVL11
+ 2265 0045 0400     		.2byte	0x4
+ 2266 0047 F3       		.byte	0xf3
+ 2267 0048 01       		.uleb128 0x1
+ 2268 0049 50       		.byte	0x50
+ 2269 004a 9F       		.byte	0x9f
+ 2270 004b 4A000000 		.4byte	.LVL11
+ 2271 004f 54000000 		.4byte	.LVL14
+ 2272 0053 0100     		.2byte	0x1
+ 2273 0055 50       		.byte	0x50
+ 2274 0056 54000000 		.4byte	.LVL14
+ 2275 005a 56000000 		.4byte	.LVL15
+ 2276 005e 0400     		.2byte	0x4
+ 2277 0060 F3       		.byte	0xf3
+ 2278 0061 01       		.uleb128 0x1
+ 2279 0062 50       		.byte	0x50
+ 2280 0063 9F       		.byte	0x9f
+ 2281 0064 56000000 		.4byte	.LVL15
+ 2282 0068 58000000 		.4byte	.LVL16
+ 2283 006c 0100     		.2byte	0x1
+ 2284 006e 50       		.byte	0x50
+ 2285 006f 58000000 		.4byte	.LVL16
+ 2286 0073 60000000 		.4byte	.LFE1
+ 2287 0077 0400     		.2byte	0x4
+ 2288 0079 F3       		.byte	0xf3
+ 2289 007a 01       		.uleb128 0x1
+ 2290 007b 50       		.byte	0x50
+ 2291 007c 9F       		.byte	0x9f
+ 2292 007d 00000000 		.4byte	0
+ 2293 0081 00000000 		.4byte	0
+ 2294              	.LLST1:
+ 2295 0085 02000000 		.4byte	.LVL1
+ 2296 0089 2C000000 		.4byte	.LVL4
+ 2297 008d 0300     		.2byte	0x3
+ 2298 008f 09       		.byte	0x9
+ 2299 0090 FF       		.byte	0xff
+ 2300 0091 9F       		.byte	0x9f
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 52
+
+
+ 2301 0092 2C000000 		.4byte	.LVL4
+ 2302 0096 2E000000 		.4byte	.LVL5
+ 2303 009a 0100     		.2byte	0x1
+ 2304 009c 50       		.byte	0x50
+ 2305 009d 2E000000 		.4byte	.LVL5
+ 2306 00a1 3A000000 		.4byte	.LVL7
+ 2307 00a5 0300     		.2byte	0x3
+ 2308 00a7 09       		.byte	0x9
+ 2309 00a8 FF       		.byte	0xff
+ 2310 00a9 9F       		.byte	0x9f
+ 2311 00aa 3A000000 		.4byte	.LVL7
+ 2312 00ae 3C000000 		.4byte	.LVL8
+ 2313 00b2 0100     		.2byte	0x1
+ 2314 00b4 50       		.byte	0x50
+ 2315 00b5 3C000000 		.4byte	.LVL8
+ 2316 00b9 48000000 		.4byte	.LVL10
+ 2317 00bd 0300     		.2byte	0x3
+ 2318 00bf 09       		.byte	0x9
+ 2319 00c0 FF       		.byte	0xff
+ 2320 00c1 9F       		.byte	0x9f
+ 2321 00c2 48000000 		.4byte	.LVL10
+ 2322 00c6 4A000000 		.4byte	.LVL11
+ 2323 00ca 0100     		.2byte	0x1
+ 2324 00cc 50       		.byte	0x50
+ 2325 00cd 4A000000 		.4byte	.LVL11
+ 2326 00d1 58000000 		.4byte	.LVL16
+ 2327 00d5 0300     		.2byte	0x3
+ 2328 00d7 09       		.byte	0x9
+ 2329 00d8 FF       		.byte	0xff
+ 2330 00d9 9F       		.byte	0x9f
+ 2331 00da 58000000 		.4byte	.LVL16
+ 2332 00de 60000000 		.4byte	.LFE1
+ 2333 00e2 0100     		.2byte	0x1
+ 2334 00e4 50       		.byte	0x50
+ 2335 00e5 00000000 		.4byte	0
+ 2336 00e9 00000000 		.4byte	0
+ 2337              	.LLST2:
+ 2338 00ed 02000000 		.4byte	.LVL1
+ 2339 00f1 06000000 		.4byte	.LVL2
+ 2340 00f5 0200     		.2byte	0x2
+ 2341 00f7 30       		.byte	0x30
+ 2342 00f8 9F       		.byte	0x9f
+ 2343 00f9 06000000 		.4byte	.LVL2
+ 2344 00fd 26000000 		.4byte	.LVL3
+ 2345 0101 0100     		.2byte	0x1
+ 2346 0103 53       		.byte	0x53
+ 2347 0104 2E000000 		.4byte	.LVL5
+ 2348 0108 34000000 		.4byte	.LVL6
+ 2349 010c 0100     		.2byte	0x1
+ 2350 010e 53       		.byte	0x53
+ 2351 010f 3C000000 		.4byte	.LVL8
+ 2352 0113 42000000 		.4byte	.LVL9
+ 2353 0117 0100     		.2byte	0x1
+ 2354 0119 53       		.byte	0x53
+ 2355 011a 4A000000 		.4byte	.LVL11
+ 2356 011e 4C000000 		.4byte	.LVL12
+ 2357 0122 0100     		.2byte	0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 53
+
+
+ 2358 0124 53       		.byte	0x53
+ 2359 0125 4E000000 		.4byte	.LVL13
+ 2360 0129 58000000 		.4byte	.LVL16
+ 2361 012d 0100     		.2byte	0x1
+ 2362 012f 53       		.byte	0x53
+ 2363 0130 00000000 		.4byte	0
+ 2364 0134 00000000 		.4byte	0
+ 2365              	.LLST3:
+ 2366 0138 00000000 		.4byte	.LVL17
+ 2367 013c 42000000 		.4byte	.LVL21
+ 2368 0140 0100     		.2byte	0x1
+ 2369 0142 50       		.byte	0x50
+ 2370 0143 42000000 		.4byte	.LVL21
+ 2371 0147 44000000 		.4byte	.LVL22
+ 2372 014b 0400     		.2byte	0x4
+ 2373 014d F3       		.byte	0xf3
+ 2374 014e 01       		.uleb128 0x1
+ 2375 014f 50       		.byte	0x50
+ 2376 0150 9F       		.byte	0x9f
+ 2377 0151 44000000 		.4byte	.LVL22
+ 2378 0155 4E000000 		.4byte	.LVL25
+ 2379 0159 0100     		.2byte	0x1
+ 2380 015b 50       		.byte	0x50
+ 2381 015c 4E000000 		.4byte	.LVL25
+ 2382 0160 58000000 		.4byte	.LFE2
+ 2383 0164 0400     		.2byte	0x4
+ 2384 0166 F3       		.byte	0xf3
+ 2385 0167 01       		.uleb128 0x1
+ 2386 0168 50       		.byte	0x50
+ 2387 0169 9F       		.byte	0x9f
+ 2388 016a 00000000 		.4byte	0
+ 2389 016e 00000000 		.4byte	0
+ 2390              	.LLST4:
+ 2391 0172 02000000 		.4byte	.LVL18
+ 2392 0176 42000000 		.4byte	.LVL21
+ 2393 017a 0300     		.2byte	0x3
+ 2394 017c 08       		.byte	0x8
+ 2395 017d 2C       		.byte	0x2c
+ 2396 017e 9F       		.byte	0x9f
+ 2397 017f 42000000 		.4byte	.LVL21
+ 2398 0183 44000000 		.4byte	.LVL22
+ 2399 0187 0100     		.2byte	0x1
+ 2400 0189 50       		.byte	0x50
+ 2401 018a 44000000 		.4byte	.LVL22
+ 2402 018e 4E000000 		.4byte	.LVL25
+ 2403 0192 0300     		.2byte	0x3
+ 2404 0194 08       		.byte	0x8
+ 2405 0195 2C       		.byte	0x2c
+ 2406 0196 9F       		.byte	0x9f
+ 2407 0197 4E000000 		.4byte	.LVL25
+ 2408 019b 58000000 		.4byte	.LFE2
+ 2409 019f 0100     		.2byte	0x1
+ 2410 01a1 50       		.byte	0x50
+ 2411 01a2 00000000 		.4byte	0
+ 2412 01a6 00000000 		.4byte	0
+ 2413              	.LLST5:
+ 2414 01aa 02000000 		.4byte	.LVL18
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 54
+
+
+ 2415 01ae 06000000 		.4byte	.LVL19
+ 2416 01b2 0200     		.2byte	0x2
+ 2417 01b4 30       		.byte	0x30
+ 2418 01b5 9F       		.byte	0x9f
+ 2419 01b6 06000000 		.4byte	.LVL19
+ 2420 01ba 3E000000 		.4byte	.LVL20
+ 2421 01be 0100     		.2byte	0x1
+ 2422 01c0 53       		.byte	0x53
+ 2423 01c1 44000000 		.4byte	.LVL22
+ 2424 01c5 46000000 		.4byte	.LVL23
+ 2425 01c9 0100     		.2byte	0x1
+ 2426 01cb 53       		.byte	0x53
+ 2427 01cc 48000000 		.4byte	.LVL24
+ 2428 01d0 4E000000 		.4byte	.LVL25
+ 2429 01d4 0100     		.2byte	0x1
+ 2430 01d6 53       		.byte	0x53
+ 2431 01d7 00000000 		.4byte	0
+ 2432 01db 00000000 		.4byte	0
+ 2433              	.LLST6:
+ 2434 01df 00000000 		.4byte	.LVL26
+ 2435 01e3 08000000 		.4byte	.LVL28
+ 2436 01e7 0100     		.2byte	0x1
+ 2437 01e9 50       		.byte	0x50
+ 2438 01ea 08000000 		.4byte	.LVL28
+ 2439 01ee 34000000 		.4byte	.LVL35
+ 2440 01f2 0100     		.2byte	0x1
+ 2441 01f4 56       		.byte	0x56
+ 2442 01f5 34000000 		.4byte	.LVL35
+ 2443 01f9 38000000 		.4byte	.LFE3
+ 2444 01fd 0400     		.2byte	0x4
+ 2445 01ff F3       		.byte	0xf3
+ 2446 0200 01       		.uleb128 0x1
+ 2447 0201 50       		.byte	0x50
+ 2448 0202 9F       		.byte	0x9f
+ 2449 0203 00000000 		.4byte	0
+ 2450 0207 00000000 		.4byte	0
+ 2451              	.LLST7:
+ 2452 020b 04000000 		.4byte	.LVL27
+ 2453 020f 26000000 		.4byte	.LVL30
+ 2454 0213 0300     		.2byte	0x3
+ 2455 0215 08       		.byte	0x8
+ 2456 0216 2C       		.byte	0x2c
+ 2457 0217 9F       		.byte	0x9f
+ 2458 0218 26000000 		.4byte	.LVL30
+ 2459 021c 28000000 		.4byte	.LVL31
+ 2460 0220 0100     		.2byte	0x1
+ 2461 0222 50       		.byte	0x50
+ 2462 0223 28000000 		.4byte	.LVL31
+ 2463 0227 32000000 		.4byte	.LVL34
+ 2464 022b 0300     		.2byte	0x3
+ 2465 022d 08       		.byte	0x8
+ 2466 022e 2C       		.byte	0x2c
+ 2467 022f 9F       		.byte	0x9f
+ 2468 0230 32000000 		.4byte	.LVL34
+ 2469 0234 38000000 		.4byte	.LFE3
+ 2470 0238 0100     		.2byte	0x1
+ 2471 023a 50       		.byte	0x50
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 55
+
+
+ 2472 023b 00000000 		.4byte	0
+ 2473 023f 00000000 		.4byte	0
+ 2474              	.LLST8:
+ 2475 0243 04000000 		.4byte	.LVL27
+ 2476 0247 08000000 		.4byte	.LVL28
+ 2477 024b 0200     		.2byte	0x2
+ 2478 024d 30       		.byte	0x30
+ 2479 024e 9F       		.byte	0x9f
+ 2480 024f 08000000 		.4byte	.LVL28
+ 2481 0253 2A000000 		.4byte	.LVL32
+ 2482 0257 0100     		.2byte	0x1
+ 2483 0259 54       		.byte	0x54
+ 2484 025a 2C000000 		.4byte	.LVL33
+ 2485 025e 34000000 		.4byte	.LVL35
+ 2486 0262 0100     		.2byte	0x1
+ 2487 0264 54       		.byte	0x54
+ 2488 0265 00000000 		.4byte	0
+ 2489 0269 00000000 		.4byte	0
+ 2490              	.LLST9:
+ 2491 026d 00000000 		.4byte	.LVL36
+ 2492 0271 1E000000 		.4byte	.LVL40
+ 2493 0275 0100     		.2byte	0x1
+ 2494 0277 50       		.byte	0x50
+ 2495 0278 1E000000 		.4byte	.LVL40
+ 2496 027c 20000000 		.4byte	.LVL41
+ 2497 0280 0400     		.2byte	0x4
+ 2498 0282 F3       		.byte	0xf3
+ 2499 0283 01       		.uleb128 0x1
+ 2500 0284 50       		.byte	0x50
+ 2501 0285 9F       		.byte	0x9f
+ 2502 0286 20000000 		.4byte	.LVL41
+ 2503 028a 2A000000 		.4byte	.LVL44
+ 2504 028e 0100     		.2byte	0x1
+ 2505 0290 50       		.byte	0x50
+ 2506 0291 2A000000 		.4byte	.LVL44
+ 2507 0295 38000000 		.4byte	.LFE4
+ 2508 0299 0400     		.2byte	0x4
+ 2509 029b F3       		.byte	0xf3
+ 2510 029c 01       		.uleb128 0x1
+ 2511 029d 50       		.byte	0x50
+ 2512 029e 9F       		.byte	0x9f
+ 2513 029f 00000000 		.4byte	0
+ 2514 02a3 00000000 		.4byte	0
+ 2515              	.LLST10:
+ 2516 02a7 02000000 		.4byte	.LVL37
+ 2517 02ab 1E000000 		.4byte	.LVL40
+ 2518 02af 0600     		.2byte	0x6
+ 2519 02b1 03       		.byte	0x3
+ 2520 02b2 A8020000 		.4byte	.LC42
+ 2521 02b6 9F       		.byte	0x9f
+ 2522 02b7 1E000000 		.4byte	.LVL40
+ 2523 02bb 20000000 		.4byte	.LVL41
+ 2524 02bf 0100     		.2byte	0x1
+ 2525 02c1 50       		.byte	0x50
+ 2526 02c2 20000000 		.4byte	.LVL41
+ 2527 02c6 2A000000 		.4byte	.LVL44
+ 2528 02ca 0600     		.2byte	0x6
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 56
+
+
+ 2529 02cc 03       		.byte	0x3
+ 2530 02cd A8020000 		.4byte	.LC42
+ 2531 02d1 9F       		.byte	0x9f
+ 2532 02d2 2A000000 		.4byte	.LVL44
+ 2533 02d6 38000000 		.4byte	.LFE4
+ 2534 02da 0100     		.2byte	0x1
+ 2535 02dc 50       		.byte	0x50
+ 2536 02dd 00000000 		.4byte	0
+ 2537 02e1 00000000 		.4byte	0
+ 2538              	.LLST11:
+ 2539 02e5 02000000 		.4byte	.LVL37
+ 2540 02e9 06000000 		.4byte	.LVL38
+ 2541 02ed 0200     		.2byte	0x2
+ 2542 02ef 30       		.byte	0x30
+ 2543 02f0 9F       		.byte	0x9f
+ 2544 02f1 06000000 		.4byte	.LVL38
+ 2545 02f5 1A000000 		.4byte	.LVL39
+ 2546 02f9 0100     		.2byte	0x1
+ 2547 02fb 53       		.byte	0x53
+ 2548 02fc 20000000 		.4byte	.LVL41
+ 2549 0300 22000000 		.4byte	.LVL42
+ 2550 0304 0100     		.2byte	0x1
+ 2551 0306 53       		.byte	0x53
+ 2552 0307 24000000 		.4byte	.LVL43
+ 2553 030b 2A000000 		.4byte	.LVL44
+ 2554 030f 0100     		.2byte	0x1
+ 2555 0311 53       		.byte	0x53
+ 2556 0312 00000000 		.4byte	0
+ 2557 0316 00000000 		.4byte	0
+ 2558              	.LLST12:
+ 2559 031a 00000000 		.4byte	.LVL45
+ 2560 031e 0A000000 		.4byte	.LVL47
+ 2561 0322 0100     		.2byte	0x1
+ 2562 0324 50       		.byte	0x50
+ 2563 0325 0A000000 		.4byte	.LVL47
+ 2564 0329 64000000 		.4byte	.LVL59
+ 2565 032d 0100     		.2byte	0x1
+ 2566 032f 55       		.byte	0x55
+ 2567 0330 64000000 		.4byte	.LVL59
+ 2568 0334 68000000 		.4byte	.LFE5
+ 2569 0338 0400     		.2byte	0x4
+ 2570 033a F3       		.byte	0xf3
+ 2571 033b 01       		.uleb128 0x1
+ 2572 033c 50       		.byte	0x50
+ 2573 033d 9F       		.byte	0x9f
+ 2574 033e 00000000 		.4byte	0
+ 2575 0342 00000000 		.4byte	0
+ 2576              	.LLST13:
+ 2577 0346 00000000 		.4byte	.LVL45
+ 2578 034a 0A000000 		.4byte	.LVL47
+ 2579 034e 0100     		.2byte	0x1
+ 2580 0350 51       		.byte	0x51
+ 2581 0351 0A000000 		.4byte	.LVL47
+ 2582 0355 68000000 		.4byte	.LFE5
+ 2583 0359 0400     		.2byte	0x4
+ 2584 035b F3       		.byte	0xf3
+ 2585 035c 01       		.uleb128 0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 57
+
+
+ 2586 035d 51       		.byte	0x51
+ 2587 035e 9F       		.byte	0x9f
+ 2588 035f 00000000 		.4byte	0
+ 2589 0363 00000000 		.4byte	0
+ 2590              	.LLST14:
+ 2591 0367 06000000 		.4byte	.LVL46
+ 2592 036b 36000000 		.4byte	.LVL49
+ 2593 036f 0300     		.2byte	0x3
+ 2594 0371 09       		.byte	0x9
+ 2595 0372 FF       		.byte	0xff
+ 2596 0373 9F       		.byte	0x9f
+ 2597 0374 36000000 		.4byte	.LVL49
+ 2598 0378 38000000 		.4byte	.LVL50
+ 2599 037c 0100     		.2byte	0x1
+ 2600 037e 50       		.byte	0x50
+ 2601 037f 38000000 		.4byte	.LVL50
+ 2602 0383 44000000 		.4byte	.LVL51
+ 2603 0387 0300     		.2byte	0x3
+ 2604 0389 09       		.byte	0x9
+ 2605 038a FF       		.byte	0xff
+ 2606 038b 9F       		.byte	0x9f
+ 2607 038c 44000000 		.4byte	.LVL51
+ 2608 0390 46000000 		.4byte	.LVL52
+ 2609 0394 0100     		.2byte	0x1
+ 2610 0396 50       		.byte	0x50
+ 2611 0397 46000000 		.4byte	.LVL52
+ 2612 039b 52000000 		.4byte	.LVL53
+ 2613 039f 0300     		.2byte	0x3
+ 2614 03a1 09       		.byte	0x9
+ 2615 03a2 FF       		.byte	0xff
+ 2616 03a3 9F       		.byte	0x9f
+ 2617 03a4 52000000 		.4byte	.LVL53
+ 2618 03a8 54000000 		.4byte	.LVL54
+ 2619 03ac 0100     		.2byte	0x1
+ 2620 03ae 50       		.byte	0x50
+ 2621 03af 54000000 		.4byte	.LVL54
+ 2622 03b3 62000000 		.4byte	.LVL58
+ 2623 03b7 0300     		.2byte	0x3
+ 2624 03b9 09       		.byte	0x9
+ 2625 03ba FF       		.byte	0xff
+ 2626 03bb 9F       		.byte	0x9f
+ 2627 03bc 62000000 		.4byte	.LVL58
+ 2628 03c0 68000000 		.4byte	.LFE5
+ 2629 03c4 0100     		.2byte	0x1
+ 2630 03c6 50       		.byte	0x50
+ 2631 03c7 00000000 		.4byte	0
+ 2632 03cb 00000000 		.4byte	0
+ 2633              	.LLST15:
+ 2634 03cf 06000000 		.4byte	.LVL46
+ 2635 03d3 0A000000 		.4byte	.LVL47
+ 2636 03d7 0200     		.2byte	0x2
+ 2637 03d9 30       		.byte	0x30
+ 2638 03da 9F       		.byte	0x9f
+ 2639 03db 0A000000 		.4byte	.LVL47
+ 2640 03df 56000000 		.4byte	.LVL55
+ 2641 03e3 0100     		.2byte	0x1
+ 2642 03e5 54       		.byte	0x54
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 58
+
+
+ 2643 03e6 58000000 		.4byte	.LVL56
+ 2644 03ea 64000000 		.4byte	.LVL59
+ 2645 03ee 0100     		.2byte	0x1
+ 2646 03f0 54       		.byte	0x54
+ 2647 03f1 00000000 		.4byte	0
+ 2648 03f5 00000000 		.4byte	0
+ 2649              	.LLST16:
+ 2650 03f9 00000000 		.4byte	.LVL60
+ 2651 03fd 44000000 		.4byte	.LVL64
+ 2652 0401 0100     		.2byte	0x1
+ 2653 0403 50       		.byte	0x50
+ 2654 0404 44000000 		.4byte	.LVL64
+ 2655 0408 46000000 		.4byte	.LVL65
+ 2656 040c 0400     		.2byte	0x4
+ 2657 040e F3       		.byte	0xf3
+ 2658 040f 01       		.uleb128 0x1
+ 2659 0410 50       		.byte	0x50
+ 2660 0411 9F       		.byte	0x9f
+ 2661 0412 46000000 		.4byte	.LVL65
+ 2662 0416 50000000 		.4byte	.LVL68
+ 2663 041a 0100     		.2byte	0x1
+ 2664 041c 50       		.byte	0x50
+ 2665 041d 50000000 		.4byte	.LVL68
+ 2666 0421 5C000000 		.4byte	.LFE6
+ 2667 0425 0400     		.2byte	0x4
+ 2668 0427 F3       		.byte	0xf3
+ 2669 0428 01       		.uleb128 0x1
+ 2670 0429 50       		.byte	0x50
+ 2671 042a 9F       		.byte	0x9f
+ 2672 042b 00000000 		.4byte	0
+ 2673 042f 00000000 		.4byte	0
+ 2674              	.LLST17:
+ 2675 0433 02000000 		.4byte	.LVL61
+ 2676 0437 44000000 		.4byte	.LVL64
+ 2677 043b 0600     		.2byte	0x6
+ 2678 043d 03       		.byte	0x3
+ 2679 043e A8020000 		.4byte	.LC42
+ 2680 0442 9F       		.byte	0x9f
+ 2681 0443 44000000 		.4byte	.LVL64
+ 2682 0447 46000000 		.4byte	.LVL65
+ 2683 044b 0100     		.2byte	0x1
+ 2684 044d 50       		.byte	0x50
+ 2685 044e 46000000 		.4byte	.LVL65
+ 2686 0452 50000000 		.4byte	.LVL68
+ 2687 0456 0600     		.2byte	0x6
+ 2688 0458 03       		.byte	0x3
+ 2689 0459 A8020000 		.4byte	.LC42
+ 2690 045d 9F       		.byte	0x9f
+ 2691 045e 50000000 		.4byte	.LVL68
+ 2692 0462 5C000000 		.4byte	.LFE6
+ 2693 0466 0100     		.2byte	0x1
+ 2694 0468 50       		.byte	0x50
+ 2695 0469 00000000 		.4byte	0
+ 2696 046d 00000000 		.4byte	0
+ 2697              	.LLST18:
+ 2698 0471 02000000 		.4byte	.LVL61
+ 2699 0475 06000000 		.4byte	.LVL62
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 59
+
+
+ 2700 0479 0200     		.2byte	0x2
+ 2701 047b 30       		.byte	0x30
+ 2702 047c 9F       		.byte	0x9f
+ 2703 047d 06000000 		.4byte	.LVL62
+ 2704 0481 3E000000 		.4byte	.LVL63
+ 2705 0485 0100     		.2byte	0x1
+ 2706 0487 53       		.byte	0x53
+ 2707 0488 46000000 		.4byte	.LVL65
+ 2708 048c 48000000 		.4byte	.LVL66
+ 2709 0490 0100     		.2byte	0x1
+ 2710 0492 53       		.byte	0x53
+ 2711 0493 4A000000 		.4byte	.LVL67
+ 2712 0497 50000000 		.4byte	.LVL68
+ 2713 049b 0100     		.2byte	0x1
+ 2714 049d 53       		.byte	0x53
+ 2715 049e 00000000 		.4byte	0
+ 2716 04a2 00000000 		.4byte	0
+ 2717              		.section	.debug_aranges,"",%progbits
+ 2718 0000 4C000000 		.4byte	0x4c
+ 2719 0004 0200     		.2byte	0x2
+ 2720 0006 00000000 		.4byte	.Ldebug_info0
+ 2721 000a 04       		.byte	0x4
+ 2722 000b 00       		.byte	0
+ 2723 000c 0000     		.2byte	0
+ 2724 000e 0000     		.2byte	0
+ 2725 0010 00000000 		.4byte	.LFB0
+ 2726 0014 CC050000 		.4byte	.LFE0-.LFB0
+ 2727 0018 00000000 		.4byte	.LFB1
+ 2728 001c 60000000 		.4byte	.LFE1-.LFB1
+ 2729 0020 00000000 		.4byte	.LFB2
+ 2730 0024 58000000 		.4byte	.LFE2-.LFB2
+ 2731 0028 00000000 		.4byte	.LFB3
+ 2732 002c 38000000 		.4byte	.LFE3-.LFB3
+ 2733 0030 00000000 		.4byte	.LFB4
+ 2734 0034 38000000 		.4byte	.LFE4-.LFB4
+ 2735 0038 00000000 		.4byte	.LFB5
+ 2736 003c 68000000 		.4byte	.LFE5-.LFB5
+ 2737 0040 00000000 		.4byte	.LFB6
+ 2738 0044 5C000000 		.4byte	.LFE6-.LFB6
+ 2739 0048 00000000 		.4byte	0
+ 2740 004c 00000000 		.4byte	0
+ 2741              		.section	.debug_ranges,"",%progbits
+ 2742              	.Ldebug_ranges0:
+ 2743 0000 00000000 		.4byte	.LFB0
+ 2744 0004 CC050000 		.4byte	.LFE0
+ 2745 0008 00000000 		.4byte	.LFB1
+ 2746 000c 60000000 		.4byte	.LFE1
+ 2747 0010 00000000 		.4byte	.LFB2
+ 2748 0014 58000000 		.4byte	.LFE2
+ 2749 0018 00000000 		.4byte	.LFB3
+ 2750 001c 38000000 		.4byte	.LFE3
+ 2751 0020 00000000 		.4byte	.LFB4
+ 2752 0024 38000000 		.4byte	.LFE4
+ 2753 0028 00000000 		.4byte	.LFB5
+ 2754 002c 68000000 		.4byte	.LFE5
+ 2755 0030 00000000 		.4byte	.LFB6
+ 2756 0034 5C000000 		.4byte	.LFE6
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 60
+
+
+ 2757 0038 00000000 		.4byte	0
+ 2758 003c 00000000 		.4byte	0
+ 2759              		.section	.debug_line,"",%progbits
+ 2760              	.Ldebug_line0:
+ 2761 0000 A0030000 		.section	.debug_str,"MS",%progbits,1
+ 2761      0200BA01 
+ 2761      00000201 
+ 2761      FB0E0D00 
+ 2761      01010101 
+ 2762              	.LASF61:
+ 2763 0000 5F494E56 		.ascii	"_INVALID_NAME\000"
+ 2763      414C4944 
+ 2763      5F4E414D 
+ 2763      4500
+ 2764              	.LASF78:
+ 2765 000e 75736572 		.ascii	"user_address_to_string\000"
+ 2765      5F616464 
+ 2765      72657373 
+ 2765      5F746F5F 
+ 2765      73747269 
+ 2766              	.LASF60:
+ 2767 0025 5F555345 		.ascii	"_USER_TABLE_SIZE\000"
+ 2767      525F5441 
+ 2767      424C455F 
+ 2767      53495A45 
+ 2767      00
+ 2768              	.LASF83:
+ 2769 0036 55736572 		.ascii	"User_Info\000"
+ 2769      5F496E66 
+ 2769      6F00
+ 2770              	.LASF19:
+ 2771 0040 53414D55 		.ascii	"SAMUEL_CONROY\000"
+ 2771      454C5F43 
+ 2771      4F4E524F 
+ 2771      5900
+ 2772              	.LASF76:
+ 2773 004e 75736572 		.ascii	"user_id_to_string\000"
+ 2773      5F69645F 
+ 2773      746F5F73 
+ 2773      7472696E 
+ 2773      6700
+ 2774              	.LASF17:
+ 2775 0060 4E455457 		.ascii	"NETWORK_BROADCAST\000"
+ 2775      4F524B5F 
+ 2775      42524F41 
+ 2775      44434153 
+ 2775      5400
+ 2776              	.LASF9:
+ 2777 0072 5F5F7569 		.ascii	"__uint8_t\000"
+ 2777      6E74385F 
+ 2777      7400
+ 2778              	.LASF7:
+ 2779 007c 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 2779      206C6F6E 
+ 2779      6720756E 
+ 2779      7369676E 
+ 2779      65642069 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 61
+
+
+ 2780              	.LASF74:
+ 2781 0093 61646472 		.ascii	"addr\000"
+ 2781      00
+ 2782              	.LASF48:
+ 2783 0098 51554948 		.ascii	"QUIHAO_JIN\000"
+ 2783      414F5F4A 
+ 2783      494E00
+ 2784              	.LASF24:
+ 2785 00a3 4D554E41 		.ascii	"MUNAZZA_NAEEM\000"
+ 2785      5A5A415F 
+ 2785      4E414545 
+ 2785      4D00
+ 2786              	.LASF13:
+ 2787 00b1 55534552 		.ascii	"USER_ADDRESS_LVL_3\000"
+ 2787      5F414444 
+ 2787      52455353 
+ 2787      5F4C564C 
+ 2787      5F3300
+ 2788              	.LASF62:
+ 2789 00c4 55736572 		.ascii	"UserName_e\000"
+ 2789      4E616D65 
+ 2789      5F6500
+ 2790              	.LASF38:
+ 2791 00cf 414C5749 		.ascii	"ALWIN_ABRAHAM\000"
+ 2791      4E5F4142 
+ 2791      52414841 
+ 2791      4D00
+ 2792              	.LASF11:
+ 2793 00dd 55534552 		.ascii	"USER_ADDRESS_LVL_1\000"
+ 2793      5F414444 
+ 2793      52455353 
+ 2793      5F4C564C 
+ 2793      5F3100
+ 2794              	.LASF12:
+ 2795 00f0 55534552 		.ascii	"USER_ADDRESS_LVL_2\000"
+ 2795      5F414444 
+ 2795      52455353 
+ 2795      5F4C564C 
+ 2795      5F3200
+ 2796              	.LASF6:
+ 2797 0103 6C6F6E67 		.ascii	"long long int\000"
+ 2797      206C6F6E 
+ 2797      6720696E 
+ 2797      7400
+ 2798              	.LASF0:
+ 2799 0111 7369676E 		.ascii	"signed char\000"
+ 2799      65642063 
+ 2799      68617200 
+ 2800              	.LASF69:
+ 2801 011d 6C766C5F 		.ascii	"lvl_3_addr\000"
+ 2801      335F6164 
+ 2801      647200
+ 2802              	.LASF41:
+ 2803 0128 50414C4C 		.ascii	"PALLAV_BANIK\000"
+ 2803      41565F42 
+ 2803      414E494B 
+ 2803      00
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 62
+
+
+ 2804              	.LASF4:
+ 2805 0135 6C6F6E67 		.ascii	"long int\000"
+ 2805      20696E74 
+ 2805      00
+ 2806              	.LASF58:
+ 2807 013e 4A414D45 		.ascii	"JAMES_WINDORJJ\000"
+ 2807      535F5749 
+ 2807      4E444F52 
+ 2807      4A4A00
+ 2808              	.LASF59:
+ 2809 014d 4B414D49 		.ascii	"KAMITH_MIRISSAGE\000"
+ 2809      54485F4D 
+ 2809      49524953 
+ 2809      53414745 
+ 2809      00
+ 2810              	.LASF71:
+ 2811 015e 72657476 		.ascii	"retval\000"
+ 2811      616C00
+ 2812              	.LASF43:
+ 2813 0165 4E494348 		.ascii	"NICHOLAS_BOUSKA\000"
+ 2813      4F4C4153 
+ 2813      5F424F55 
+ 2813      534B4100 
+ 2814              	.LASF75:
+ 2815 0175 75736572 		.ascii	"user_string_to_id\000"
+ 2815      5F737472 
+ 2815      696E675F 
+ 2815      746F5F69 
+ 2815      6400
+ 2816              	.LASF73:
+ 2817 0187 75736572 		.ascii	"user_address_to_id\000"
+ 2817      5F616464 
+ 2817      72657373 
+ 2817      5F746F5F 
+ 2817      696400
+ 2818              	.LASF34:
+ 2819 019a 4A4F484E 		.ascii	"JOHNATHON_WENZEL\000"
+ 2819      4154484F 
+ 2819      4E5F5745 
+ 2819      4E5A454C 
+ 2819      00
+ 2820              	.LASF8:
+ 2821 01ab 756E7369 		.ascii	"unsigned int\000"
+ 2821      676E6564 
+ 2821      20696E74 
+ 2821      00
+ 2822              	.LASF22:
+ 2823 01b8 4A4F5345 		.ascii	"JOSEPHINE_LOCURTO\000"
+ 2823      5048494E 
+ 2823      455F4C4F 
+ 2823      43555254 
+ 2823      4F00
+ 2824              	.LASF20:
+ 2825 01ca 53414D55 		.ascii	"SAMUEL_HALLERMAN\000"
+ 2825      454C5F48 
+ 2825      414C4C45 
+ 2825      524D414E 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 63
+
+
+ 2825      00
+ 2826              	.LASF27:
+ 2827 01db 44495649 		.ascii	"DIVIN_RAMACHANDRAN\000"
+ 2827      4E5F5241 
+ 2827      4D414348 
+ 2827      414E4452 
+ 2827      414E00
+ 2828              	.LASF5:
+ 2829 01ee 6C6F6E67 		.ascii	"long unsigned int\000"
+ 2829      20756E73 
+ 2829      69676E65 
+ 2829      6420696E 
+ 2829      7400
+ 2830              	.LASF49:
+ 2831 0200 53455448 		.ascii	"SETH_LIABRAATEN\000"
+ 2831      5F4C4941 
+ 2831      42524141 
+ 2831      54454E00 
+ 2832              	.LASF66:
+ 2833 0210 6E616D65 		.ascii	"name\000"
+ 2833      00
+ 2834              	.LASF3:
+ 2835 0215 73686F72 		.ascii	"short unsigned int\000"
+ 2835      7420756E 
+ 2835      7369676E 
+ 2835      65642069 
+ 2835      6E7400
+ 2836              	.LASF31:
+ 2837 0228 5A414348 		.ascii	"ZACHARY_STANKE\000"
+ 2837      4152595F 
+ 2837      5354414E 
+ 2837      4B4500
+ 2838              	.LASF39:
+ 2839 0237 4E415448 		.ascii	"NATHEER_ALKHUNAIZY\000"
+ 2839      4545525F 
+ 2839      414C4B48 
+ 2839      554E4149 
+ 2839      5A5900
+ 2840              	.LASF26:
+ 2841 024a 53484148 		.ascii	"SHAHRUKE_QURESHI\000"
+ 2841      52554B45 
+ 2841      5F515552 
+ 2841      45534849 
+ 2841      00
+ 2842              	.LASF25:
+ 2843 025b 4D415448 		.ascii	"MATHEW_PIKE\000"
+ 2843      45575F50 
+ 2843      494B4500 
+ 2844              	.LASF28:
+ 2845 0267 414C4558 		.ascii	"ALEXANDER_ROBERTS\000"
+ 2845      414E4445 
+ 2845      525F524F 
+ 2845      42455254 
+ 2845      5300
+ 2846              	.LASF85:
+ 2847 0279 73747263 		.ascii	"strcmp\000"
+ 2847      6D7000
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 64
+
+
+ 2848              	.LASF52:
+ 2849 0280 4E495256 		.ascii	"NIRVAN_POONACHA_THEETHIRA\000"
+ 2849      414E5F50 
+ 2849      4F4F4E41 
+ 2849      4348415F 
+ 2849      54484545 
+ 2850              	.LASF29:
+ 2851 029a 52454944 		.ascii	"REID_RUMACK\000"
+ 2851      5F52554D 
+ 2851      41434B00 
+ 2852              	.LASF64:
+ 2853 02a6 73697A65 		.ascii	"sizetype\000"
+ 2853      74797065 
+ 2853      00
+ 2854              	.LASF63:
+ 2855 02af 6C6F6E67 		.ascii	"long double\000"
+ 2855      20646F75 
+ 2855      626C6500 
+ 2856              	.LASF57:
+ 2857 02bb 444D4954 		.ascii	"DMITRI_WATERS\000"
+ 2857      52495F57 
+ 2857      41544552 
+ 2857      5300
+ 2858              	.LASF81:
+ 2859 02c9 55736572 		.ascii	"UserAddressAllocation.c\000"
+ 2859      41646472 
+ 2859      65737341 
+ 2859      6C6C6F63 
+ 2859      6174696F 
+ 2860              	.LASF70:
+ 2861 02e1 55736572 		.ascii	"User_Info_t\000"
+ 2861      5F496E66 
+ 2861      6F5F7400 
+ 2862              	.LASF67:
+ 2863 02ed 6C766C5F 		.ascii	"lvl_1_addr\000"
+ 2863      315F6164 
+ 2863      647200
+ 2864              	.LASF72:
+ 2865 02f8 75736572 		.ascii	"user_id_to_address\000"
+ 2865      5F69645F 
+ 2865      746F5F61 
+ 2865      64647265 
+ 2865      737300
+ 2866              	.LASF1:
+ 2867 030b 756E7369 		.ascii	"unsigned char\000"
+ 2867      676E6564 
+ 2867      20636861 
+ 2867      7200
+ 2868              	.LASF36:
+ 2869 0319 414E4452 		.ascii	"ANDREW_WINSTON\000"
+ 2869      45575F57 
+ 2869      494E5354 
+ 2869      4F4E00
+ 2870              	.LASF2:
+ 2871 0328 73686F72 		.ascii	"short int\000"
+ 2871      7420696E 
+ 2871      7400
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 65
+
+
+ 2872              	.LASF37:
+ 2873 0332 58555F5A 		.ascii	"XU_ZHANG\000"
+ 2873      48414E47 
+ 2873      00
+ 2874              	.LASF77:
+ 2875 033b 75736572 		.ascii	"user_string_to_address\000"
+ 2875      5F737472 
+ 2875      696E675F 
+ 2875      746F5F61 
+ 2875      64647265 
+ 2876              	.LASF84:
+ 2877 0352 75736572 		.ascii	"user_init\000"
+ 2877      5F696E69 
+ 2877      7400
+ 2878              	.LASF80:
+ 2879 035c 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 2879      43313120 
+ 2879      352E342E 
+ 2879      31203230 
+ 2879      31363036 
+ 2880 038f 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m3 -mthumb -g -O"
+ 2880      20726576 
+ 2880      6973696F 
+ 2880      6E203233 
+ 2880      37373135 
+ 2881 03c2 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 2881      66756E63 
+ 2881      74696F6E 
+ 2881      2D736563 
+ 2881      74696F6E 
+ 2882              	.LASF42:
+ 2883 03ea 5A414348 		.ascii	"ZACHARY_BARTMER\000"
+ 2883      4152595F 
+ 2883      42415254 
+ 2883      4D455200 
+ 2884              	.LASF79:
+ 2885 03fa 5F757365 		.ascii	"_userTable\000"
+ 2885      72546162 
+ 2885      6C6500
+ 2886              	.LASF68:
+ 2887 0405 6C766C5F 		.ascii	"lvl_2_addr\000"
+ 2887      325F6164 
+ 2887      647200
+ 2888              	.LASF53:
+ 2889 0410 4A4F484E 		.ascii	"JOHN_SCHLEDERER\000"
+ 2889      5F534348 
+ 2889      4C454445 
+ 2889      52455200 
+ 2890              	.LASF16:
+ 2891 0420 55736572 		.ascii	"UserName\000"
+ 2891      4E616D65 
+ 2891      00
+ 2892              	.LASF82:
+ 2893 0429 433A5C55 		.ascii	"C:\\Users\\henrichsc\\Desktop\\School\\Senior_year\\"
+ 2893      73657273 
+ 2893      5C68656E 
+ 2893      72696368 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 66
+
+
+ 2893      73635C44 
+ 2894 0457 77696E74 		.ascii	"winter\\ce4950\\ce4950-term-project\\Workspace1\\ce"
+ 2894      65725C63 
+ 2894      65343935 
+ 2894      305C6365 
+ 2894      34393530 
+ 2895 0486 34393530 		.ascii	"4950-term-project.cydsn\000"
+ 2895      2D746572 
+ 2895      6D2D7072 
+ 2895      6F6A6563 
+ 2895      742E6379 
+ 2896              	.LASF33:
+ 2897 049e 54594C45 		.ascii	"TYLER_WELLS\000"
+ 2897      525F5745 
+ 2897      4C4C5300 
+ 2898              	.LASF65:
+ 2899 04aa 63686172 		.ascii	"char\000"
+ 2899      00
+ 2900              	.LASF21:
+ 2901 04af 43555254 		.ascii	"CURT_HENRICHS\000"
+ 2901      5F48454E 
+ 2901      52494348 
+ 2901      5300
+ 2902              	.LASF54:
+ 2903 04bd 4A414D45 		.ascii	"JAMES_SHIPP\000"
+ 2903      535F5348 
+ 2903      49505000 
+ 2904              	.LASF40:
+ 2905 04c9 43414C45 		.ascii	"CALEB_BAHR\000"
+ 2905      425F4241 
+ 2905      485200
+ 2906              	.LASF30:
+ 2907 04d4 4A4F484E 		.ascii	"JOHN_SELFORS\000"
+ 2907      5F53454C 
+ 2907      464F5253 
+ 2907      00
+ 2908              	.LASF18:
+ 2909 04e1 50414D45 		.ascii	"PAMELA_ANTAR\000"
+ 2909      4C415F41 
+ 2909      4E544152 
+ 2909      00
+ 2910              	.LASF45:
+ 2911 04ee 47455241 		.ascii	"GERALD_GEHRKE\000"
+ 2911      4C445F47 
+ 2911      4548524B 
+ 2911      4500
+ 2912              	.LASF14:
+ 2913 04fc 55736572 		.ascii	"UserAddressLevel_e\000"
+ 2913      41646472 
+ 2913      6573734C 
+ 2913      6576656C 
+ 2913      5F6500
+ 2914              	.LASF50:
+ 2915 050f 4D415552 		.ascii	"MAURIZIO_PADILLA\000"
+ 2915      495A494F 
+ 2915      5F504144 
+ 2915      494C4C41 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccINU9CD.s 			page 67
+
+
+ 2915      00
+ 2916              	.LASF32:
+ 2917 0520 414E4452 		.ascii	"ANDREW_STOEHR\000"
+ 2917      45575F53 
+ 2917      544F4548 
+ 2917      5200
+ 2918              	.LASF35:
+ 2919 052e 4A4F5348 		.ascii	"JOSHUA_WIDDER\000"
+ 2919      55415F57 
+ 2919      49444445 
+ 2919      5200
+ 2920              	.LASF46:
+ 2921 053c 42454E54 		.ascii	"BENTON_GEIMER\000"
+ 2921      4F4E5F47 
+ 2921      45494D45 
+ 2921      5200
+ 2922              	.LASF47:
+ 2923 054a 4144414D 		.ascii	"ADAM_HAY\000"
+ 2923      5F484159 
+ 2923      00
+ 2924              	.LASF55:
+ 2925 0553 4C415752 		.ascii	"LAWRENCE_SKUSE\000"
+ 2925      454E4345 
+ 2925      5F534B55 
+ 2925      534500
+ 2926              	.LASF56:
+ 2927 0562 574F4F44 		.ascii	"WOODROW_WALKER\000"
+ 2927      524F575F 
+ 2927      57414C4B 
+ 2927      455200
+ 2928              	.LASF15:
+ 2929 0571 55736572 		.ascii	"UserAddressLevel\000"
+ 2929      41646472 
+ 2929      6573734C 
+ 2929      6576656C 
+ 2929      00
+ 2930              	.LASF44:
+ 2931 0582 52494C45 		.ascii	"RILEY_BRUCE\000"
+ 2931      595F4252 
+ 2931      55434500 
+ 2932              	.LASF10:
+ 2933 058e 75696E74 		.ascii	"uint8_t\000"
+ 2933      385F7400 
+ 2934              	.LASF51:
+ 2935 0596 48554E54 		.ascii	"HUNTER_PARKS\000"
+ 2935      45525F50 
+ 2935      41524B53 
+ 2935      00
+ 2936              	.LASF23:
+ 2937 05a3 414E5448 		.ascii	"ANTHONY_MARLOWE\000"
+ 2937      4F4E595F 
+ 2937      4D41524C 
+ 2937      4F574500 
+ 2938              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

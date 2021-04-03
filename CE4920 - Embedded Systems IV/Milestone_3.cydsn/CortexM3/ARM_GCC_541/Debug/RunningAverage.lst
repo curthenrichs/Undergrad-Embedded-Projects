@@ -1,0 +1,1724 @@
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"RunningAverage.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.running_average_init,"ax",%progbits
+  20              		.align	2
+  21              		.global	running_average_init
+  22              		.thumb
+  23              		.thumb_func
+  24              		.type	running_average_init, %function
+  25              	running_average_init:
+  26              	.LFB0:
+  27              		.file 1 "RunningAverage.c"
+   1:RunningAverage.c **** /**
+   2:RunningAverage.c ****  * RunningAverage
+   3:RunningAverage.c ****  * @author Curt Henrichs
+   4:RunningAverage.c ****  * @date 9-17-17
+   5:RunningAverage.c ****  *
+   6:RunningAverage.c ****  * Running average FIR filter object. Goal of this module is to provide an
+   7:RunningAverage.c ****  * object that takes in sensor data and through an averaging FIR filter, 
+   8:RunningAverage.c ****  * produce a lowpass average. Module allows user to specify number of bins
+   9:RunningAverage.c ****  * which are then constructed in heap space.
+  10:RunningAverage.c ****  */
+  11:RunningAverage.c **** 
+  12:RunningAverage.c **** //=============================================================================
+  13:RunningAverage.c **** //                                  Libraries
+  14:RunningAverage.c **** //=============================================================================
+  15:RunningAverage.c **** 
+  16:RunningAverage.c **** #include "RunningAverage.h"
+  17:RunningAverage.c **** #include <stdlib.h>
+  18:RunningAverage.c **** 
+  19:RunningAverage.c **** //=============================================================================
+  20:RunningAverage.c **** //                         Public Function Implementation
+  21:RunningAverage.c **** //=============================================================================
+  22:RunningAverage.c ****  
+  23:RunningAverage.c **** /**
+  24:RunningAverage.c ****  * Running average object initalization function. Allocates the specified
+  25:RunningAverage.c ****  * number of bins into heap space. Note user should call the destroy function
+  26:RunningAverage.c ****  * to free this space. 
+  27:RunningAverage.c ****  * @param obj valid pointer to Running_Average object
+  28:RunningAverage.c ****  * @param num_bins is number of previous values to store. Must follow range.
+  29:RunningAverage.c ****  * @return true if allocated bins, else false due to failure
+  30:RunningAverage.c ****  */
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 2
+
+
+  31:RunningAverage.c **** bool running_average_init(Running_Average_t* obj, uint16_t num_bins){
+  28              		.loc 1 31 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              	.LVL0:
+  32:RunningAverage.c ****     bool retVal = false;
+  33:RunningAverage.c ****     if(obj != NULL && num_bins < RUNNING_AVERAGE_BIN_MAX 
+  33              		.loc 1 33 0
+  34 0000 C8B1     		cbz	r0, .L5
+  31:RunningAverage.c ****     bool retVal = false;
+  35              		.loc 1 31 0 discriminator 1
+  36 0002 38B5     		push	{r3, r4, r5, lr}
+  37              		.cfi_def_cfa_offset 16
+  38              		.cfi_offset 3, -16
+  39              		.cfi_offset 4, -12
+  40              		.cfi_offset 5, -8
+  41              		.cfi_offset 14, -4
+  42 0004 0446     		mov	r4, r0
+  43              		.loc 1 33 0 discriminator 1
+  44 0006 FF29     		cmp	r1, #255
+  45 0008 17D8     		bhi	.L6
+  34:RunningAverage.c ****             && num_bins >= RUNNING_AVERAGE_BIN_MIN){
+  46              		.loc 1 34 0
+  47 000a C1B1     		cbz	r1, .L7
+  48 000c 0D46     		mov	r5, r1
+  35:RunningAverage.c ****         obj->bins = (uint16_t*)(malloc(num_bins * sizeof(uint16_t)));
+  49              		.loc 1 35 0
+  50 000e 4800     		lsls	r0, r1, #1
+  51              	.LVL1:
+  52 0010 FFF7FEFF 		bl	malloc
+  53              	.LVL2:
+  54 0014 2060     		str	r0, [r4]
+  36:RunningAverage.c ****         if(obj->bins != NULL){
+  55              		.loc 1 36 0
+  56 0016 A0B1     		cbz	r0, .L8
+  57              	.LVL3:
+  37:RunningAverage.c ****             retVal = true;
+  38:RunningAverage.c ****             obj->head = 0;
+  58              		.loc 1 38 0
+  59 0018 0023     		movs	r3, #0
+  60 001a E380     		strh	r3, [r4, #6]	@ movhi
+  39:RunningAverage.c ****             obj->size = num_bins;
+  61              		.loc 1 39 0
+  62 001c A580     		strh	r5, [r4, #4]	@ movhi
+  63              	.LVL4:
+  64              	.LBB2:
+  40:RunningAverage.c ****             for(uint16_t i=0; i<obj->size; ++i){
+  65              		.loc 1 40 0
+  66 001e 05E0     		b	.L3
+  67              	.LVL5:
+  68              	.L4:
+  41:RunningAverage.c ****                 obj->bins[i] = 0;   
+  69              		.loc 1 41 0 discriminator 3
+  70 0020 2268     		ldr	r2, [r4]
+  71 0022 0021     		movs	r1, #0
+  72 0024 22F81310 		strh	r1, [r2, r3, lsl #1]	@ movhi
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 3
+
+
+  40:RunningAverage.c ****             for(uint16_t i=0; i<obj->size; ++i){
+  73              		.loc 1 40 0 discriminator 3
+  74 0028 0133     		adds	r3, r3, #1
+  75              	.LVL6:
+  76 002a 9BB2     		uxth	r3, r3
+  77              	.LVL7:
+  78              	.L3:
+  40:RunningAverage.c ****             for(uint16_t i=0; i<obj->size; ++i){
+  79              		.loc 1 40 0 is_stmt 0 discriminator 1
+  80 002c A288     		ldrh	r2, [r4, #4]
+  81 002e 9342     		cmp	r3, r2
+  82 0030 F6D3     		bcc	.L4
+  83              	.LBE2:
+  37:RunningAverage.c ****             obj->head = 0;
+  84              		.loc 1 37 0 is_stmt 1
+  85 0032 0120     		movs	r0, #1
+  86              	.LBB3:
+  87 0034 38BD     		pop	{r3, r4, r5, pc}
+  88              	.LVL8:
+  89              	.L5:
+  90              		.cfi_def_cfa_offset 0
+  91              		.cfi_restore 3
+  92              		.cfi_restore 4
+  93              		.cfi_restore 5
+  94              		.cfi_restore 14
+  95              	.LBE3:
+  32:RunningAverage.c ****     if(obj != NULL && num_bins < RUNNING_AVERAGE_BIN_MAX 
+  96              		.loc 1 32 0
+  97 0036 0020     		movs	r0, #0
+  98              	.LVL9:
+  42:RunningAverage.c ****             }
+  43:RunningAverage.c ****         }
+  44:RunningAverage.c ****     }
+  45:RunningAverage.c ****     return retVal;
+  46:RunningAverage.c **** }
+  99              		.loc 1 46 0
+ 100 0038 7047     		bx	lr
+ 101              	.LVL10:
+ 102              	.L6:
+ 103              		.cfi_def_cfa_offset 16
+ 104              		.cfi_offset 3, -16
+ 105              		.cfi_offset 4, -12
+ 106              		.cfi_offset 5, -8
+ 107              		.cfi_offset 14, -4
+  32:RunningAverage.c ****     if(obj != NULL && num_bins < RUNNING_AVERAGE_BIN_MAX 
+ 108              		.loc 1 32 0
+ 109 003a 0020     		movs	r0, #0
+ 110              	.LVL11:
+ 111 003c 38BD     		pop	{r3, r4, r5, pc}
+ 112              	.LVL12:
+ 113              	.L7:
+ 114 003e 0020     		movs	r0, #0
+ 115              	.LVL13:
+ 116 0040 38BD     		pop	{r3, r4, r5, pc}
+ 117              	.LVL14:
+ 118              	.L8:
+ 119 0042 0020     		movs	r0, #0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 4
+
+
+ 120              	.LVL15:
+ 121              		.loc 1 46 0
+ 122 0044 38BD     		pop	{r3, r4, r5, pc}
+ 123              		.cfi_endproc
+ 124              	.LFE0:
+ 125              		.size	running_average_init, .-running_average_init
+ 126 0046 00BF     		.section	.text.running_average_update,"ax",%progbits
+ 127              		.align	2
+ 128              		.global	running_average_update
+ 129              		.thumb
+ 130              		.thumb_func
+ 131              		.type	running_average_update, %function
+ 132              	running_average_update:
+ 133              	.LFB1:
+  47:RunningAverage.c **** 
+  48:RunningAverage.c **** /**
+  49:RunningAverage.c ****  * Running average object update function. Replaces oldest value with the
+  50:RunningAverage.c ****  * new supplied value.
+  51:RunningAverage.c ****  * @param obj valid pointer to Running_Average object
+  52:RunningAverage.c ****  * @param val is value to place into filter
+  53:RunningAverage.c ****  */
+  54:RunningAverage.c **** void running_average_update(Running_Average_t* obj, uint16_t val){
+ 134              		.loc 1 54 0
+ 135              		.cfi_startproc
+ 136              		@ args = 0, pretend = 0, frame = 0
+ 137              		@ frame_needed = 0, uses_anonymous_args = 0
+ 138              		@ link register save eliminated.
+ 139              	.LVL16:
+  55:RunningAverage.c ****     if(obj != NULL && obj->bins != NULL && obj->head < obj->size
+ 140              		.loc 1 55 0
+ 141 0000 A0B1     		cbz	r0, .L14
+ 142 0002 0346     		mov	r3, r0
+ 143              		.loc 1 55 0 is_stmt 0 discriminator 1
+ 144 0004 0068     		ldr	r0, [r0]
+ 145              	.LVL17:
+ 146 0006 88B1     		cbz	r0, .L14
+  54:RunningAverage.c ****     if(obj != NULL && obj->bins != NULL && obj->head < obj->size
+ 147              		.loc 1 54 0 is_stmt 1 discriminator 2
+ 148 0008 10B4     		push	{r4}
+ 149              		.cfi_def_cfa_offset 4
+ 150              		.cfi_offset 4, -4
+ 151              		.loc 1 55 0 discriminator 2
+ 152 000a DC88     		ldrh	r4, [r3, #6]
+ 153 000c 9A88     		ldrh	r2, [r3, #4]
+ 154 000e 9442     		cmp	r4, r2
+ 155 0010 0BD2     		bcs	.L10
+  56:RunningAverage.c ****             && obj->size >= RUNNING_AVERAGE_BIN_MIN){
+ 156              		.loc 1 56 0
+ 157 0012 52B1     		cbz	r2, .L10
+  57:RunningAverage.c ****         obj->bins[obj->head] = val;
+ 158              		.loc 1 57 0
+ 159 0014 20F81410 		strh	r1, [r0, r4, lsl #1]	@ movhi
+  58:RunningAverage.c ****         obj->head = (++obj->head) % obj->size;
+ 160              		.loc 1 58 0
+ 161 0018 DA88     		ldrh	r2, [r3, #6]
+ 162 001a 0132     		adds	r2, r2, #1
+ 163 001c 92B2     		uxth	r2, r2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 5
+
+
+ 164 001e 9888     		ldrh	r0, [r3, #4]
+ 165 0020 B2FBF0F1 		udiv	r1, r2, r0
+ 166              	.LVL18:
+ 167 0024 00FB1122 		mls	r2, r0, r1, r2
+ 168 0028 DA80     		strh	r2, [r3, #6]	@ movhi
+ 169              	.L10:
+  59:RunningAverage.c ****     }
+  60:RunningAverage.c **** }
+ 170              		.loc 1 60 0
+ 171 002a 10BC     		pop	{r4}
+ 172              		.cfi_restore 4
+ 173              		.cfi_def_cfa_offset 0
+ 174              	.LVL19:
+ 175              	.L14:
+ 176 002c 7047     		bx	lr
+ 177              		.cfi_endproc
+ 178              	.LFE1:
+ 179              		.size	running_average_update, .-running_average_update
+ 180              		.global	__aeabi_i2f
+ 181              		.global	__aeabi_fadd
+ 182              		.global	__aeabi_fdiv
+ 183              		.global	__aeabi_f2uiz
+ 184 002e 00BF     		.section	.text.running_average_result,"ax",%progbits
+ 185              		.align	2
+ 186              		.global	running_average_result
+ 187              		.thumb
+ 188              		.thumb_func
+ 189              		.type	running_average_result, %function
+ 190              	running_average_result:
+ 191              	.LFB2:
+  61:RunningAverage.c **** 
+  62:RunningAverage.c **** /**
+  63:RunningAverage.c ****  * Running average object result calculation function. Calculates the average
+  64:RunningAverage.c ****  * of all values in the filter. Note that the result will default to zero
+  65:RunningAverage.c ****  * if the object is invalid. Additonally, at start of filter, due to lowpass
+  66:RunningAverage.c ****  * nature, the result will ramp up from zero to the average input value
+  67:RunningAverage.c ****  * @param obj valid pointer to Running_Average object
+  68:RunningAverage.c ****  * @return average result from the filter
+  69:RunningAverage.c ****  */
+  70:RunningAverage.c **** uint16_t running_average_result(Running_Average_t* obj){
+ 192              		.loc 1 70 0
+ 193              		.cfi_startproc
+ 194              		@ args = 0, pretend = 0, frame = 0
+ 195              		@ frame_needed = 0, uses_anonymous_args = 0
+ 196              	.LVL20:
+  71:RunningAverage.c ****     uint16_t retVal = 0;
+  72:RunningAverage.c ****     if(obj != NULL && obj->bins != NULL 
+ 197              		.loc 1 72 0
+ 198 0000 08B3     		cbz	r0, .L19
+  70:RunningAverage.c ****     uint16_t retVal = 0;
+ 199              		.loc 1 70 0 discriminator 1
+ 200 0002 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 201              		.cfi_def_cfa_offset 24
+ 202              		.cfi_offset 3, -24
+ 203              		.cfi_offset 4, -20
+ 204              		.cfi_offset 5, -16
+ 205              		.cfi_offset 6, -12
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 6
+
+
+ 206              		.cfi_offset 7, -8
+ 207              		.cfi_offset 14, -4
+ 208              		.loc 1 72 0 discriminator 1
+ 209 0004 0768     		ldr	r7, [r0]
+ 210 0006 07B3     		cbz	r7, .L20
+  73:RunningAverage.c ****             && obj->size >= RUNNING_AVERAGE_BIN_MIN){
+ 211              		.loc 1 73 0
+ 212 0008 8688     		ldrh	r6, [r0, #4]
+ 213 000a 6EB9     		cbnz	r6, .L21
+  71:RunningAverage.c ****     uint16_t retVal = 0;
+ 214              		.loc 1 71 0
+ 215 000c 0020     		movs	r0, #0
+ 216              	.LVL21:
+ 217 000e F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 218              	.LVL22:
+ 219              	.L18:
+ 220              	.LBB4:
+ 221              	.LBB5:
+  74:RunningAverage.c ****         float sum = 0;
+  75:RunningAverage.c ****         for(uint16_t i=0; i<obj->size; ++i){
+  76:RunningAverage.c ****             sum += obj->bins[i];   
+ 222              		.loc 1 76 0 discriminator 3
+ 223 0010 37F81400 		ldrh	r0, [r7, r4, lsl #1]
+ 224 0014 FFF7FEFF 		bl	__aeabi_i2f
+ 225              	.LVL23:
+ 226 0018 0146     		mov	r1, r0
+ 227 001a 2846     		mov	r0, r5
+ 228 001c FFF7FEFF 		bl	__aeabi_fadd
+ 229              	.LVL24:
+ 230 0020 0546     		mov	r5, r0
+ 231              	.LVL25:
+  75:RunningAverage.c ****             sum += obj->bins[i];   
+ 232              		.loc 1 75 0 discriminator 3
+ 233 0022 0134     		adds	r4, r4, #1
+ 234              	.LVL26:
+ 235 0024 A4B2     		uxth	r4, r4
+ 236              	.LVL27:
+ 237 0026 01E0     		b	.L17
+ 238              	.LVL28:
+ 239              	.L21:
+ 240              	.LBE5:
+ 241              	.LBE4:
+ 242 0028 0024     		movs	r4, #0
+ 243 002a 0025     		movs	r5, #0
+ 244              	.LVL29:
+ 245              	.L17:
+ 246              	.LBB7:
+ 247              	.LBB6:
+  75:RunningAverage.c ****             sum += obj->bins[i];   
+ 248              		.loc 1 75 0 is_stmt 0 discriminator 1
+ 249 002c B442     		cmp	r4, r6
+ 250 002e EFD3     		bcc	.L18
+ 251              	.LBE6:
+  77:RunningAverage.c ****         }
+  78:RunningAverage.c ****         retVal = (uint16_t)(sum / obj->size);
+ 252              		.loc 1 78 0 is_stmt 1
+ 253 0030 3046     		mov	r0, r6
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 7
+
+
+ 254 0032 FFF7FEFF 		bl	__aeabi_i2f
+ 255              	.LVL30:
+ 256 0036 0146     		mov	r1, r0
+ 257 0038 2846     		mov	r0, r5
+ 258 003a FFF7FEFF 		bl	__aeabi_fdiv
+ 259              	.LVL31:
+ 260 003e FFF7FEFF 		bl	__aeabi_f2uiz
+ 261              	.LVL32:
+ 262 0042 80B2     		uxth	r0, r0
+ 263              	.LVL33:
+ 264 0044 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 265              	.LVL34:
+ 266              	.L19:
+ 267              		.cfi_def_cfa_offset 0
+ 268              		.cfi_restore 3
+ 269              		.cfi_restore 4
+ 270              		.cfi_restore 5
+ 271              		.cfi_restore 6
+ 272              		.cfi_restore 7
+ 273              		.cfi_restore 14
+ 274              	.LBE7:
+  71:RunningAverage.c ****     if(obj != NULL && obj->bins != NULL 
+ 275              		.loc 1 71 0
+ 276 0046 0020     		movs	r0, #0
+ 277              	.LVL35:
+  79:RunningAverage.c ****     }
+  80:RunningAverage.c ****     return retVal;
+  81:RunningAverage.c **** }
+ 278              		.loc 1 81 0
+ 279 0048 7047     		bx	lr
+ 280              	.LVL36:
+ 281              	.L20:
+ 282              		.cfi_def_cfa_offset 24
+ 283              		.cfi_offset 3, -24
+ 284              		.cfi_offset 4, -20
+ 285              		.cfi_offset 5, -16
+ 286              		.cfi_offset 6, -12
+ 287              		.cfi_offset 7, -8
+ 288              		.cfi_offset 14, -4
+  71:RunningAverage.c ****     if(obj != NULL && obj->bins != NULL 
+ 289              		.loc 1 71 0
+ 290 004a 0020     		movs	r0, #0
+ 291              	.LVL37:
+ 292              		.loc 1 81 0
+ 293 004c F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 294              		.cfi_endproc
+ 295              	.LFE2:
+ 296              		.size	running_average_result, .-running_average_result
+ 297 004e 00BF     		.section	.text.running_average_clear,"ax",%progbits
+ 298              		.align	2
+ 299              		.global	running_average_clear
+ 300              		.thumb
+ 301              		.thumb_func
+ 302              		.type	running_average_clear, %function
+ 303              	running_average_clear:
+ 304              	.LFB3:
+  82:RunningAverage.c **** 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 8
+
+
+  83:RunningAverage.c **** /**
+  84:RunningAverage.c ****  * Running average clear function will set all bins to zero.
+  85:RunningAverage.c ****  * @param obj valid pointer to Running_Average object
+  86:RunningAverage.c ****  */
+  87:RunningAverage.c **** void running_average_clear(Running_Average_t* obj){
+ 305              		.loc 1 87 0
+ 306              		.cfi_startproc
+ 307              		@ args = 0, pretend = 0, frame = 0
+ 308              		@ frame_needed = 0, uses_anonymous_args = 0
+ 309              		@ link register save eliminated.
+ 310              	.LVL38:
+  88:RunningAverage.c ****     if(obj != NULL && obj->bins != NULL){
+ 311              		.loc 1 88 0
+ 312 0000 0246     		mov	r2, r0
+ 313 0002 68B1     		cbz	r0, .L23
+ 314              		.loc 1 88 0 is_stmt 0 discriminator 1
+ 315 0004 0368     		ldr	r3, [r0]
+ 316 0006 3BB9     		cbnz	r3, .L27
+ 317              	.LBB8:
+ 318 0008 7047     		bx	lr
+ 319              	.LVL39:
+ 320              	.L26:
+  89:RunningAverage.c ****         for(uint16_t i=0; i<obj->size; ++i){
+  90:RunningAverage.c ****             obj->bins[i] = 0;   
+ 321              		.loc 1 90 0 is_stmt 1 discriminator 3
+ 322 000a 1168     		ldr	r1, [r2]
+ 323 000c 0020     		movs	r0, #0
+ 324 000e 21F81300 		strh	r0, [r1, r3, lsl #1]	@ movhi
+  89:RunningAverage.c ****         for(uint16_t i=0; i<obj->size; ++i){
+ 325              		.loc 1 89 0 discriminator 3
+ 326 0012 0133     		adds	r3, r3, #1
+ 327              	.LVL40:
+ 328 0014 9BB2     		uxth	r3, r3
+ 329              	.LVL41:
+ 330 0016 00E0     		b	.L25
+ 331              	.LVL42:
+ 332              	.L27:
+ 333              	.LBE8:
+ 334 0018 0023     		movs	r3, #0
+ 335              	.LVL43:
+ 336              	.L25:
+ 337              	.LBB9:
+  89:RunningAverage.c ****         for(uint16_t i=0; i<obj->size; ++i){
+ 338              		.loc 1 89 0 is_stmt 0 discriminator 1
+ 339 001a 9188     		ldrh	r1, [r2, #4]
+ 340 001c 8B42     		cmp	r3, r1
+ 341 001e F4D3     		bcc	.L26
+ 342              	.LVL44:
+ 343              	.L23:
+ 344 0020 7047     		bx	lr
+ 345              	.LBE9:
+ 346              		.cfi_endproc
+ 347              	.LFE3:
+ 348              		.size	running_average_clear, .-running_average_clear
+ 349 0022 00BF     		.section	.text.running_average_destroy,"ax",%progbits
+ 350              		.align	2
+ 351              		.global	running_average_destroy
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 9
+
+
+ 352              		.thumb
+ 353              		.thumb_func
+ 354              		.type	running_average_destroy, %function
+ 355              	running_average_destroy:
+ 356              	.LFB4:
+  91:RunningAverage.c ****         }
+  92:RunningAverage.c ****     }
+  93:RunningAverage.c **** }
+  94:RunningAverage.c **** 
+  95:RunningAverage.c **** /**
+  96:RunningAverage.c ****  * Running average destroy function will free heap memory and clear
+  97:RunningAverage.c ****  * data members
+  98:RunningAverage.c ****  * @param obj valid pointer to Running_Average object
+  99:RunningAverage.c ****  */
+ 100:RunningAverage.c **** void running_average_destroy(Running_Average_t* obj){
+ 357              		.loc 1 100 0 is_stmt 1
+ 358              		.cfi_startproc
+ 359              		@ args = 0, pretend = 0, frame = 0
+ 360              		@ frame_needed = 0, uses_anonymous_args = 0
+ 361              	.LVL45:
+ 101:RunningAverage.c ****     if(obj != NULL && obj->bins != NULL){
+ 362              		.loc 1 101 0
+ 363 0000 50B1     		cbz	r0, .L31
+ 100:RunningAverage.c ****     if(obj != NULL && obj->bins != NULL){
+ 364              		.loc 1 100 0 discriminator 1
+ 365 0002 10B5     		push	{r4, lr}
+ 366              		.cfi_def_cfa_offset 8
+ 367              		.cfi_offset 4, -8
+ 368              		.cfi_offset 14, -4
+ 369 0004 0446     		mov	r4, r0
+ 370              		.loc 1 101 0 discriminator 1
+ 371 0006 0068     		ldr	r0, [r0]
+ 372              	.LVL46:
+ 373 0008 28B1     		cbz	r0, .L28
+ 102:RunningAverage.c ****         free(obj->bins);
+ 374              		.loc 1 102 0
+ 375 000a FFF7FEFF 		bl	free
+ 376              	.LVL47:
+ 103:RunningAverage.c ****         obj->bins = NULL;
+ 377              		.loc 1 103 0
+ 378 000e 0023     		movs	r3, #0
+ 379 0010 2360     		str	r3, [r4]
+ 104:RunningAverage.c ****         obj->head = 0;
+ 380              		.loc 1 104 0
+ 381 0012 E380     		strh	r3, [r4, #6]	@ movhi
+ 105:RunningAverage.c ****         obj->size = 0;
+ 382              		.loc 1 105 0
+ 383 0014 A380     		strh	r3, [r4, #4]	@ movhi
+ 384              	.L28:
+ 385 0016 10BD     		pop	{r4, pc}
+ 386              	.LVL48:
+ 387              	.L31:
+ 388              		.cfi_def_cfa_offset 0
+ 389              		.cfi_restore 4
+ 390              		.cfi_restore 14
+ 391 0018 7047     		bx	lr
+ 392              		.cfi_endproc
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 10
+
+
+ 393              	.LFE4:
+ 394              		.size	running_average_destroy, .-running_average_destroy
+ 395 001a 00BF     		.text
+ 396              	.Letext0:
+ 397              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 398              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 399              		.file 4 "RunningAverage.h"
+ 400              		.file 5 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 401              		.section	.debug_info,"",%progbits
+ 402              	.Ldebug_info0:
+ 403 0000 69020000 		.4byte	0x269
+ 404 0004 0400     		.2byte	0x4
+ 405 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 406 000a 04       		.byte	0x4
+ 407 000b 01       		.uleb128 0x1
+ 408 000c 6C000000 		.4byte	.LASF29
+ 409 0010 0C       		.byte	0xc
+ 410 0011 1D000000 		.4byte	.LASF30
+ 411 0015 78010000 		.4byte	.LASF31
+ 412 0019 60000000 		.4byte	.Ldebug_ranges0+0x60
+ 413 001d 00000000 		.4byte	0
+ 414 0021 00000000 		.4byte	.Ldebug_line0
+ 415 0025 02       		.uleb128 0x2
+ 416 0026 01       		.byte	0x1
+ 417 0027 06       		.byte	0x6
+ 418 0028 52020000 		.4byte	.LASF0
+ 419 002c 02       		.uleb128 0x2
+ 420 002d 01       		.byte	0x1
+ 421 002e 08       		.byte	0x8
+ 422 002f 1F010000 		.4byte	.LASF1
+ 423 0033 02       		.uleb128 0x2
+ 424 0034 02       		.byte	0x2
+ 425 0035 05       		.byte	0x5
+ 426 0036 11020000 		.4byte	.LASF2
+ 427 003a 03       		.uleb128 0x3
+ 428 003b 2D010000 		.4byte	.LASF9
+ 429 003f 02       		.byte	0x2
+ 430 0040 2B       		.byte	0x2b
+ 431 0041 45000000 		.4byte	0x45
+ 432 0045 02       		.uleb128 0x2
+ 433 0046 02       		.byte	0x2
+ 434 0047 07       		.byte	0x7
+ 435 0048 0C010000 		.4byte	.LASF3
+ 436 004c 02       		.uleb128 0x2
+ 437 004d 04       		.byte	0x4
+ 438 004e 05       		.byte	0x5
+ 439 004f 2D020000 		.4byte	.LASF4
+ 440 0053 02       		.uleb128 0x2
+ 441 0054 04       		.byte	0x4
+ 442 0055 07       		.byte	0x7
+ 443 0056 FA000000 		.4byte	.LASF5
+ 444 005a 02       		.uleb128 0x2
+ 445 005b 08       		.byte	0x8
+ 446 005c 05       		.byte	0x5
+ 447 005d D6010000 		.4byte	.LASF6
+ 448 0061 02       		.uleb128 0x2
+ 449 0062 08       		.byte	0x8
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 11
+
+
+ 450 0063 07       		.byte	0x7
+ 451 0064 61010000 		.4byte	.LASF7
+ 452 0068 04       		.uleb128 0x4
+ 453 0069 04       		.byte	0x4
+ 454 006a 05       		.byte	0x5
+ 455 006b 696E7400 		.ascii	"int\000"
+ 456 006f 02       		.uleb128 0x2
+ 457 0070 04       		.byte	0x4
+ 458 0071 07       		.byte	0x7
+ 459 0072 54010000 		.4byte	.LASF8
+ 460 0076 03       		.uleb128 0x3
+ 461 0077 24020000 		.4byte	.LASF10
+ 462 007b 03       		.byte	0x3
+ 463 007c 24       		.byte	0x24
+ 464 007d 3A000000 		.4byte	0x3a
+ 465 0081 05       		.uleb128 0x5
+ 466 0082 36020000 		.4byte	.LASF32
+ 467 0086 08       		.byte	0x8
+ 468 0087 04       		.byte	0x4
+ 469 0088 24       		.byte	0x24
+ 470 0089 B2000000 		.4byte	0xb2
+ 471 008d 06       		.uleb128 0x6
+ 472 008e 38010000 		.4byte	.LASF11
+ 473 0092 04       		.byte	0x4
+ 474 0093 25       		.byte	0x25
+ 475 0094 B2000000 		.4byte	0xb2
+ 476 0098 00       		.byte	0
+ 477 0099 06       		.uleb128 0x6
+ 478 009a 67000000 		.4byte	.LASF12
+ 479 009e 04       		.byte	0x4
+ 480 009f 26       		.byte	0x26
+ 481 00a0 76000000 		.4byte	0x76
+ 482 00a4 04       		.byte	0x4
+ 483 00a5 06       		.uleb128 0x6
+ 484 00a6 18000000 		.4byte	.LASF13
+ 485 00aa 04       		.byte	0x4
+ 486 00ab 27       		.byte	0x27
+ 487 00ac 76000000 		.4byte	0x76
+ 488 00b0 06       		.byte	0x6
+ 489 00b1 00       		.byte	0
+ 490 00b2 07       		.uleb128 0x7
+ 491 00b3 04       		.byte	0x4
+ 492 00b4 76000000 		.4byte	0x76
+ 493 00b8 03       		.uleb128 0x3
+ 494 00b9 FF010000 		.4byte	.LASF14
+ 495 00bd 04       		.byte	0x4
+ 496 00be 28       		.byte	0x28
+ 497 00bf 81000000 		.4byte	0x81
+ 498 00c3 02       		.uleb128 0x2
+ 499 00c4 08       		.byte	0x8
+ 500 00c5 04       		.byte	0x4
+ 501 00c6 46020000 		.4byte	.LASF15
+ 502 00ca 02       		.uleb128 0x2
+ 503 00cb 04       		.byte	0x4
+ 504 00cc 07       		.byte	0x7
+ 505 00cd C8010000 		.4byte	.LASF16
+ 506 00d1 02       		.uleb128 0x2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 12
+
+
+ 507 00d2 01       		.byte	0x1
+ 508 00d3 08       		.byte	0x8
+ 509 00d4 E4010000 		.4byte	.LASF17
+ 510 00d8 08       		.uleb128 0x8
+ 511 00d9 4C000000 		.4byte	.LASF21
+ 512 00dd 01       		.byte	0x1
+ 513 00de 1F       		.byte	0x1f
+ 514 00df 48010000 		.4byte	0x148
+ 515 00e3 00000000 		.4byte	.LFB0
+ 516 00e7 46000000 		.4byte	.LFE0-.LFB0
+ 517 00eb 01       		.uleb128 0x1
+ 518 00ec 9C       		.byte	0x9c
+ 519 00ed 48010000 		.4byte	0x148
+ 520 00f1 09       		.uleb128 0x9
+ 521 00f2 6F626A00 		.ascii	"obj\000"
+ 522 00f6 01       		.byte	0x1
+ 523 00f7 1F       		.byte	0x1f
+ 524 00f8 4F010000 		.4byte	0x14f
+ 525 00fc 00000000 		.4byte	.LLST0
+ 526 0100 0A       		.uleb128 0xa
+ 527 0101 1B020000 		.4byte	.LASF18
+ 528 0105 01       		.byte	0x1
+ 529 0106 1F       		.byte	0x1f
+ 530 0107 76000000 		.4byte	0x76
+ 531 010b 63000000 		.4byte	.LLST1
+ 532 010f 0B       		.uleb128 0xb
+ 533 0110 45000000 		.4byte	.LASF19
+ 534 0114 01       		.byte	0x1
+ 535 0115 20       		.byte	0x20
+ 536 0116 48010000 		.4byte	0x148
+ 537 011a 9D000000 		.4byte	.LLST2
+ 538 011e 0C       		.uleb128 0xc
+ 539 011f 00000000 		.4byte	.Ldebug_ranges0+0
+ 540 0123 35010000 		.4byte	0x135
+ 541 0127 0D       		.uleb128 0xd
+ 542 0128 6900     		.ascii	"i\000"
+ 543 012a 01       		.byte	0x1
+ 544 012b 28       		.byte	0x28
+ 545 012c 76000000 		.4byte	0x76
+ 546 0130 EB000000 		.4byte	.LLST3
+ 547 0134 00       		.byte	0
+ 548 0135 0E       		.uleb128 0xe
+ 549 0136 14000000 		.4byte	.LVL2
+ 550 013a 56020000 		.4byte	0x256
+ 551 013e 0F       		.uleb128 0xf
+ 552 013f 01       		.uleb128 0x1
+ 553 0140 50       		.byte	0x50
+ 554 0141 04       		.uleb128 0x4
+ 555 0142 75       		.byte	0x75
+ 556 0143 00       		.sleb128 0
+ 557 0144 31       		.byte	0x31
+ 558 0145 24       		.byte	0x24
+ 559 0146 00       		.byte	0
+ 560 0147 00       		.byte	0
+ 561 0148 02       		.uleb128 0x2
+ 562 0149 01       		.byte	0x1
+ 563 014a 02       		.byte	0x2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 13
+
+
+ 564 014b 5E020000 		.4byte	.LASF20
+ 565 014f 07       		.uleb128 0x7
+ 566 0150 04       		.byte	0x4
+ 567 0151 B8000000 		.4byte	0xb8
+ 568 0155 10       		.uleb128 0x10
+ 569 0156 2E000000 		.4byte	.LASF24
+ 570 015a 01       		.byte	0x1
+ 571 015b 36       		.byte	0x36
+ 572 015c 00000000 		.4byte	.LFB1
+ 573 0160 2E000000 		.4byte	.LFE1-.LFB1
+ 574 0164 01       		.uleb128 0x1
+ 575 0165 9C       		.byte	0x9c
+ 576 0166 89010000 		.4byte	0x189
+ 577 016a 09       		.uleb128 0x9
+ 578 016b 6F626A00 		.ascii	"obj\000"
+ 579 016f 01       		.byte	0x1
+ 580 0170 36       		.byte	0x36
+ 581 0171 4F010000 		.4byte	0x14f
+ 582 0175 15010000 		.4byte	.LLST4
+ 583 0179 09       		.uleb128 0x9
+ 584 017a 76616C00 		.ascii	"val\000"
+ 585 017e 01       		.byte	0x1
+ 586 017f 36       		.byte	0x36
+ 587 0180 76000000 		.4byte	0x76
+ 588 0184 41010000 		.4byte	.LLST5
+ 589 0188 00       		.byte	0
+ 590 0189 11       		.uleb128 0x11
+ 591 018a 3D010000 		.4byte	.LASF22
+ 592 018e 01       		.byte	0x1
+ 593 018f 46       		.byte	0x46
+ 594 0190 76000000 		.4byte	0x76
+ 595 0194 00000000 		.4byte	.LFB2
+ 596 0198 4E000000 		.4byte	.LFE2-.LFB2
+ 597 019c 01       		.uleb128 0x1
+ 598 019d 9C       		.byte	0x9c
+ 599 019e E9010000 		.4byte	0x1e9
+ 600 01a2 09       		.uleb128 0x9
+ 601 01a3 6F626A00 		.ascii	"obj\000"
+ 602 01a7 01       		.byte	0x1
+ 603 01a8 46       		.byte	0x46
+ 604 01a9 4F010000 		.4byte	0x14f
+ 605 01ad 62010000 		.4byte	.LLST6
+ 606 01b1 0B       		.uleb128 0xb
+ 607 01b2 45000000 		.4byte	.LASF19
+ 608 01b6 01       		.byte	0x1
+ 609 01b7 47       		.byte	0x47
+ 610 01b8 76000000 		.4byte	0x76
+ 611 01bc CE010000 		.4byte	.LLST7
+ 612 01c0 12       		.uleb128 0x12
+ 613 01c1 18000000 		.4byte	.Ldebug_ranges0+0x18
+ 614 01c5 0D       		.uleb128 0xd
+ 615 01c6 73756D00 		.ascii	"sum\000"
+ 616 01ca 01       		.byte	0x1
+ 617 01cb 4A       		.byte	0x4a
+ 618 01cc E9010000 		.4byte	0x1e9
+ 619 01d0 1B020000 		.4byte	.LLST8
+ 620 01d4 12       		.uleb128 0x12
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 14
+
+
+ 621 01d5 30000000 		.4byte	.Ldebug_ranges0+0x30
+ 622 01d9 0D       		.uleb128 0xd
+ 623 01da 6900     		.ascii	"i\000"
+ 624 01dc 01       		.byte	0x1
+ 625 01dd 4B       		.byte	0x4b
+ 626 01de 76000000 		.4byte	0x76
+ 627 01e2 44020000 		.4byte	.LLST9
+ 628 01e6 00       		.byte	0
+ 629 01e7 00       		.byte	0
+ 630 01e8 00       		.byte	0
+ 631 01e9 02       		.uleb128 0x2
+ 632 01ea 04       		.byte	0x4
+ 633 01eb 04       		.byte	0x4
+ 634 01ec 61000000 		.4byte	.LASF23
+ 635 01f0 10       		.uleb128 0x10
+ 636 01f1 E9010000 		.4byte	.LASF25
+ 637 01f5 01       		.byte	0x1
+ 638 01f6 57       		.byte	0x57
+ 639 01f7 00000000 		.4byte	.LFB3
+ 640 01fb 22000000 		.4byte	.LFE3-.LFB3
+ 641 01ff 01       		.uleb128 0x1
+ 642 0200 9C       		.byte	0x9c
+ 643 0201 28020000 		.4byte	0x228
+ 644 0205 09       		.uleb128 0x9
+ 645 0206 6F626A00 		.ascii	"obj\000"
+ 646 020a 01       		.byte	0x1
+ 647 020b 57       		.byte	0x57
+ 648 020c 4F010000 		.4byte	0x14f
+ 649 0210 6D020000 		.4byte	.LLST10
+ 650 0214 12       		.uleb128 0x12
+ 651 0215 48000000 		.4byte	.Ldebug_ranges0+0x48
+ 652 0219 0D       		.uleb128 0xd
+ 653 021a 6900     		.ascii	"i\000"
+ 654 021c 01       		.byte	0x1
+ 655 021d 59       		.byte	0x59
+ 656 021e 76000000 		.4byte	0x76
+ 657 0222 A1020000 		.4byte	.LLST11
+ 658 0226 00       		.byte	0
+ 659 0227 00       		.byte	0
+ 660 0228 10       		.uleb128 0x10
+ 661 0229 00000000 		.4byte	.LASF26
+ 662 022d 01       		.byte	0x1
+ 663 022e 64       		.byte	0x64
+ 664 022f 00000000 		.4byte	.LFB4
+ 665 0233 1A000000 		.4byte	.LFE4-.LFB4
+ 666 0237 01       		.uleb128 0x1
+ 667 0238 9C       		.byte	0x9c
+ 668 0239 56020000 		.4byte	0x256
+ 669 023d 09       		.uleb128 0x9
+ 670 023e 6F626A00 		.ascii	"obj\000"
+ 671 0242 01       		.byte	0x1
+ 672 0243 64       		.byte	0x64
+ 673 0244 4F010000 		.4byte	0x14f
+ 674 0248 CA020000 		.4byte	.LLST12
+ 675 024c 13       		.uleb128 0x13
+ 676 024d 0E000000 		.4byte	.LVL47
+ 677 0251 61020000 		.4byte	0x261
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 15
+
+
+ 678 0255 00       		.byte	0
+ 679 0256 14       		.uleb128 0x14
+ 680 0257 64020000 		.4byte	.LASF27
+ 681 025b 64020000 		.4byte	.LASF27
+ 682 025f 05       		.byte	0x5
+ 683 0260 64       		.byte	0x64
+ 684 0261 14       		.uleb128 0x14
+ 685 0262 D1010000 		.4byte	.LASF28
+ 686 0266 D1010000 		.4byte	.LASF28
+ 687 026a 05       		.byte	0x5
+ 688 026b 59       		.byte	0x59
+ 689 026c 00       		.byte	0
+ 690              		.section	.debug_abbrev,"",%progbits
+ 691              	.Ldebug_abbrev0:
+ 692 0000 01       		.uleb128 0x1
+ 693 0001 11       		.uleb128 0x11
+ 694 0002 01       		.byte	0x1
+ 695 0003 25       		.uleb128 0x25
+ 696 0004 0E       		.uleb128 0xe
+ 697 0005 13       		.uleb128 0x13
+ 698 0006 0B       		.uleb128 0xb
+ 699 0007 03       		.uleb128 0x3
+ 700 0008 0E       		.uleb128 0xe
+ 701 0009 1B       		.uleb128 0x1b
+ 702 000a 0E       		.uleb128 0xe
+ 703 000b 55       		.uleb128 0x55
+ 704 000c 17       		.uleb128 0x17
+ 705 000d 11       		.uleb128 0x11
+ 706 000e 01       		.uleb128 0x1
+ 707 000f 10       		.uleb128 0x10
+ 708 0010 17       		.uleb128 0x17
+ 709 0011 00       		.byte	0
+ 710 0012 00       		.byte	0
+ 711 0013 02       		.uleb128 0x2
+ 712 0014 24       		.uleb128 0x24
+ 713 0015 00       		.byte	0
+ 714 0016 0B       		.uleb128 0xb
+ 715 0017 0B       		.uleb128 0xb
+ 716 0018 3E       		.uleb128 0x3e
+ 717 0019 0B       		.uleb128 0xb
+ 718 001a 03       		.uleb128 0x3
+ 719 001b 0E       		.uleb128 0xe
+ 720 001c 00       		.byte	0
+ 721 001d 00       		.byte	0
+ 722 001e 03       		.uleb128 0x3
+ 723 001f 16       		.uleb128 0x16
+ 724 0020 00       		.byte	0
+ 725 0021 03       		.uleb128 0x3
+ 726 0022 0E       		.uleb128 0xe
+ 727 0023 3A       		.uleb128 0x3a
+ 728 0024 0B       		.uleb128 0xb
+ 729 0025 3B       		.uleb128 0x3b
+ 730 0026 0B       		.uleb128 0xb
+ 731 0027 49       		.uleb128 0x49
+ 732 0028 13       		.uleb128 0x13
+ 733 0029 00       		.byte	0
+ 734 002a 00       		.byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 16
+
+
+ 735 002b 04       		.uleb128 0x4
+ 736 002c 24       		.uleb128 0x24
+ 737 002d 00       		.byte	0
+ 738 002e 0B       		.uleb128 0xb
+ 739 002f 0B       		.uleb128 0xb
+ 740 0030 3E       		.uleb128 0x3e
+ 741 0031 0B       		.uleb128 0xb
+ 742 0032 03       		.uleb128 0x3
+ 743 0033 08       		.uleb128 0x8
+ 744 0034 00       		.byte	0
+ 745 0035 00       		.byte	0
+ 746 0036 05       		.uleb128 0x5
+ 747 0037 13       		.uleb128 0x13
+ 748 0038 01       		.byte	0x1
+ 749 0039 03       		.uleb128 0x3
+ 750 003a 0E       		.uleb128 0xe
+ 751 003b 0B       		.uleb128 0xb
+ 752 003c 0B       		.uleb128 0xb
+ 753 003d 3A       		.uleb128 0x3a
+ 754 003e 0B       		.uleb128 0xb
+ 755 003f 3B       		.uleb128 0x3b
+ 756 0040 0B       		.uleb128 0xb
+ 757 0041 01       		.uleb128 0x1
+ 758 0042 13       		.uleb128 0x13
+ 759 0043 00       		.byte	0
+ 760 0044 00       		.byte	0
+ 761 0045 06       		.uleb128 0x6
+ 762 0046 0D       		.uleb128 0xd
+ 763 0047 00       		.byte	0
+ 764 0048 03       		.uleb128 0x3
+ 765 0049 0E       		.uleb128 0xe
+ 766 004a 3A       		.uleb128 0x3a
+ 767 004b 0B       		.uleb128 0xb
+ 768 004c 3B       		.uleb128 0x3b
+ 769 004d 0B       		.uleb128 0xb
+ 770 004e 49       		.uleb128 0x49
+ 771 004f 13       		.uleb128 0x13
+ 772 0050 38       		.uleb128 0x38
+ 773 0051 0B       		.uleb128 0xb
+ 774 0052 00       		.byte	0
+ 775 0053 00       		.byte	0
+ 776 0054 07       		.uleb128 0x7
+ 777 0055 0F       		.uleb128 0xf
+ 778 0056 00       		.byte	0
+ 779 0057 0B       		.uleb128 0xb
+ 780 0058 0B       		.uleb128 0xb
+ 781 0059 49       		.uleb128 0x49
+ 782 005a 13       		.uleb128 0x13
+ 783 005b 00       		.byte	0
+ 784 005c 00       		.byte	0
+ 785 005d 08       		.uleb128 0x8
+ 786 005e 2E       		.uleb128 0x2e
+ 787 005f 01       		.byte	0x1
+ 788 0060 3F       		.uleb128 0x3f
+ 789 0061 19       		.uleb128 0x19
+ 790 0062 03       		.uleb128 0x3
+ 791 0063 0E       		.uleb128 0xe
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 17
+
+
+ 792 0064 3A       		.uleb128 0x3a
+ 793 0065 0B       		.uleb128 0xb
+ 794 0066 3B       		.uleb128 0x3b
+ 795 0067 0B       		.uleb128 0xb
+ 796 0068 27       		.uleb128 0x27
+ 797 0069 19       		.uleb128 0x19
+ 798 006a 49       		.uleb128 0x49
+ 799 006b 13       		.uleb128 0x13
+ 800 006c 11       		.uleb128 0x11
+ 801 006d 01       		.uleb128 0x1
+ 802 006e 12       		.uleb128 0x12
+ 803 006f 06       		.uleb128 0x6
+ 804 0070 40       		.uleb128 0x40
+ 805 0071 18       		.uleb128 0x18
+ 806 0072 9742     		.uleb128 0x2117
+ 807 0074 19       		.uleb128 0x19
+ 808 0075 01       		.uleb128 0x1
+ 809 0076 13       		.uleb128 0x13
+ 810 0077 00       		.byte	0
+ 811 0078 00       		.byte	0
+ 812 0079 09       		.uleb128 0x9
+ 813 007a 05       		.uleb128 0x5
+ 814 007b 00       		.byte	0
+ 815 007c 03       		.uleb128 0x3
+ 816 007d 08       		.uleb128 0x8
+ 817 007e 3A       		.uleb128 0x3a
+ 818 007f 0B       		.uleb128 0xb
+ 819 0080 3B       		.uleb128 0x3b
+ 820 0081 0B       		.uleb128 0xb
+ 821 0082 49       		.uleb128 0x49
+ 822 0083 13       		.uleb128 0x13
+ 823 0084 02       		.uleb128 0x2
+ 824 0085 17       		.uleb128 0x17
+ 825 0086 00       		.byte	0
+ 826 0087 00       		.byte	0
+ 827 0088 0A       		.uleb128 0xa
+ 828 0089 05       		.uleb128 0x5
+ 829 008a 00       		.byte	0
+ 830 008b 03       		.uleb128 0x3
+ 831 008c 0E       		.uleb128 0xe
+ 832 008d 3A       		.uleb128 0x3a
+ 833 008e 0B       		.uleb128 0xb
+ 834 008f 3B       		.uleb128 0x3b
+ 835 0090 0B       		.uleb128 0xb
+ 836 0091 49       		.uleb128 0x49
+ 837 0092 13       		.uleb128 0x13
+ 838 0093 02       		.uleb128 0x2
+ 839 0094 17       		.uleb128 0x17
+ 840 0095 00       		.byte	0
+ 841 0096 00       		.byte	0
+ 842 0097 0B       		.uleb128 0xb
+ 843 0098 34       		.uleb128 0x34
+ 844 0099 00       		.byte	0
+ 845 009a 03       		.uleb128 0x3
+ 846 009b 0E       		.uleb128 0xe
+ 847 009c 3A       		.uleb128 0x3a
+ 848 009d 0B       		.uleb128 0xb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 18
+
+
+ 849 009e 3B       		.uleb128 0x3b
+ 850 009f 0B       		.uleb128 0xb
+ 851 00a0 49       		.uleb128 0x49
+ 852 00a1 13       		.uleb128 0x13
+ 853 00a2 02       		.uleb128 0x2
+ 854 00a3 17       		.uleb128 0x17
+ 855 00a4 00       		.byte	0
+ 856 00a5 00       		.byte	0
+ 857 00a6 0C       		.uleb128 0xc
+ 858 00a7 0B       		.uleb128 0xb
+ 859 00a8 01       		.byte	0x1
+ 860 00a9 55       		.uleb128 0x55
+ 861 00aa 17       		.uleb128 0x17
+ 862 00ab 01       		.uleb128 0x1
+ 863 00ac 13       		.uleb128 0x13
+ 864 00ad 00       		.byte	0
+ 865 00ae 00       		.byte	0
+ 866 00af 0D       		.uleb128 0xd
+ 867 00b0 34       		.uleb128 0x34
+ 868 00b1 00       		.byte	0
+ 869 00b2 03       		.uleb128 0x3
+ 870 00b3 08       		.uleb128 0x8
+ 871 00b4 3A       		.uleb128 0x3a
+ 872 00b5 0B       		.uleb128 0xb
+ 873 00b6 3B       		.uleb128 0x3b
+ 874 00b7 0B       		.uleb128 0xb
+ 875 00b8 49       		.uleb128 0x49
+ 876 00b9 13       		.uleb128 0x13
+ 877 00ba 02       		.uleb128 0x2
+ 878 00bb 17       		.uleb128 0x17
+ 879 00bc 00       		.byte	0
+ 880 00bd 00       		.byte	0
+ 881 00be 0E       		.uleb128 0xe
+ 882 00bf 898201   		.uleb128 0x4109
+ 883 00c2 01       		.byte	0x1
+ 884 00c3 11       		.uleb128 0x11
+ 885 00c4 01       		.uleb128 0x1
+ 886 00c5 31       		.uleb128 0x31
+ 887 00c6 13       		.uleb128 0x13
+ 888 00c7 00       		.byte	0
+ 889 00c8 00       		.byte	0
+ 890 00c9 0F       		.uleb128 0xf
+ 891 00ca 8A8201   		.uleb128 0x410a
+ 892 00cd 00       		.byte	0
+ 893 00ce 02       		.uleb128 0x2
+ 894 00cf 18       		.uleb128 0x18
+ 895 00d0 9142     		.uleb128 0x2111
+ 896 00d2 18       		.uleb128 0x18
+ 897 00d3 00       		.byte	0
+ 898 00d4 00       		.byte	0
+ 899 00d5 10       		.uleb128 0x10
+ 900 00d6 2E       		.uleb128 0x2e
+ 901 00d7 01       		.byte	0x1
+ 902 00d8 3F       		.uleb128 0x3f
+ 903 00d9 19       		.uleb128 0x19
+ 904 00da 03       		.uleb128 0x3
+ 905 00db 0E       		.uleb128 0xe
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 19
+
+
+ 906 00dc 3A       		.uleb128 0x3a
+ 907 00dd 0B       		.uleb128 0xb
+ 908 00de 3B       		.uleb128 0x3b
+ 909 00df 0B       		.uleb128 0xb
+ 910 00e0 27       		.uleb128 0x27
+ 911 00e1 19       		.uleb128 0x19
+ 912 00e2 11       		.uleb128 0x11
+ 913 00e3 01       		.uleb128 0x1
+ 914 00e4 12       		.uleb128 0x12
+ 915 00e5 06       		.uleb128 0x6
+ 916 00e6 40       		.uleb128 0x40
+ 917 00e7 18       		.uleb128 0x18
+ 918 00e8 9742     		.uleb128 0x2117
+ 919 00ea 19       		.uleb128 0x19
+ 920 00eb 01       		.uleb128 0x1
+ 921 00ec 13       		.uleb128 0x13
+ 922 00ed 00       		.byte	0
+ 923 00ee 00       		.byte	0
+ 924 00ef 11       		.uleb128 0x11
+ 925 00f0 2E       		.uleb128 0x2e
+ 926 00f1 01       		.byte	0x1
+ 927 00f2 3F       		.uleb128 0x3f
+ 928 00f3 19       		.uleb128 0x19
+ 929 00f4 03       		.uleb128 0x3
+ 930 00f5 0E       		.uleb128 0xe
+ 931 00f6 3A       		.uleb128 0x3a
+ 932 00f7 0B       		.uleb128 0xb
+ 933 00f8 3B       		.uleb128 0x3b
+ 934 00f9 0B       		.uleb128 0xb
+ 935 00fa 27       		.uleb128 0x27
+ 936 00fb 19       		.uleb128 0x19
+ 937 00fc 49       		.uleb128 0x49
+ 938 00fd 13       		.uleb128 0x13
+ 939 00fe 11       		.uleb128 0x11
+ 940 00ff 01       		.uleb128 0x1
+ 941 0100 12       		.uleb128 0x12
+ 942 0101 06       		.uleb128 0x6
+ 943 0102 40       		.uleb128 0x40
+ 944 0103 18       		.uleb128 0x18
+ 945 0104 9642     		.uleb128 0x2116
+ 946 0106 19       		.uleb128 0x19
+ 947 0107 01       		.uleb128 0x1
+ 948 0108 13       		.uleb128 0x13
+ 949 0109 00       		.byte	0
+ 950 010a 00       		.byte	0
+ 951 010b 12       		.uleb128 0x12
+ 952 010c 0B       		.uleb128 0xb
+ 953 010d 01       		.byte	0x1
+ 954 010e 55       		.uleb128 0x55
+ 955 010f 17       		.uleb128 0x17
+ 956 0110 00       		.byte	0
+ 957 0111 00       		.byte	0
+ 958 0112 13       		.uleb128 0x13
+ 959 0113 898201   		.uleb128 0x4109
+ 960 0116 00       		.byte	0
+ 961 0117 11       		.uleb128 0x11
+ 962 0118 01       		.uleb128 0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 20
+
+
+ 963 0119 31       		.uleb128 0x31
+ 964 011a 13       		.uleb128 0x13
+ 965 011b 00       		.byte	0
+ 966 011c 00       		.byte	0
+ 967 011d 14       		.uleb128 0x14
+ 968 011e 2E       		.uleb128 0x2e
+ 969 011f 00       		.byte	0
+ 970 0120 3F       		.uleb128 0x3f
+ 971 0121 19       		.uleb128 0x19
+ 972 0122 3C       		.uleb128 0x3c
+ 973 0123 19       		.uleb128 0x19
+ 974 0124 6E       		.uleb128 0x6e
+ 975 0125 0E       		.uleb128 0xe
+ 976 0126 03       		.uleb128 0x3
+ 977 0127 0E       		.uleb128 0xe
+ 978 0128 3A       		.uleb128 0x3a
+ 979 0129 0B       		.uleb128 0xb
+ 980 012a 3B       		.uleb128 0x3b
+ 981 012b 0B       		.uleb128 0xb
+ 982 012c 00       		.byte	0
+ 983 012d 00       		.byte	0
+ 984 012e 00       		.byte	0
+ 985              		.section	.debug_loc,"",%progbits
+ 986              	.Ldebug_loc0:
+ 987              	.LLST0:
+ 988 0000 00000000 		.4byte	.LVL0
+ 989 0004 10000000 		.4byte	.LVL1
+ 990 0008 0100     		.2byte	0x1
+ 991 000a 50       		.byte	0x50
+ 992 000b 10000000 		.4byte	.LVL1
+ 993 000f 36000000 		.4byte	.LVL8
+ 994 0013 0100     		.2byte	0x1
+ 995 0015 54       		.byte	0x54
+ 996 0016 36000000 		.4byte	.LVL8
+ 997 001a 38000000 		.4byte	.LVL9
+ 998 001e 0100     		.2byte	0x1
+ 999 0020 50       		.byte	0x50
+ 1000 0021 38000000 		.4byte	.LVL9
+ 1001 0025 3A000000 		.4byte	.LVL10
+ 1002 0029 0400     		.2byte	0x4
+ 1003 002b F3       		.byte	0xf3
+ 1004 002c 01       		.uleb128 0x1
+ 1005 002d 50       		.byte	0x50
+ 1006 002e 9F       		.byte	0x9f
+ 1007 002f 3A000000 		.4byte	.LVL10
+ 1008 0033 3C000000 		.4byte	.LVL11
+ 1009 0037 0100     		.2byte	0x1
+ 1010 0039 50       		.byte	0x50
+ 1011 003a 3C000000 		.4byte	.LVL11
+ 1012 003e 3E000000 		.4byte	.LVL12
+ 1013 0042 0100     		.2byte	0x1
+ 1014 0044 54       		.byte	0x54
+ 1015 0045 3E000000 		.4byte	.LVL12
+ 1016 0049 40000000 		.4byte	.LVL13
+ 1017 004d 0100     		.2byte	0x1
+ 1018 004f 50       		.byte	0x50
+ 1019 0050 40000000 		.4byte	.LVL13
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 21
+
+
+ 1020 0054 46000000 		.4byte	.LFE0
+ 1021 0058 0100     		.2byte	0x1
+ 1022 005a 54       		.byte	0x54
+ 1023 005b 00000000 		.4byte	0
+ 1024 005f 00000000 		.4byte	0
+ 1025              	.LLST1:
+ 1026 0063 00000000 		.4byte	.LVL0
+ 1027 0067 13000000 		.4byte	.LVL2-1
+ 1028 006b 0100     		.2byte	0x1
+ 1029 006d 51       		.byte	0x51
+ 1030 006e 13000000 		.4byte	.LVL2-1
+ 1031 0072 36000000 		.4byte	.LVL8
+ 1032 0076 0400     		.2byte	0x4
+ 1033 0078 F3       		.byte	0xf3
+ 1034 0079 01       		.uleb128 0x1
+ 1035 007a 51       		.byte	0x51
+ 1036 007b 9F       		.byte	0x9f
+ 1037 007c 36000000 		.4byte	.LVL8
+ 1038 0080 42000000 		.4byte	.LVL14
+ 1039 0084 0100     		.2byte	0x1
+ 1040 0086 51       		.byte	0x51
+ 1041 0087 42000000 		.4byte	.LVL14
+ 1042 008b 46000000 		.4byte	.LFE0
+ 1043 008f 0400     		.2byte	0x4
+ 1044 0091 F3       		.byte	0xf3
+ 1045 0092 01       		.uleb128 0x1
+ 1046 0093 51       		.byte	0x51
+ 1047 0094 9F       		.byte	0x9f
+ 1048 0095 00000000 		.4byte	0
+ 1049 0099 00000000 		.4byte	0
+ 1050              	.LLST2:
+ 1051 009d 00000000 		.4byte	.LVL0
+ 1052 00a1 18000000 		.4byte	.LVL3
+ 1053 00a5 0200     		.2byte	0x2
+ 1054 00a7 30       		.byte	0x30
+ 1055 00a8 9F       		.byte	0x9f
+ 1056 00a9 18000000 		.4byte	.LVL3
+ 1057 00ad 36000000 		.4byte	.LVL8
+ 1058 00b1 0200     		.2byte	0x2
+ 1059 00b3 31       		.byte	0x31
+ 1060 00b4 9F       		.byte	0x9f
+ 1061 00b5 36000000 		.4byte	.LVL8
+ 1062 00b9 38000000 		.4byte	.LVL9
+ 1063 00bd 0200     		.2byte	0x2
+ 1064 00bf 30       		.byte	0x30
+ 1065 00c0 9F       		.byte	0x9f
+ 1066 00c1 38000000 		.4byte	.LVL9
+ 1067 00c5 3A000000 		.4byte	.LVL10
+ 1068 00c9 0100     		.2byte	0x1
+ 1069 00cb 50       		.byte	0x50
+ 1070 00cc 3A000000 		.4byte	.LVL10
+ 1071 00d0 44000000 		.4byte	.LVL15
+ 1072 00d4 0200     		.2byte	0x2
+ 1073 00d6 30       		.byte	0x30
+ 1074 00d7 9F       		.byte	0x9f
+ 1075 00d8 44000000 		.4byte	.LVL15
+ 1076 00dc 46000000 		.4byte	.LFE0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 22
+
+
+ 1077 00e0 0100     		.2byte	0x1
+ 1078 00e2 50       		.byte	0x50
+ 1079 00e3 00000000 		.4byte	0
+ 1080 00e7 00000000 		.4byte	0
+ 1081              	.LLST3:
+ 1082 00eb 1E000000 		.4byte	.LVL4
+ 1083 00ef 20000000 		.4byte	.LVL5
+ 1084 00f3 0200     		.2byte	0x2
+ 1085 00f5 30       		.byte	0x30
+ 1086 00f6 9F       		.byte	0x9f
+ 1087 00f7 20000000 		.4byte	.LVL5
+ 1088 00fb 2A000000 		.4byte	.LVL6
+ 1089 00ff 0100     		.2byte	0x1
+ 1090 0101 53       		.byte	0x53
+ 1091 0102 2C000000 		.4byte	.LVL7
+ 1092 0106 36000000 		.4byte	.LVL8
+ 1093 010a 0100     		.2byte	0x1
+ 1094 010c 53       		.byte	0x53
+ 1095 010d 00000000 		.4byte	0
+ 1096 0111 00000000 		.4byte	0
+ 1097              	.LLST4:
+ 1098 0115 00000000 		.4byte	.LVL16
+ 1099 0119 06000000 		.4byte	.LVL17
+ 1100 011d 0100     		.2byte	0x1
+ 1101 011f 50       		.byte	0x50
+ 1102 0120 06000000 		.4byte	.LVL17
+ 1103 0124 2C000000 		.4byte	.LVL19
+ 1104 0128 0100     		.2byte	0x1
+ 1105 012a 53       		.byte	0x53
+ 1106 012b 2C000000 		.4byte	.LVL19
+ 1107 012f 2E000000 		.4byte	.LFE1
+ 1108 0133 0400     		.2byte	0x4
+ 1109 0135 F3       		.byte	0xf3
+ 1110 0136 01       		.uleb128 0x1
+ 1111 0137 50       		.byte	0x50
+ 1112 0138 9F       		.byte	0x9f
+ 1113 0139 00000000 		.4byte	0
+ 1114 013d 00000000 		.4byte	0
+ 1115              	.LLST5:
+ 1116 0141 00000000 		.4byte	.LVL16
+ 1117 0145 24000000 		.4byte	.LVL18
+ 1118 0149 0100     		.2byte	0x1
+ 1119 014b 51       		.byte	0x51
+ 1120 014c 24000000 		.4byte	.LVL18
+ 1121 0150 2E000000 		.4byte	.LFE1
+ 1122 0154 0400     		.2byte	0x4
+ 1123 0156 F3       		.byte	0xf3
+ 1124 0157 01       		.uleb128 0x1
+ 1125 0158 51       		.byte	0x51
+ 1126 0159 9F       		.byte	0x9f
+ 1127 015a 00000000 		.4byte	0
+ 1128 015e 00000000 		.4byte	0
+ 1129              	.LLST6:
+ 1130 0162 00000000 		.4byte	.LVL20
+ 1131 0166 0E000000 		.4byte	.LVL21
+ 1132 016a 0100     		.2byte	0x1
+ 1133 016c 50       		.byte	0x50
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 23
+
+
+ 1134 016d 0E000000 		.4byte	.LVL21
+ 1135 0171 28000000 		.4byte	.LVL28
+ 1136 0175 0400     		.2byte	0x4
+ 1137 0177 F3       		.byte	0xf3
+ 1138 0178 01       		.uleb128 0x1
+ 1139 0179 50       		.byte	0x50
+ 1140 017a 9F       		.byte	0x9f
+ 1141 017b 28000000 		.4byte	.LVL28
+ 1142 017f 2C000000 		.4byte	.LVL29
+ 1143 0183 0100     		.2byte	0x1
+ 1144 0185 50       		.byte	0x50
+ 1145 0186 2C000000 		.4byte	.LVL29
+ 1146 018a 46000000 		.4byte	.LVL34
+ 1147 018e 0400     		.2byte	0x4
+ 1148 0190 F3       		.byte	0xf3
+ 1149 0191 01       		.uleb128 0x1
+ 1150 0192 50       		.byte	0x50
+ 1151 0193 9F       		.byte	0x9f
+ 1152 0194 46000000 		.4byte	.LVL34
+ 1153 0198 48000000 		.4byte	.LVL35
+ 1154 019c 0100     		.2byte	0x1
+ 1155 019e 50       		.byte	0x50
+ 1156 019f 48000000 		.4byte	.LVL35
+ 1157 01a3 4A000000 		.4byte	.LVL36
+ 1158 01a7 0400     		.2byte	0x4
+ 1159 01a9 F3       		.byte	0xf3
+ 1160 01aa 01       		.uleb128 0x1
+ 1161 01ab 50       		.byte	0x50
+ 1162 01ac 9F       		.byte	0x9f
+ 1163 01ad 4A000000 		.4byte	.LVL36
+ 1164 01b1 4C000000 		.4byte	.LVL37
+ 1165 01b5 0100     		.2byte	0x1
+ 1166 01b7 50       		.byte	0x50
+ 1167 01b8 4C000000 		.4byte	.LVL37
+ 1168 01bc 4E000000 		.4byte	.LFE2
+ 1169 01c0 0400     		.2byte	0x4
+ 1170 01c2 F3       		.byte	0xf3
+ 1171 01c3 01       		.uleb128 0x1
+ 1172 01c4 50       		.byte	0x50
+ 1173 01c5 9F       		.byte	0x9f
+ 1174 01c6 00000000 		.4byte	0
+ 1175 01ca 00000000 		.4byte	0
+ 1176              	.LLST7:
+ 1177 01ce 00000000 		.4byte	.LVL20
+ 1178 01d2 44000000 		.4byte	.LVL33
+ 1179 01d6 0200     		.2byte	0x2
+ 1180 01d8 30       		.byte	0x30
+ 1181 01d9 9F       		.byte	0x9f
+ 1182 01da 44000000 		.4byte	.LVL33
+ 1183 01de 46000000 		.4byte	.LVL34
+ 1184 01e2 0100     		.2byte	0x1
+ 1185 01e4 50       		.byte	0x50
+ 1186 01e5 46000000 		.4byte	.LVL34
+ 1187 01e9 48000000 		.4byte	.LVL35
+ 1188 01ed 0200     		.2byte	0x2
+ 1189 01ef 30       		.byte	0x30
+ 1190 01f0 9F       		.byte	0x9f
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 24
+
+
+ 1191 01f1 48000000 		.4byte	.LVL35
+ 1192 01f5 4A000000 		.4byte	.LVL36
+ 1193 01f9 0100     		.2byte	0x1
+ 1194 01fb 50       		.byte	0x50
+ 1195 01fc 4A000000 		.4byte	.LVL36
+ 1196 0200 4C000000 		.4byte	.LVL37
+ 1197 0204 0200     		.2byte	0x2
+ 1198 0206 30       		.byte	0x30
+ 1199 0207 9F       		.byte	0x9f
+ 1200 0208 4C000000 		.4byte	.LVL37
+ 1201 020c 4E000000 		.4byte	.LFE2
+ 1202 0210 0100     		.2byte	0x1
+ 1203 0212 50       		.byte	0x50
+ 1204 0213 00000000 		.4byte	0
+ 1205 0217 00000000 		.4byte	0
+ 1206              	.LLST8:
+ 1207 021b 10000000 		.4byte	.LVL22
+ 1208 021f 22000000 		.4byte	.LVL25
+ 1209 0223 0100     		.2byte	0x1
+ 1210 0225 55       		.byte	0x55
+ 1211 0226 22000000 		.4byte	.LVL25
+ 1212 022a 28000000 		.4byte	.LVL28
+ 1213 022e 0100     		.2byte	0x1
+ 1214 0230 50       		.byte	0x50
+ 1215 0231 2C000000 		.4byte	.LVL29
+ 1216 0235 46000000 		.4byte	.LVL34
+ 1217 0239 0100     		.2byte	0x1
+ 1218 023b 55       		.byte	0x55
+ 1219 023c 00000000 		.4byte	0
+ 1220 0240 00000000 		.4byte	0
+ 1221              	.LLST9:
+ 1222 0244 10000000 		.4byte	.LVL22
+ 1223 0248 24000000 		.4byte	.LVL26
+ 1224 024c 0100     		.2byte	0x1
+ 1225 024e 54       		.byte	0x54
+ 1226 024f 26000000 		.4byte	.LVL27
+ 1227 0253 28000000 		.4byte	.LVL28
+ 1228 0257 0100     		.2byte	0x1
+ 1229 0259 54       		.byte	0x54
+ 1230 025a 2C000000 		.4byte	.LVL29
+ 1231 025e 46000000 		.4byte	.LVL34
+ 1232 0262 0100     		.2byte	0x1
+ 1233 0264 54       		.byte	0x54
+ 1234 0265 00000000 		.4byte	0
+ 1235 0269 00000000 		.4byte	0
+ 1236              	.LLST10:
+ 1237 026d 00000000 		.4byte	.LVL38
+ 1238 0271 0A000000 		.4byte	.LVL39
+ 1239 0275 0100     		.2byte	0x1
+ 1240 0277 50       		.byte	0x50
+ 1241 0278 0A000000 		.4byte	.LVL39
+ 1242 027c 18000000 		.4byte	.LVL42
+ 1243 0280 0100     		.2byte	0x1
+ 1244 0282 52       		.byte	0x52
+ 1245 0283 18000000 		.4byte	.LVL42
+ 1246 0287 1A000000 		.4byte	.LVL43
+ 1247 028b 0100     		.2byte	0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 25
+
+
+ 1248 028d 50       		.byte	0x50
+ 1249 028e 1A000000 		.4byte	.LVL43
+ 1250 0292 22000000 		.4byte	.LFE3
+ 1251 0296 0100     		.2byte	0x1
+ 1252 0298 52       		.byte	0x52
+ 1253 0299 00000000 		.4byte	0
+ 1254 029d 00000000 		.4byte	0
+ 1255              	.LLST11:
+ 1256 02a1 0A000000 		.4byte	.LVL39
+ 1257 02a5 14000000 		.4byte	.LVL40
+ 1258 02a9 0100     		.2byte	0x1
+ 1259 02ab 53       		.byte	0x53
+ 1260 02ac 16000000 		.4byte	.LVL41
+ 1261 02b0 18000000 		.4byte	.LVL42
+ 1262 02b4 0100     		.2byte	0x1
+ 1263 02b6 53       		.byte	0x53
+ 1264 02b7 1A000000 		.4byte	.LVL43
+ 1265 02bb 20000000 		.4byte	.LVL44
+ 1266 02bf 0100     		.2byte	0x1
+ 1267 02c1 53       		.byte	0x53
+ 1268 02c2 00000000 		.4byte	0
+ 1269 02c6 00000000 		.4byte	0
+ 1270              	.LLST12:
+ 1271 02ca 00000000 		.4byte	.LVL45
+ 1272 02ce 08000000 		.4byte	.LVL46
+ 1273 02d2 0100     		.2byte	0x1
+ 1274 02d4 50       		.byte	0x50
+ 1275 02d5 08000000 		.4byte	.LVL46
+ 1276 02d9 18000000 		.4byte	.LVL48
+ 1277 02dd 0100     		.2byte	0x1
+ 1278 02df 54       		.byte	0x54
+ 1279 02e0 18000000 		.4byte	.LVL48
+ 1280 02e4 1A000000 		.4byte	.LFE4
+ 1281 02e8 0100     		.2byte	0x1
+ 1282 02ea 50       		.byte	0x50
+ 1283 02eb 00000000 		.4byte	0
+ 1284 02ef 00000000 		.4byte	0
+ 1285              		.section	.debug_aranges,"",%progbits
+ 1286 0000 3C000000 		.4byte	0x3c
+ 1287 0004 0200     		.2byte	0x2
+ 1288 0006 00000000 		.4byte	.Ldebug_info0
+ 1289 000a 04       		.byte	0x4
+ 1290 000b 00       		.byte	0
+ 1291 000c 0000     		.2byte	0
+ 1292 000e 0000     		.2byte	0
+ 1293 0010 00000000 		.4byte	.LFB0
+ 1294 0014 46000000 		.4byte	.LFE0-.LFB0
+ 1295 0018 00000000 		.4byte	.LFB1
+ 1296 001c 2E000000 		.4byte	.LFE1-.LFB1
+ 1297 0020 00000000 		.4byte	.LFB2
+ 1298 0024 4E000000 		.4byte	.LFE2-.LFB2
+ 1299 0028 00000000 		.4byte	.LFB3
+ 1300 002c 22000000 		.4byte	.LFE3-.LFB3
+ 1301 0030 00000000 		.4byte	.LFB4
+ 1302 0034 1A000000 		.4byte	.LFE4-.LFB4
+ 1303 0038 00000000 		.4byte	0
+ 1304 003c 00000000 		.4byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 26
+
+
+ 1305              		.section	.debug_ranges,"",%progbits
+ 1306              	.Ldebug_ranges0:
+ 1307 0000 1E000000 		.4byte	.LBB2
+ 1308 0004 32000000 		.4byte	.LBE2
+ 1309 0008 34000000 		.4byte	.LBB3
+ 1310 000c 36000000 		.4byte	.LBE3
+ 1311 0010 00000000 		.4byte	0
+ 1312 0014 00000000 		.4byte	0
+ 1313 0018 10000000 		.4byte	.LBB4
+ 1314 001c 28000000 		.4byte	.LBE4
+ 1315 0020 2C000000 		.4byte	.LBB7
+ 1316 0024 46000000 		.4byte	.LBE7
+ 1317 0028 00000000 		.4byte	0
+ 1318 002c 00000000 		.4byte	0
+ 1319 0030 10000000 		.4byte	.LBB5
+ 1320 0034 28000000 		.4byte	.LBE5
+ 1321 0038 2C000000 		.4byte	.LBB6
+ 1322 003c 30000000 		.4byte	.LBE6
+ 1323 0040 00000000 		.4byte	0
+ 1324 0044 00000000 		.4byte	0
+ 1325 0048 08000000 		.4byte	.LBB8
+ 1326 004c 18000000 		.4byte	.LBE8
+ 1327 0050 1A000000 		.4byte	.LBB9
+ 1328 0054 22000000 		.4byte	.LBE9
+ 1329 0058 00000000 		.4byte	0
+ 1330 005c 00000000 		.4byte	0
+ 1331 0060 00000000 		.4byte	.LFB0
+ 1332 0064 46000000 		.4byte	.LFE0
+ 1333 0068 00000000 		.4byte	.LFB1
+ 1334 006c 2E000000 		.4byte	.LFE1
+ 1335 0070 00000000 		.4byte	.LFB2
+ 1336 0074 4E000000 		.4byte	.LFE2
+ 1337 0078 00000000 		.4byte	.LFB3
+ 1338 007c 22000000 		.4byte	.LFE3
+ 1339 0080 00000000 		.4byte	.LFB4
+ 1340 0084 1A000000 		.4byte	.LFE4
+ 1341 0088 00000000 		.4byte	0
+ 1342 008c 00000000 		.4byte	0
+ 1343              		.section	.debug_line,"",%progbits
+ 1344              	.Ldebug_line0:
+ 1345 0000 95020000 		.section	.debug_str,"MS",%progbits,1
+ 1345      0200AC01 
+ 1345      00000201 
+ 1345      FB0E0D00 
+ 1345      01010101 
+ 1346              	.LASF26:
+ 1347 0000 72756E6E 		.ascii	"running_average_destroy\000"
+ 1347      696E675F 
+ 1347      61766572 
+ 1347      6167655F 
+ 1347      64657374 
+ 1348              	.LASF13:
+ 1349 0018 68656164 		.ascii	"head\000"
+ 1349      00
+ 1350              	.LASF30:
+ 1351 001d 52756E6E 		.ascii	"RunningAverage.c\000"
+ 1351      696E6741 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 27
+
+
+ 1351      76657261 
+ 1351      67652E63 
+ 1351      00
+ 1352              	.LASF24:
+ 1353 002e 72756E6E 		.ascii	"running_average_update\000"
+ 1353      696E675F 
+ 1353      61766572 
+ 1353      6167655F 
+ 1353      75706461 
+ 1354              	.LASF19:
+ 1355 0045 72657456 		.ascii	"retVal\000"
+ 1355      616C00
+ 1356              	.LASF21:
+ 1357 004c 72756E6E 		.ascii	"running_average_init\000"
+ 1357      696E675F 
+ 1357      61766572 
+ 1357      6167655F 
+ 1357      696E6974 
+ 1358              	.LASF23:
+ 1359 0061 666C6F61 		.ascii	"float\000"
+ 1359      7400
+ 1360              	.LASF12:
+ 1361 0067 73697A65 		.ascii	"size\000"
+ 1361      00
+ 1362              	.LASF29:
+ 1363 006c 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 1363      43313120 
+ 1363      352E342E 
+ 1363      31203230 
+ 1363      31363036 
+ 1364 009f 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m3 -mthumb -g -O"
+ 1364      20726576 
+ 1364      6973696F 
+ 1364      6E203233 
+ 1364      37373135 
+ 1365 00d2 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 1365      66756E63 
+ 1365      74696F6E 
+ 1365      2D736563 
+ 1365      74696F6E 
+ 1366              	.LASF5:
+ 1367 00fa 6C6F6E67 		.ascii	"long unsigned int\000"
+ 1367      20756E73 
+ 1367      69676E65 
+ 1367      6420696E 
+ 1367      7400
+ 1368              	.LASF3:
+ 1369 010c 73686F72 		.ascii	"short unsigned int\000"
+ 1369      7420756E 
+ 1369      7369676E 
+ 1369      65642069 
+ 1369      6E7400
+ 1370              	.LASF1:
+ 1371 011f 756E7369 		.ascii	"unsigned char\000"
+ 1371      676E6564 
+ 1371      20636861 
+ 1371      7200
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 28
+
+
+ 1372              	.LASF9:
+ 1373 012d 5F5F7569 		.ascii	"__uint16_t\000"
+ 1373      6E743136 
+ 1373      5F7400
+ 1374              	.LASF11:
+ 1375 0138 62696E73 		.ascii	"bins\000"
+ 1375      00
+ 1376              	.LASF22:
+ 1377 013d 72756E6E 		.ascii	"running_average_result\000"
+ 1377      696E675F 
+ 1377      61766572 
+ 1377      6167655F 
+ 1377      72657375 
+ 1378              	.LASF8:
+ 1379 0154 756E7369 		.ascii	"unsigned int\000"
+ 1379      676E6564 
+ 1379      20696E74 
+ 1379      00
+ 1380              	.LASF7:
+ 1381 0161 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 1381      206C6F6E 
+ 1381      6720756E 
+ 1381      7369676E 
+ 1381      65642069 
+ 1382              	.LASF31:
+ 1383 0178 433A5C55 		.ascii	"C:\\Users\\henrichsc\\Desktop\\School\\Senior_year\\"
+ 1383      73657273 
+ 1383      5C68656E 
+ 1383      72696368 
+ 1383      73635C44 
+ 1384 01a6 66616C6C 		.ascii	"fall\\CE4920\\lab\\Milestone_3.cydsn\000"
+ 1384      5C434534 
+ 1384      3932305C 
+ 1384      6C61625C 
+ 1384      4D696C65 
+ 1385              	.LASF16:
+ 1386 01c8 73697A65 		.ascii	"sizetype\000"
+ 1386      74797065 
+ 1386      00
+ 1387              	.LASF28:
+ 1388 01d1 66726565 		.ascii	"free\000"
+ 1388      00
+ 1389              	.LASF6:
+ 1390 01d6 6C6F6E67 		.ascii	"long long int\000"
+ 1390      206C6F6E 
+ 1390      6720696E 
+ 1390      7400
+ 1391              	.LASF17:
+ 1392 01e4 63686172 		.ascii	"char\000"
+ 1392      00
+ 1393              	.LASF25:
+ 1394 01e9 72756E6E 		.ascii	"running_average_clear\000"
+ 1394      696E675F 
+ 1394      61766572 
+ 1394      6167655F 
+ 1394      636C6561 
+ 1395              	.LASF14:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccGuLHXs.s 			page 29
+
+
+ 1396 01ff 52756E6E 		.ascii	"Running_Average_t\000"
+ 1396      696E675F 
+ 1396      41766572 
+ 1396      6167655F 
+ 1396      7400
+ 1397              	.LASF2:
+ 1398 0211 73686F72 		.ascii	"short int\000"
+ 1398      7420696E 
+ 1398      7400
+ 1399              	.LASF18:
+ 1400 021b 6E756D5F 		.ascii	"num_bins\000"
+ 1400      62696E73 
+ 1400      00
+ 1401              	.LASF10:
+ 1402 0224 75696E74 		.ascii	"uint16_t\000"
+ 1402      31365F74 
+ 1402      00
+ 1403              	.LASF4:
+ 1404 022d 6C6F6E67 		.ascii	"long int\000"
+ 1404      20696E74 
+ 1404      00
+ 1405              	.LASF32:
+ 1406 0236 52756E6E 		.ascii	"Running_Average\000"
+ 1406      696E675F 
+ 1406      41766572 
+ 1406      61676500 
+ 1407              	.LASF15:
+ 1408 0246 6C6F6E67 		.ascii	"long double\000"
+ 1408      20646F75 
+ 1408      626C6500 
+ 1409              	.LASF0:
+ 1410 0252 7369676E 		.ascii	"signed char\000"
+ 1410      65642063 
+ 1410      68617200 
+ 1411              	.LASF20:
+ 1412 025e 5F426F6F 		.ascii	"_Bool\000"
+ 1412      6C00
+ 1413              	.LASF27:
+ 1414 0264 6D616C6C 		.ascii	"malloc\000"
+ 1414      6F6300
+ 1415              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

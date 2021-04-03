@@ -1,0 +1,2306 @@
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"Heartbeat.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.global	__aeabi_i2f
+  20              		.global	__aeabi_fcmpgt
+  21              		.global	__aeabi_f2uiz
+  22              		.section	.text.comp_isr,"ax",%progbits
+  23              		.align	2
+  24              		.global	comp_isr
+  25              		.thumb
+  26              		.thumb_func
+  27              		.type	comp_isr, %function
+  28              	comp_isr:
+  29              	.LFB68:
+  30              		.file 1 "Heartbeat.c"
+   1:Heartbeat.c   **** /**
+   2:Heartbeat.c   ****  * Heartbeat
+   3:Heartbeat.c   ****  * @author Curt Henrichs
+   4:Heartbeat.c   ****  * @date 9-17-17
+   5:Heartbeat.c   ****  *
+   6:Heartbeat.c   ****  * Heartbeat module is a software module tasked with collecting heartbeat
+   7:Heartbeat.c   ****  * rate from the user for the treadmill application. Heartbeat module operates
+   8:Heartbeat.c   ****  * via interrupts. Interrupts are on ADC (for waveform recreation), on counter
+   9:Heartbeat.c   ****  * (for overflow, signalling no pulse), and on an analog comparator (to detect
+  10:Heartbeat.c   ****  * heartbeat peak and therefore measure frequency).
+  11:Heartbeat.c   ****  */
+  12:Heartbeat.c   **** 
+  13:Heartbeat.c   **** //=============================================================================
+  14:Heartbeat.c   **** //                                  Libraries
+  15:Heartbeat.c   **** //=============================================================================
+  16:Heartbeat.c   ****    
+  17:Heartbeat.c   **** #include "Heartbeat.h"
+  18:Heartbeat.c   **** #include <project.h>
+  19:Heartbeat.c   **** #include "RunningAverage.h"
+  20:Heartbeat.c   **** 
+  21:Heartbeat.c   **** //=============================================================================
+  22:Heartbeat.c   **** //                        Constant and Macro Defintions
+  23:Heartbeat.c   **** //=============================================================================
+  24:Heartbeat.c   **** 
+  25:Heartbeat.c   **** #define HB_MUX_INTERNAL_CH 0 //! Heartbeat internal channel connected to DAC
+  26:Heartbeat.c   **** #define HB_MUX_EXTERNAL_CH 1 //! Heartbeat external channel connected to pin
+  27:Heartbeat.c   **** 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 2
+
+
+  28:Heartbeat.c   **** #define HB_COMP_HEARTBEAT_THRESHOLD_VALUE 100 //! DAC value for comparator //125
+  29:Heartbeat.c   **** 
+  30:Heartbeat.c   **** #define HEARTBEAT_FILTER_SIZE 10 //! Filter bins for running average
+  31:Heartbeat.c   **** 
+  32:Heartbeat.c   **** #define ADC_TO_DAC_SCALER 1.6f //! Scaler to convert ADC range to DAC range
+  33:Heartbeat.c   **** 
+  34:Heartbeat.c   **** #define MAX_POSSIBLE_HEARTBEAT 300 //! Highest heartbeat allowed, else zero
+  35:Heartbeat.c   **** 
+  36:Heartbeat.c   **** //=============================================================================
+  37:Heartbeat.c   **** //                             Private Attributes
+  38:Heartbeat.c   **** //=============================================================================
+  39:Heartbeat.c   **** 
+  40:Heartbeat.c   **** /**
+  41:Heartbeat.c   ****  * FIR filter of BPM to remove noise in measurement
+  42:Heartbeat.c   ****  */
+  43:Heartbeat.c   **** static volatile Running_Average_t _filter;
+  44:Heartbeat.c   **** 
+  45:Heartbeat.c   **** static volatile bool _use_led_state = false;
+  46:Heartbeat.c   **** 
+  47:Heartbeat.c   **** //=============================================================================
+  48:Heartbeat.c   **** //                         Interrupt Handler Prototypes
+  49:Heartbeat.c   **** //=============================================================================
+  50:Heartbeat.c   **** 
+  51:Heartbeat.c   **** /**
+  52:Heartbeat.c   ****  * Comparator ISR is triggered on rising edge of peak detection. Responsible
+  53:Heartbeat.c   ****  * for calculating current beats per minute and storing that result into
+  54:Heartbeat.c   ****  * running average. Resets counter to zero for next comparison.
+  55:Heartbeat.c   ****  */
+  56:Heartbeat.c   **** CY_ISR_PROTO(comp_isr);
+  57:Heartbeat.c   **** /**
+  58:Heartbeat.c   ****  * ADC EOC ISR is triggered on end of conversion event. Responsible for reading
+  59:Heartbeat.c   ****  * result from ADC, scaling it, and recreating it on the DAC.
+  60:Heartbeat.c   ****  */
+  61:Heartbeat.c   **** CY_ISR_PROTO(ADC_EOC_isr);
+  62:Heartbeat.c   **** /**
+  63:Heartbeat.c   ****  * Counter overflow ISR is triggered when counter register overflows. This
+  64:Heartbeat.c   ****  * interrupt is a fail-safe to record zero heartbeat. 
+  65:Heartbeat.c   ****  */
+  66:Heartbeat.c   **** CY_ISR_PROTO(counter_overflow_isr);
+  67:Heartbeat.c   **** 
+  68:Heartbeat.c   **** //=============================================================================
+  69:Heartbeat.c   **** //                         Public Function Implementation
+  70:Heartbeat.c   **** //=============================================================================
+  71:Heartbeat.c   ****   
+  72:Heartbeat.c   **** /**
+  73:Heartbeat.c   ****  * Heartbeat module intialization function will start all module hardware and
+  74:Heartbeat.c   ****  * intialize all private attributes. This module is entirely driven by
+  75:Heartbeat.c   ****  * interrupts so it is crucial that global interrupts are enabled.
+  76:Heartbeat.c   ****  * @param source is the heartbeat input source for analog MUX channel select
+  77:Heartbeat.c   ****  */
+  78:Heartbeat.c   **** void heartbeat_init(Heartbeat_Source_e source){
+  79:Heartbeat.c   ****     
+  80:Heartbeat.c   ****     //initalize attributes
+  81:Heartbeat.c   ****     running_average_init(&_filter,HEARTBEAT_FILTER_SIZE);
+  82:Heartbeat.c   ****     
+  83:Heartbeat.c   ****     //start analog output hardware
+  84:Heartbeat.c   ****     HB_Comp_Neg_DAC_Start();
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 3
+
+
+  85:Heartbeat.c   ****     HB_Comp_Neg_DAC_SetValue(HB_COMP_HEARTBEAT_THRESHOLD_VALUE);
+  86:Heartbeat.c   ****     HB_DAC_Start();
+  87:Heartbeat.c   ****     HB_DAC_SetValue(0);
+  88:Heartbeat.c   ****     
+  89:Heartbeat.c   ****     //start analog input hardware
+  90:Heartbeat.c   ****     HB_ADC_Start();
+  91:Heartbeat.c   ****     HB_ADC_StartConvert();
+  92:Heartbeat.c   ****     HB_ADC_IRQ_Enable();
+  93:Heartbeat.c   ****     HB_Comp_Start();
+  94:Heartbeat.c   ****     HB_Counter_Start();
+  95:Heartbeat.c   ****     
+  96:Heartbeat.c   ****     //select source and start
+  97:Heartbeat.c   ****     HB_MUX_Start();
+  98:Heartbeat.c   ****     HB_PGA_Start();
+  99:Heartbeat.c   ****     if(source == HEARTBEAT_SOURCE_INTERNAL){
+ 100:Heartbeat.c   ****         //internal state
+ 101:Heartbeat.c   ****         I_HB_Start();
+ 102:Heartbeat.c   ****         HB_MUX_FastSelect(HB_MUX_INTERNAL_CH);
+ 103:Heartbeat.c   ****     }else if(source == HEARTBEAT_SOURCE_EXTERNAL){
+ 104:Heartbeat.c   ****         //external state
+ 105:Heartbeat.c   ****         HB_MUX_FastSelect(HB_MUX_EXTERNAL_CH);
+ 106:Heartbeat.c   ****     }else{
+ 107:Heartbeat.c   ****         //off state uses turned off DAC for 0V input
+ 108:Heartbeat.c   ****         HB_MUX_FastSelect(HB_MUX_INTERNAL_CH);
+ 109:Heartbeat.c   ****     }
+ 110:Heartbeat.c   ****     
+ 111:Heartbeat.c   ****     //start interrupts
+ 112:Heartbeat.c   ****     HB_ADC_IRQ_StartEx(ADC_EOC_isr);
+ 113:Heartbeat.c   ****     HB_Comp_Int_StartEx(comp_isr);
+ 114:Heartbeat.c   ****     HB_Overflow_Int_StartEx(counter_overflow_isr);
+ 115:Heartbeat.c   **** }
+ 116:Heartbeat.c   **** 
+ 117:Heartbeat.c   **** /**
+ 118:Heartbeat.c   ****  * @return heartbeat beats per minute as standard measure of user's heartrate
+ 119:Heartbeat.c   ****  */
+ 120:Heartbeat.c   **** uint16_t heartbeat_get_bpm(void){
+ 121:Heartbeat.c   ****     return running_average_result(&_filter);
+ 122:Heartbeat.c   **** }
+ 123:Heartbeat.c   **** 
+ 124:Heartbeat.c   **** /**
+ 125:Heartbeat.c   ****  * Clears the previous heartbeat data, thereby reseting the module
+ 126:Heartbeat.c   ****  * Note hardware is not modified.
+ 127:Heartbeat.c   ****  */
+ 128:Heartbeat.c   **** void heartbeat_clear(void){
+ 129:Heartbeat.c   ****     running_average_clear(&_filter);
+ 130:Heartbeat.c   **** }
+ 131:Heartbeat.c   **** 
+ 132:Heartbeat.c   **** /**
+ 133:Heartbeat.c   ****  * Sets the use LED flag so that heartbeat is pulsed out
+ 134:Heartbeat.c   ****  * @param state, true if activate LED heartbeat, false if disable
+ 135:Heartbeat.c   ****  */
+ 136:Heartbeat.c   **** void heartbeat_set_use_LED(bool state){
+ 137:Heartbeat.c   ****     _use_led_state = state;
+ 138:Heartbeat.c   **** }
+ 139:Heartbeat.c   **** 
+ 140:Heartbeat.c   **** /**
+ 141:Heartbeat.c   ****  * @return gets the use LED flag state. true if using, false if disabled
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 4
+
+
+ 142:Heartbeat.c   ****  */
+ 143:Heartbeat.c   **** bool heartbeat_get_use_LED(void){
+ 144:Heartbeat.c   ****     return _use_led_state;
+ 145:Heartbeat.c   **** }
+ 146:Heartbeat.c   ****     
+ 147:Heartbeat.c   **** //=============================================================================
+ 148:Heartbeat.c   **** //                       Interrupt Handler Implementation
+ 149:Heartbeat.c   **** //=============================================================================
+ 150:Heartbeat.c   **** 
+ 151:Heartbeat.c   **** /**
+ 152:Heartbeat.c   ****  * Comparator ISR is triggered on rising edge of peak detection. Responsible
+ 153:Heartbeat.c   ****  * for calculating current beats per minute and storing that result into
+ 154:Heartbeat.c   ****  * running average. Resets counter to zero for next comparison.
+ 155:Heartbeat.c   ****  */
+ 156:Heartbeat.c   **** CY_ISR(comp_isr){
+  31              		.loc 1 156 0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35 0000 10B5     		push	{r4, lr}
+  36              		.cfi_def_cfa_offset 8
+  37              		.cfi_offset 4, -8
+  38              		.cfi_offset 14, -4
+ 157:Heartbeat.c   ****     //calculate the new heartrate in BPM
+ 158:Heartbeat.c   ****     uint16_t count = HB_Counter_ReadCounter(); //count is ms between peaks
+  39              		.loc 1 158 0
+  40 0002 FFF7FEFF 		bl	HB_Counter_ReadCounter
+  41              	.LVL0:
+ 159:Heartbeat.c   ****     float bpm = 60000 / ((count > 0) ? (count) : (1)); // in BPM
+  42              		.loc 1 159 0
+  43 0006 40B1     		cbz	r0, .L6
+  44 0008 0346     		mov	r3, r0
+  45              		.loc 1 159 0 is_stmt 0 discriminator 1
+  46 000a 4EF66020 		movw	r0, #60000
+  47              	.LVL1:
+  48 000e 90FBF3F0 		sdiv	r0, r0, r3
+  49 0012 FFF7FEFF 		bl	__aeabi_i2f
+  50              	.LVL2:
+  51 0016 0446     		mov	r4, r0
+  52 0018 00E0     		b	.L2
+  53              	.LVL3:
+  54              	.L6:
+  55              		.loc 1 159 0
+  56 001a 104C     		ldr	r4, .L9
+  57              	.LVL4:
+  58              	.L2:
+ 160:Heartbeat.c   ****     bpm = (bpm > MAX_POSSIBLE_HEARTBEAT) ? (0) : (bpm);
+  59              		.loc 1 160 0 is_stmt 1 discriminator 4
+  60 001c 1049     		ldr	r1, .L9+4
+  61 001e 2046     		mov	r0, r4
+  62 0020 FFF7FEFF 		bl	__aeabi_fcmpgt
+  63              	.LVL5:
+  64 0024 00B1     		cbz	r0, .L3
+  65              		.loc 1 160 0 is_stmt 0
+  66 0026 0024     		movs	r4, #0
+  67              	.LVL6:
+  68              	.L3:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 5
+
+
+ 161:Heartbeat.c   ****     running_average_update(&_filter,(uint16_t)(bpm));
+  69              		.loc 1 161 0 is_stmt 1 discriminator 4
+  70 0028 2046     		mov	r0, r4
+  71 002a FFF7FEFF 		bl	__aeabi_f2uiz
+  72              	.LVL7:
+  73 002e 0D4C     		ldr	r4, .L9+8
+  74              	.LVL8:
+  75 0030 81B2     		uxth	r1, r0
+  76 0032 2046     		mov	r0, r4
+  77 0034 FFF7FEFF 		bl	running_average_update
+  78              	.LVL9:
+ 162:Heartbeat.c   ****     
+ 163:Heartbeat.c   ****     //clear source of interrupt
+ 164:Heartbeat.c   ****     HB_Counter_WriteCounter(0);
+  79              		.loc 1 164 0 discriminator 4
+  80 0038 0020     		movs	r0, #0
+  81 003a FFF7FEFF 		bl	HB_Counter_WriteCounter
+  82              	.LVL10:
+ 165:Heartbeat.c   ****     HB_Comp_Int_ClearPending();
+  83              		.loc 1 165 0 discriminator 4
+  84 003e FFF7FEFF 		bl	HB_Comp_Int_ClearPending
+  85              	.LVL11:
+ 166:Heartbeat.c   ****     
+ 167:Heartbeat.c   ****     //pulse LED to simulate heartbeat
+ 168:Heartbeat.c   ****     if(_use_led_state){
+  86              		.loc 1 168 0 discriminator 4
+  87 0042 237A     		ldrb	r3, [r4, #8]	@ zero_extendqisi2
+  88 0044 13F0FF0F 		tst	r3, #255
+  89 0048 06D0     		beq	.L1
+ 169:Heartbeat.c   ****         LED_Write(!LED_Read());
+  90              		.loc 1 169 0
+  91 004a FFF7FEFF 		bl	LED_Read
+  92              	.LVL12:
+  93 004e B0FA80F0 		clz	r0, r0
+  94 0052 4009     		lsrs	r0, r0, #5
+  95 0054 FFF7FEFF 		bl	LED_Write
+  96              	.LVL13:
+  97              	.L1:
+  98 0058 10BD     		pop	{r4, pc}
+  99              	.L10:
+ 100 005a 00BF     		.align	2
+ 101              	.L9:
+ 102 005c 00606A47 		.word	1198153728
+ 103 0060 00009643 		.word	1133903872
+ 104 0064 00000000 		.word	.LANCHOR0
+ 105              		.cfi_endproc
+ 106              	.LFE68:
+ 107              		.size	comp_isr, .-comp_isr
+ 108              		.global	__aeabi_fmul
+ 109              		.section	.text.ADC_EOC_isr,"ax",%progbits
+ 110              		.align	2
+ 111              		.global	ADC_EOC_isr
+ 112              		.thumb
+ 113              		.thumb_func
+ 114              		.type	ADC_EOC_isr, %function
+ 115              	ADC_EOC_isr:
+ 116              	.LFB69:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 6
+
+
+ 170:Heartbeat.c   ****     }
+ 171:Heartbeat.c   **** }
+ 172:Heartbeat.c   **** 
+ 173:Heartbeat.c   **** /**
+ 174:Heartbeat.c   ****  * ADC EOC ISR is triggered on end of conversion event. Responsible for reading
+ 175:Heartbeat.c   ****  * result from ADC, scaling it, and recreating it on the DAC.
+ 176:Heartbeat.c   ****  */
+ 177:Heartbeat.c   **** CY_ISR(ADC_EOC_isr){
+ 117              		.loc 1 177 0
+ 118              		.cfi_startproc
+ 119              		@ args = 0, pretend = 0, frame = 0
+ 120              		@ frame_needed = 0, uses_anonymous_args = 0
+ 121 0000 08B5     		push	{r3, lr}
+ 122              		.cfi_def_cfa_offset 8
+ 123              		.cfi_offset 3, -8
+ 124              		.cfi_offset 14, -4
+ 178:Heartbeat.c   ****     //get value and clear interrupt source
+ 179:Heartbeat.c   ****     uint8_t adc_val = HB_ADC_GetResult8();
+ 125              		.loc 1 179 0
+ 126 0002 FFF7FEFF 		bl	HB_ADC_GetResult8
+ 127              	.LVL14:
+ 180:Heartbeat.c   ****     
+ 181:Heartbeat.c   ****     //send DAC new value
+ 182:Heartbeat.c   ****     HB_DAC_SetValue((uint8_t)(adc_val * ADC_TO_DAC_SCALER));
+ 128              		.loc 1 182 0
+ 129 0006 C0B2     		uxtb	r0, r0
+ 130 0008 FFF7FEFF 		bl	__aeabi_i2f
+ 131              	.LVL15:
+ 132 000c 0549     		ldr	r1, .L13
+ 133 000e FFF7FEFF 		bl	__aeabi_fmul
+ 134              	.LVL16:
+ 135 0012 FFF7FEFF 		bl	__aeabi_f2uiz
+ 136              	.LVL17:
+ 137 0016 C0B2     		uxtb	r0, r0
+ 138 0018 FFF7FEFF 		bl	HB_DAC_SetValue
+ 139              	.LVL18:
+ 183:Heartbeat.c   ****     HB_ADC_IRQ_ClearPending();
+ 140              		.loc 1 183 0
+ 141 001c FFF7FEFF 		bl	HB_ADC_IRQ_ClearPending
+ 142              	.LVL19:
+ 143 0020 08BD     		pop	{r3, pc}
+ 144              	.L14:
+ 145 0022 00BF     		.align	2
+ 146              	.L13:
+ 147 0024 CDCCCC3F 		.word	1070386381
+ 148              		.cfi_endproc
+ 149              	.LFE69:
+ 150              		.size	ADC_EOC_isr, .-ADC_EOC_isr
+ 151              		.section	.text.counter_overflow_isr,"ax",%progbits
+ 152              		.align	2
+ 153              		.global	counter_overflow_isr
+ 154              		.thumb
+ 155              		.thumb_func
+ 156              		.type	counter_overflow_isr, %function
+ 157              	counter_overflow_isr:
+ 158              	.LFB70:
+ 184:Heartbeat.c   **** }
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 7
+
+
+ 185:Heartbeat.c   **** 
+ 186:Heartbeat.c   **** /**
+ 187:Heartbeat.c   ****  * Counter overflow ISR is triggered when counter register overflows. This
+ 188:Heartbeat.c   ****  * interrupt is a fail-safe to record zero heartbeat. 
+ 189:Heartbeat.c   ****  */
+ 190:Heartbeat.c   **** CY_ISR(counter_overflow_isr){
+ 159              		.loc 1 190 0
+ 160              		.cfi_startproc
+ 161              		@ args = 0, pretend = 0, frame = 0
+ 162              		@ frame_needed = 0, uses_anonymous_args = 0
+ 163 0000 08B5     		push	{r3, lr}
+ 164              		.cfi_def_cfa_offset 8
+ 165              		.cfi_offset 3, -8
+ 166              		.cfi_offset 14, -4
+ 191:Heartbeat.c   ****     //store zero to heartbeat
+ 192:Heartbeat.c   ****     running_average_update(&_filter,0);
+ 167              		.loc 1 192 0
+ 168 0002 0021     		movs	r1, #0
+ 169 0004 0348     		ldr	r0, .L17
+ 170 0006 FFF7FEFF 		bl	running_average_update
+ 171              	.LVL20:
+ 193:Heartbeat.c   ****     
+ 194:Heartbeat.c   ****     //clear source of interrupt
+ 195:Heartbeat.c   ****     HB_Counter_ReadStatusRegister();
+ 172              		.loc 1 195 0
+ 173 000a FFF7FEFF 		bl	HB_Counter_ReadStatusRegister
+ 174              	.LVL21:
+ 196:Heartbeat.c   ****     HB_Overflow_Int_ClearPending(); 
+ 175              		.loc 1 196 0
+ 176 000e FFF7FEFF 		bl	HB_Overflow_Int_ClearPending
+ 177              	.LVL22:
+ 178 0012 08BD     		pop	{r3, pc}
+ 179              	.L18:
+ 180              		.align	2
+ 181              	.L17:
+ 182 0014 00000000 		.word	.LANCHOR0
+ 183              		.cfi_endproc
+ 184              	.LFE70:
+ 185              		.size	counter_overflow_isr, .-counter_overflow_isr
+ 186              		.section	.text.heartbeat_init,"ax",%progbits
+ 187              		.align	2
+ 188              		.global	heartbeat_init
+ 189              		.thumb
+ 190              		.thumb_func
+ 191              		.type	heartbeat_init, %function
+ 192              	heartbeat_init:
+ 193              	.LFB63:
+  78:Heartbeat.c   ****     
+ 194              		.loc 1 78 0
+ 195              		.cfi_startproc
+ 196              		@ args = 0, pretend = 0, frame = 0
+ 197              		@ frame_needed = 0, uses_anonymous_args = 0
+ 198              	.LVL23:
+ 199 0000 10B5     		push	{r4, lr}
+ 200              		.cfi_def_cfa_offset 8
+ 201              		.cfi_offset 4, -8
+ 202              		.cfi_offset 14, -4
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 8
+
+
+ 203 0002 0446     		mov	r4, r0
+  81:Heartbeat.c   ****     
+ 204              		.loc 1 81 0
+ 205 0004 0A21     		movs	r1, #10
+ 206 0006 1B48     		ldr	r0, .L24
+ 207              	.LVL24:
+ 208 0008 FFF7FEFF 		bl	running_average_init
+ 209              	.LVL25:
+  84:Heartbeat.c   ****     HB_Comp_Neg_DAC_SetValue(HB_COMP_HEARTBEAT_THRESHOLD_VALUE);
+ 210              		.loc 1 84 0
+ 211 000c FFF7FEFF 		bl	HB_Comp_Neg_DAC_Start
+ 212              	.LVL26:
+  85:Heartbeat.c   ****     HB_DAC_Start();
+ 213              		.loc 1 85 0
+ 214 0010 6420     		movs	r0, #100
+ 215 0012 FFF7FEFF 		bl	HB_Comp_Neg_DAC_SetValue
+ 216              	.LVL27:
+  86:Heartbeat.c   ****     HB_DAC_SetValue(0);
+ 217              		.loc 1 86 0
+ 218 0016 FFF7FEFF 		bl	HB_DAC_Start
+ 219              	.LVL28:
+  87:Heartbeat.c   ****     
+ 220              		.loc 1 87 0
+ 221 001a 0020     		movs	r0, #0
+ 222 001c FFF7FEFF 		bl	HB_DAC_SetValue
+ 223              	.LVL29:
+  90:Heartbeat.c   ****     HB_ADC_StartConvert();
+ 224              		.loc 1 90 0
+ 225 0020 FFF7FEFF 		bl	HB_ADC_Start
+ 226              	.LVL30:
+  91:Heartbeat.c   ****     HB_ADC_IRQ_Enable();
+ 227              		.loc 1 91 0
+ 228 0024 FFF7FEFF 		bl	HB_ADC_StartConvert
+ 229              	.LVL31:
+  92:Heartbeat.c   ****     HB_Comp_Start();
+ 230              		.loc 1 92 0
+ 231 0028 FFF7FEFF 		bl	HB_ADC_IRQ_Enable
+ 232              	.LVL32:
+  93:Heartbeat.c   ****     HB_Counter_Start();
+ 233              		.loc 1 93 0
+ 234 002c FFF7FEFF 		bl	HB_Comp_Start
+ 235              	.LVL33:
+  94:Heartbeat.c   ****     
+ 236              		.loc 1 94 0
+ 237 0030 FFF7FEFF 		bl	HB_Counter_Start
+ 238              	.LVL34:
+  97:Heartbeat.c   ****     HB_PGA_Start();
+ 239              		.loc 1 97 0
+ 240 0034 FFF7FEFF 		bl	HB_MUX_Start
+ 241              	.LVL35:
+  98:Heartbeat.c   ****     if(source == HEARTBEAT_SOURCE_INTERNAL){
+ 242              		.loc 1 98 0
+ 243 0038 FFF7FEFF 		bl	HB_PGA_Start
+ 244              	.LVL36:
+  99:Heartbeat.c   ****         //internal state
+ 245              		.loc 1 99 0
+ 246 003c 012C     		cmp	r4, #1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 9
+
+
+ 247 003e 05D1     		bne	.L20
+ 101:Heartbeat.c   ****         HB_MUX_FastSelect(HB_MUX_INTERNAL_CH);
+ 248              		.loc 1 101 0
+ 249 0040 FFF7FEFF 		bl	I_HB_Start
+ 250              	.LVL37:
+ 102:Heartbeat.c   ****     }else if(source == HEARTBEAT_SOURCE_EXTERNAL){
+ 251              		.loc 1 102 0
+ 252 0044 0020     		movs	r0, #0
+ 253 0046 FFF7FEFF 		bl	HB_MUX_FastSelect
+ 254              	.LVL38:
+ 255 004a 08E0     		b	.L21
+ 256              	.L20:
+ 103:Heartbeat.c   ****         //external state
+ 257              		.loc 1 103 0
+ 258 004c 022C     		cmp	r4, #2
+ 259 004e 03D1     		bne	.L22
+ 105:Heartbeat.c   ****     }else{
+ 260              		.loc 1 105 0
+ 261 0050 0120     		movs	r0, #1
+ 262 0052 FFF7FEFF 		bl	HB_MUX_FastSelect
+ 263              	.LVL39:
+ 264 0056 02E0     		b	.L21
+ 265              	.L22:
+ 108:Heartbeat.c   ****     }
+ 266              		.loc 1 108 0
+ 267 0058 0020     		movs	r0, #0
+ 268 005a FFF7FEFF 		bl	HB_MUX_FastSelect
+ 269              	.LVL40:
+ 270              	.L21:
+ 112:Heartbeat.c   ****     HB_Comp_Int_StartEx(comp_isr);
+ 271              		.loc 1 112 0
+ 272 005e 0648     		ldr	r0, .L24+4
+ 273 0060 FFF7FEFF 		bl	HB_ADC_IRQ_StartEx
+ 274              	.LVL41:
+ 113:Heartbeat.c   ****     HB_Overflow_Int_StartEx(counter_overflow_isr);
+ 275              		.loc 1 113 0
+ 276 0064 0548     		ldr	r0, .L24+8
+ 277 0066 FFF7FEFF 		bl	HB_Comp_Int_StartEx
+ 278              	.LVL42:
+ 114:Heartbeat.c   **** }
+ 279              		.loc 1 114 0
+ 280 006a 0548     		ldr	r0, .L24+12
+ 281 006c FFF7FEFF 		bl	HB_Overflow_Int_StartEx
+ 282              	.LVL43:
+ 283 0070 10BD     		pop	{r4, pc}
+ 284              	.L25:
+ 285 0072 00BF     		.align	2
+ 286              	.L24:
+ 287 0074 00000000 		.word	.LANCHOR0
+ 288 0078 00000000 		.word	ADC_EOC_isr
+ 289 007c 00000000 		.word	comp_isr
+ 290 0080 00000000 		.word	counter_overflow_isr
+ 291              		.cfi_endproc
+ 292              	.LFE63:
+ 293              		.size	heartbeat_init, .-heartbeat_init
+ 294              		.section	.text.heartbeat_get_bpm,"ax",%progbits
+ 295              		.align	2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 10
+
+
+ 296              		.global	heartbeat_get_bpm
+ 297              		.thumb
+ 298              		.thumb_func
+ 299              		.type	heartbeat_get_bpm, %function
+ 300              	heartbeat_get_bpm:
+ 301              	.LFB64:
+ 120:Heartbeat.c   ****     return running_average_result(&_filter);
+ 302              		.loc 1 120 0
+ 303              		.cfi_startproc
+ 304              		@ args = 0, pretend = 0, frame = 0
+ 305              		@ frame_needed = 0, uses_anonymous_args = 0
+ 306 0000 08B5     		push	{r3, lr}
+ 307              		.cfi_def_cfa_offset 8
+ 308              		.cfi_offset 3, -8
+ 309              		.cfi_offset 14, -4
+ 121:Heartbeat.c   **** }
+ 310              		.loc 1 121 0
+ 311 0002 0248     		ldr	r0, .L28
+ 312 0004 FFF7FEFF 		bl	running_average_result
+ 313              	.LVL44:
+ 122:Heartbeat.c   **** 
+ 314              		.loc 1 122 0
+ 315 0008 08BD     		pop	{r3, pc}
+ 316              	.L29:
+ 317 000a 00BF     		.align	2
+ 318              	.L28:
+ 319 000c 00000000 		.word	.LANCHOR0
+ 320              		.cfi_endproc
+ 321              	.LFE64:
+ 322              		.size	heartbeat_get_bpm, .-heartbeat_get_bpm
+ 323              		.section	.text.heartbeat_clear,"ax",%progbits
+ 324              		.align	2
+ 325              		.global	heartbeat_clear
+ 326              		.thumb
+ 327              		.thumb_func
+ 328              		.type	heartbeat_clear, %function
+ 329              	heartbeat_clear:
+ 330              	.LFB65:
+ 128:Heartbeat.c   ****     running_average_clear(&_filter);
+ 331              		.loc 1 128 0
+ 332              		.cfi_startproc
+ 333              		@ args = 0, pretend = 0, frame = 0
+ 334              		@ frame_needed = 0, uses_anonymous_args = 0
+ 335 0000 08B5     		push	{r3, lr}
+ 336              		.cfi_def_cfa_offset 8
+ 337              		.cfi_offset 3, -8
+ 338              		.cfi_offset 14, -4
+ 129:Heartbeat.c   **** }
+ 339              		.loc 1 129 0
+ 340 0002 0248     		ldr	r0, .L32
+ 341 0004 FFF7FEFF 		bl	running_average_clear
+ 342              	.LVL45:
+ 343 0008 08BD     		pop	{r3, pc}
+ 344              	.L33:
+ 345 000a 00BF     		.align	2
+ 346              	.L32:
+ 347 000c 00000000 		.word	.LANCHOR0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 11
+
+
+ 348              		.cfi_endproc
+ 349              	.LFE65:
+ 350              		.size	heartbeat_clear, .-heartbeat_clear
+ 351              		.section	.text.heartbeat_set_use_LED,"ax",%progbits
+ 352              		.align	2
+ 353              		.global	heartbeat_set_use_LED
+ 354              		.thumb
+ 355              		.thumb_func
+ 356              		.type	heartbeat_set_use_LED, %function
+ 357              	heartbeat_set_use_LED:
+ 358              	.LFB66:
+ 136:Heartbeat.c   ****     _use_led_state = state;
+ 359              		.loc 1 136 0
+ 360              		.cfi_startproc
+ 361              		@ args = 0, pretend = 0, frame = 0
+ 362              		@ frame_needed = 0, uses_anonymous_args = 0
+ 363              		@ link register save eliminated.
+ 364              	.LVL46:
+ 137:Heartbeat.c   **** }
+ 365              		.loc 1 137 0
+ 366 0000 014B     		ldr	r3, .L35
+ 367 0002 1872     		strb	r0, [r3, #8]
+ 368 0004 7047     		bx	lr
+ 369              	.L36:
+ 370 0006 00BF     		.align	2
+ 371              	.L35:
+ 372 0008 00000000 		.word	.LANCHOR0
+ 373              		.cfi_endproc
+ 374              	.LFE66:
+ 375              		.size	heartbeat_set_use_LED, .-heartbeat_set_use_LED
+ 376              		.section	.text.heartbeat_get_use_LED,"ax",%progbits
+ 377              		.align	2
+ 378              		.global	heartbeat_get_use_LED
+ 379              		.thumb
+ 380              		.thumb_func
+ 381              		.type	heartbeat_get_use_LED, %function
+ 382              	heartbeat_get_use_LED:
+ 383              	.LFB67:
+ 143:Heartbeat.c   ****     return _use_led_state;
+ 384              		.loc 1 143 0
+ 385              		.cfi_startproc
+ 386              		@ args = 0, pretend = 0, frame = 0
+ 387              		@ frame_needed = 0, uses_anonymous_args = 0
+ 388              		@ link register save eliminated.
+ 144:Heartbeat.c   **** }
+ 389              		.loc 1 144 0
+ 390 0000 014B     		ldr	r3, .L38
+ 391 0002 187A     		ldrb	r0, [r3, #8]	@ zero_extendqisi2
+ 145:Heartbeat.c   ****     
+ 392              		.loc 1 145 0
+ 393 0004 7047     		bx	lr
+ 394              	.L39:
+ 395 0006 00BF     		.align	2
+ 396              	.L38:
+ 397 0008 00000000 		.word	.LANCHOR0
+ 398              		.cfi_endproc
+ 399              	.LFE67:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 12
+
+
+ 400              		.size	heartbeat_get_use_LED, .-heartbeat_get_use_LED
+ 401              		.bss
+ 402              		.align	2
+ 403              		.set	.LANCHOR0,. + 0
+ 404              		.type	_filter, %object
+ 405              		.size	_filter, 8
+ 406              	_filter:
+ 407 0000 00000000 		.space	8
+ 407      00000000 
+ 408              		.type	_use_led_state, %object
+ 409              		.size	_use_led_state, 1
+ 410              	_use_led_state:
+ 411 0008 00       		.space	1
+ 412              		.text
+ 413              	.Letext0:
+ 414              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 415              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 416              		.file 4 "Heartbeat.h"
+ 417              		.file 5 "RunningAverage.h"
+ 418              		.file 6 "Generated_Source\\PSoC5/HB_Counter.h"
+ 419              		.file 7 "Generated_Source\\PSoC5/HB_Comp_Int.h"
+ 420              		.file 8 "Generated_Source\\PSoC5/LED.h"
+ 421              		.file 9 "Generated_Source\\PSoC5/HB_ADC.h"
+ 422              		.file 10 "Generated_Source\\PSoC5/HB_DAC.h"
+ 423              		.file 11 "Generated_Source\\PSoC5/HB_ADC_IRQ.h"
+ 424              		.file 12 "Generated_Source\\PSoC5/HB_Overflow_Int.h"
+ 425              		.file 13 "Generated_Source\\PSoC5/HB_Comp_Neg_DAC.h"
+ 426              		.file 14 "Generated_Source\\PSoC5/HB_Comp.h"
+ 427              		.file 15 "Generated_Source\\PSoC5/HB_MUX.h"
+ 428              		.file 16 "Generated_Source\\PSoC5/HB_PGA.h"
+ 429              		.file 17 "Generated_Source\\PSoC5/I_HB.h"
+ 430              		.file 18 "Generated_Source\\PSoC5/core_cm3.h"
+ 431              		.section	.debug_info,"",%progbits
+ 432              	.Ldebug_info0:
+ 433 0000 8D050000 		.4byte	0x58d
+ 434 0004 0400     		.2byte	0x4
+ 435 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 436 000a 04       		.byte	0x4
+ 437 000b 01       		.uleb128 0x1
+ 438 000c 8B040000 		.4byte	.LASF70
+ 439 0010 0C       		.byte	0xc
+ 440 0011 42050000 		.4byte	.LASF71
+ 441 0015 C1030000 		.4byte	.LASF72
+ 442 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 443 001d 00000000 		.4byte	0
+ 444 0021 00000000 		.4byte	.Ldebug_line0
+ 445 0025 02       		.uleb128 0x2
+ 446 0026 01       		.byte	0x1
+ 447 0027 06       		.byte	0x6
+ 448 0028 FC000000 		.4byte	.LASF0
+ 449 002c 03       		.uleb128 0x3
+ 450 002d 66010000 		.4byte	.LASF3
+ 451 0031 02       		.byte	0x2
+ 452 0032 1D       		.byte	0x1d
+ 453 0033 37000000 		.4byte	0x37
+ 454 0037 02       		.uleb128 0x2
+ 455 0038 01       		.byte	0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 13
+
+
+ 456 0039 08       		.byte	0x8
+ 457 003a B5010000 		.4byte	.LASF1
+ 458 003e 02       		.uleb128 0x2
+ 459 003f 02       		.byte	0x2
+ 460 0040 05       		.byte	0x5
+ 461 0041 4E000000 		.4byte	.LASF2
+ 462 0045 03       		.uleb128 0x3
+ 463 0046 9E000000 		.4byte	.LASF4
+ 464 004a 02       		.byte	0x2
+ 465 004b 2B       		.byte	0x2b
+ 466 004c 50000000 		.4byte	0x50
+ 467 0050 02       		.uleb128 0x2
+ 468 0051 02       		.byte	0x2
+ 469 0052 07       		.byte	0x7
+ 470 0053 5A020000 		.4byte	.LASF5
+ 471 0057 03       		.uleb128 0x3
+ 472 0058 6F030000 		.4byte	.LASF6
+ 473 005c 02       		.byte	0x2
+ 474 005d 3F       		.byte	0x3f
+ 475 005e 62000000 		.4byte	0x62
+ 476 0062 02       		.uleb128 0x2
+ 477 0063 04       		.byte	0x4
+ 478 0064 05       		.byte	0x5
+ 479 0065 89020000 		.4byte	.LASF7
+ 480 0069 02       		.uleb128 0x2
+ 481 006a 04       		.byte	0x4
+ 482 006b 07       		.byte	0x7
+ 483 006c 03030000 		.4byte	.LASF8
+ 484 0070 02       		.uleb128 0x2
+ 485 0071 08       		.byte	0x8
+ 486 0072 05       		.byte	0x5
+ 487 0073 23010000 		.4byte	.LASF9
+ 488 0077 02       		.uleb128 0x2
+ 489 0078 08       		.byte	0x8
+ 490 0079 07       		.byte	0x7
+ 491 007a EA010000 		.4byte	.LASF10
+ 492 007e 04       		.uleb128 0x4
+ 493 007f 04       		.byte	0x4
+ 494 0080 05       		.byte	0x5
+ 495 0081 696E7400 		.ascii	"int\000"
+ 496 0085 02       		.uleb128 0x2
+ 497 0086 04       		.byte	0x4
+ 498 0087 07       		.byte	0x7
+ 499 0088 24020000 		.4byte	.LASF11
+ 500 008c 03       		.uleb128 0x3
+ 501 008d AE000000 		.4byte	.LASF12
+ 502 0091 03       		.byte	0x3
+ 503 0092 18       		.byte	0x18
+ 504 0093 2C000000 		.4byte	0x2c
+ 505 0097 03       		.uleb128 0x3
+ 506 0098 31020000 		.4byte	.LASF13
+ 507 009c 03       		.byte	0x3
+ 508 009d 24       		.byte	0x24
+ 509 009e 45000000 		.4byte	0x45
+ 510 00a2 03       		.uleb128 0x3
+ 511 00a3 92020000 		.4byte	.LASF14
+ 512 00a7 03       		.byte	0x3
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 14
+
+
+ 513 00a8 2C       		.byte	0x2c
+ 514 00a9 57000000 		.4byte	0x57
+ 515 00ad 05       		.uleb128 0x5
+ 516 00ae 41040000 		.4byte	.LASF73
+ 517 00b2 01       		.byte	0x1
+ 518 00b3 37000000 		.4byte	0x37
+ 519 00b7 04       		.byte	0x4
+ 520 00b8 1E       		.byte	0x1e
+ 521 00b9 D0000000 		.4byte	0xd0
+ 522 00bd 06       		.uleb128 0x6
+ 523 00be 0E010000 		.4byte	.LASF15
+ 524 00c2 00       		.byte	0
+ 525 00c3 06       		.uleb128 0x6
+ 526 00c4 A7030000 		.4byte	.LASF16
+ 527 00c8 01       		.byte	0x1
+ 528 00c9 06       		.uleb128 0x6
+ 529 00ca 52040000 		.4byte	.LASF17
+ 530 00ce 02       		.byte	0x2
+ 531 00cf 00       		.byte	0
+ 532 00d0 03       		.uleb128 0x3
+ 533 00d1 2F050000 		.4byte	.LASF18
+ 534 00d5 04       		.byte	0x4
+ 535 00d6 22       		.byte	0x22
+ 536 00d7 AD000000 		.4byte	0xad
+ 537 00db 02       		.uleb128 0x2
+ 538 00dc 04       		.byte	0x4
+ 539 00dd 04       		.byte	0x4
+ 540 00de 08010000 		.4byte	.LASF19
+ 541 00e2 02       		.uleb128 0x2
+ 542 00e3 08       		.byte	0x8
+ 543 00e4 04       		.byte	0x4
+ 544 00e5 2D030000 		.4byte	.LASF20
+ 545 00e9 02       		.uleb128 0x2
+ 546 00ea 01       		.byte	0x1
+ 547 00eb 08       		.byte	0x8
+ 548 00ec 6D020000 		.4byte	.LASF21
+ 549 00f0 02       		.uleb128 0x2
+ 550 00f1 08       		.byte	0x8
+ 551 00f2 04       		.byte	0x4
+ 552 00f3 A9010000 		.4byte	.LASF22
+ 553 00f7 02       		.uleb128 0x2
+ 554 00f8 04       		.byte	0x4
+ 555 00f9 07       		.byte	0x7
+ 556 00fa 58000000 		.4byte	.LASF23
+ 557 00fe 07       		.uleb128 0x7
+ 558 00ff B6000000 		.4byte	.LASF74
+ 559 0103 08       		.byte	0x8
+ 560 0104 05       		.byte	0x5
+ 561 0105 24       		.byte	0x24
+ 562 0106 2F010000 		.4byte	0x12f
+ 563 010a 08       		.uleb128 0x8
+ 564 010b E8020000 		.4byte	.LASF24
+ 565 010f 05       		.byte	0x5
+ 566 0110 25       		.byte	0x25
+ 567 0111 2F010000 		.4byte	0x12f
+ 568 0115 00       		.byte	0
+ 569 0116 08       		.uleb128 0x8
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 15
+
+
+ 570 0117 41030000 		.4byte	.LASF25
+ 571 011b 05       		.byte	0x5
+ 572 011c 26       		.byte	0x26
+ 573 011d 97000000 		.4byte	0x97
+ 574 0121 04       		.byte	0x4
+ 575 0122 08       		.uleb128 0x8
+ 576 0123 A9000000 		.4byte	.LASF26
+ 577 0127 05       		.byte	0x5
+ 578 0128 27       		.byte	0x27
+ 579 0129 97000000 		.4byte	0x97
+ 580 012d 06       		.byte	0x6
+ 581 012e 00       		.byte	0
+ 582 012f 09       		.uleb128 0x9
+ 583 0130 04       		.byte	0x4
+ 584 0131 97000000 		.4byte	0x97
+ 585 0135 03       		.uleb128 0x3
+ 586 0136 18000000 		.4byte	.LASF27
+ 587 013a 05       		.byte	0x5
+ 588 013b 28       		.byte	0x28
+ 589 013c FE000000 		.4byte	0xfe
+ 590 0140 0A       		.uleb128 0xa
+ 591 0141 3A020000 		.4byte	.LASF29
+ 592 0145 01       		.byte	0x1
+ 593 0146 9C       		.byte	0x9c
+ 594 0147 00000000 		.4byte	.LFB68
+ 595 014b 68000000 		.4byte	.LFE68-.LFB68
+ 596 014f 01       		.uleb128 0x1
+ 597 0150 9C       		.byte	0x9c
+ 598 0151 BF010000 		.4byte	0x1bf
+ 599 0155 0B       		.uleb128 0xb
+ 600 0156 DB000000 		.4byte	.LASF28
+ 601 015a 01       		.byte	0x1
+ 602 015b 9E       		.byte	0x9e
+ 603 015c 97000000 		.4byte	0x97
+ 604 0160 00000000 		.4byte	.LLST0
+ 605 0164 0C       		.uleb128 0xc
+ 606 0165 62706D00 		.ascii	"bpm\000"
+ 607 0169 01       		.byte	0x1
+ 608 016a 9F       		.byte	0x9f
+ 609 016b DB000000 		.4byte	0xdb
+ 610 016f 1E000000 		.4byte	.LLST1
+ 611 0173 0D       		.uleb128 0xd
+ 612 0174 06000000 		.4byte	.LVL0
+ 613 0178 51040000 		.4byte	0x451
+ 614 017c 0E       		.uleb128 0xe
+ 615 017d 38000000 		.4byte	.LVL9
+ 616 0181 5C040000 		.4byte	0x45c
+ 617 0185 90010000 		.4byte	0x190
+ 618 0189 0F       		.uleb128 0xf
+ 619 018a 01       		.uleb128 0x1
+ 620 018b 50       		.byte	0x50
+ 621 018c 02       		.uleb128 0x2
+ 622 018d 74       		.byte	0x74
+ 623 018e 00       		.sleb128 0
+ 624 018f 00       		.byte	0
+ 625 0190 0E       		.uleb128 0xe
+ 626 0191 3E000000 		.4byte	.LVL10
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 16
+
+
+ 627 0195 67040000 		.4byte	0x467
+ 628 0199 A3010000 		.4byte	0x1a3
+ 629 019d 0F       		.uleb128 0xf
+ 630 019e 01       		.uleb128 0x1
+ 631 019f 50       		.byte	0x50
+ 632 01a0 01       		.uleb128 0x1
+ 633 01a1 30       		.byte	0x30
+ 634 01a2 00       		.byte	0
+ 635 01a3 0D       		.uleb128 0xd
+ 636 01a4 42000000 		.4byte	.LVL11
+ 637 01a8 72040000 		.4byte	0x472
+ 638 01ac 0D       		.uleb128 0xd
+ 639 01ad 4E000000 		.4byte	.LVL12
+ 640 01b1 7D040000 		.4byte	0x47d
+ 641 01b5 0D       		.uleb128 0xd
+ 642 01b6 58000000 		.4byte	.LVL13
+ 643 01ba 88040000 		.4byte	0x488
+ 644 01be 00       		.byte	0
+ 645 01bf 0A       		.uleb128 0xa
+ 646 01c0 63030000 		.4byte	.LASF30
+ 647 01c4 01       		.byte	0x1
+ 648 01c5 B1       		.byte	0xb1
+ 649 01c6 00000000 		.4byte	.LFB69
+ 650 01ca 28000000 		.4byte	.LFE69-.LFB69
+ 651 01ce 01       		.uleb128 0x1
+ 652 01cf 9C       		.byte	0x9c
+ 653 01d0 FF010000 		.4byte	0x1ff
+ 654 01d4 0B       		.uleb128 0xb
+ 655 01d5 A1010000 		.4byte	.LASF31
+ 656 01d9 01       		.byte	0x1
+ 657 01da B3       		.byte	0xb3
+ 658 01db 8C000000 		.4byte	0x8c
+ 659 01df 31000000 		.4byte	.LLST2
+ 660 01e3 0D       		.uleb128 0xd
+ 661 01e4 06000000 		.4byte	.LVL14
+ 662 01e8 93040000 		.4byte	0x493
+ 663 01ec 0D       		.uleb128 0xd
+ 664 01ed 1C000000 		.4byte	.LVL18
+ 665 01f1 9E040000 		.4byte	0x49e
+ 666 01f5 0D       		.uleb128 0xd
+ 667 01f6 20000000 		.4byte	.LVL19
+ 668 01fa A9040000 		.4byte	0x4a9
+ 669 01fe 00       		.byte	0
+ 670 01ff 10       		.uleb128 0x10
+ 671 0200 92030000 		.4byte	.LASF32
+ 672 0204 01       		.byte	0x1
+ 673 0205 BE       		.byte	0xbe
+ 674 0206 00000000 		.4byte	.LFB70
+ 675 020a 18000000 		.4byte	.LFE70-.LFB70
+ 676 020e 01       		.uleb128 0x1
+ 677 020f 9C       		.byte	0x9c
+ 678 0210 43020000 		.4byte	0x243
+ 679 0214 0E       		.uleb128 0xe
+ 680 0215 0A000000 		.4byte	.LVL20
+ 681 0219 5C040000 		.4byte	0x45c
+ 682 021d 30020000 		.4byte	0x230
+ 683 0221 0F       		.uleb128 0xf
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 17
+
+
+ 684 0222 01       		.uleb128 0x1
+ 685 0223 50       		.byte	0x50
+ 686 0224 05       		.uleb128 0x5
+ 687 0225 03       		.byte	0x3
+ 688 0226 00000000 		.4byte	.LANCHOR0
+ 689 022a 0F       		.uleb128 0xf
+ 690 022b 01       		.uleb128 0x1
+ 691 022c 51       		.byte	0x51
+ 692 022d 01       		.uleb128 0x1
+ 693 022e 30       		.byte	0x30
+ 694 022f 00       		.byte	0
+ 695 0230 0D       		.uleb128 0xd
+ 696 0231 0E000000 		.4byte	.LVL21
+ 697 0235 B4040000 		.4byte	0x4b4
+ 698 0239 0D       		.uleb128 0xd
+ 699 023a 12000000 		.4byte	.LVL22
+ 700 023e BF040000 		.4byte	0x4bf
+ 701 0242 00       		.byte	0
+ 702 0243 10       		.uleb128 0x10
+ 703 0244 8F000000 		.4byte	.LASF33
+ 704 0248 01       		.byte	0x1
+ 705 0249 4E       		.byte	0x4e
+ 706 024a 00000000 		.4byte	.LFB63
+ 707 024e 84000000 		.4byte	.LFE63-.LFB63
+ 708 0252 01       		.uleb128 0x1
+ 709 0253 9C       		.byte	0x9c
+ 710 0254 7F030000 		.4byte	0x37f
+ 711 0258 11       		.uleb128 0x11
+ 712 0259 86010000 		.4byte	.LASF36
+ 713 025d 01       		.byte	0x1
+ 714 025e 4E       		.byte	0x4e
+ 715 025f D0000000 		.4byte	0xd0
+ 716 0263 44000000 		.4byte	.LLST3
+ 717 0267 0E       		.uleb128 0xe
+ 718 0268 0C000000 		.4byte	.LVL25
+ 719 026c CA040000 		.4byte	0x4ca
+ 720 0270 83020000 		.4byte	0x283
+ 721 0274 0F       		.uleb128 0xf
+ 722 0275 01       		.uleb128 0x1
+ 723 0276 50       		.byte	0x50
+ 724 0277 05       		.uleb128 0x5
+ 725 0278 03       		.byte	0x3
+ 726 0279 00000000 		.4byte	.LANCHOR0
+ 727 027d 0F       		.uleb128 0xf
+ 728 027e 01       		.uleb128 0x1
+ 729 027f 51       		.byte	0x51
+ 730 0280 01       		.uleb128 0x1
+ 731 0281 3A       		.byte	0x3a
+ 732 0282 00       		.byte	0
+ 733 0283 0D       		.uleb128 0xd
+ 734 0284 10000000 		.4byte	.LVL26
+ 735 0288 D5040000 		.4byte	0x4d5
+ 736 028c 0E       		.uleb128 0xe
+ 737 028d 16000000 		.4byte	.LVL27
+ 738 0291 E0040000 		.4byte	0x4e0
+ 739 0295 A0020000 		.4byte	0x2a0
+ 740 0299 0F       		.uleb128 0xf
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 18
+
+
+ 741 029a 01       		.uleb128 0x1
+ 742 029b 50       		.byte	0x50
+ 743 029c 02       		.uleb128 0x2
+ 744 029d 08       		.byte	0x8
+ 745 029e 64       		.byte	0x64
+ 746 029f 00       		.byte	0
+ 747 02a0 0D       		.uleb128 0xd
+ 748 02a1 1A000000 		.4byte	.LVL28
+ 749 02a5 EB040000 		.4byte	0x4eb
+ 750 02a9 0E       		.uleb128 0xe
+ 751 02aa 20000000 		.4byte	.LVL29
+ 752 02ae 9E040000 		.4byte	0x49e
+ 753 02b2 BC020000 		.4byte	0x2bc
+ 754 02b6 0F       		.uleb128 0xf
+ 755 02b7 01       		.uleb128 0x1
+ 756 02b8 50       		.byte	0x50
+ 757 02b9 01       		.uleb128 0x1
+ 758 02ba 30       		.byte	0x30
+ 759 02bb 00       		.byte	0
+ 760 02bc 0D       		.uleb128 0xd
+ 761 02bd 24000000 		.4byte	.LVL30
+ 762 02c1 F6040000 		.4byte	0x4f6
+ 763 02c5 0D       		.uleb128 0xd
+ 764 02c6 28000000 		.4byte	.LVL31
+ 765 02ca 01050000 		.4byte	0x501
+ 766 02ce 0D       		.uleb128 0xd
+ 767 02cf 2C000000 		.4byte	.LVL32
+ 768 02d3 0C050000 		.4byte	0x50c
+ 769 02d7 0D       		.uleb128 0xd
+ 770 02d8 30000000 		.4byte	.LVL33
+ 771 02dc 17050000 		.4byte	0x517
+ 772 02e0 0D       		.uleb128 0xd
+ 773 02e1 34000000 		.4byte	.LVL34
+ 774 02e5 22050000 		.4byte	0x522
+ 775 02e9 0D       		.uleb128 0xd
+ 776 02ea 38000000 		.4byte	.LVL35
+ 777 02ee 2D050000 		.4byte	0x52d
+ 778 02f2 0D       		.uleb128 0xd
+ 779 02f3 3C000000 		.4byte	.LVL36
+ 780 02f7 38050000 		.4byte	0x538
+ 781 02fb 0D       		.uleb128 0xd
+ 782 02fc 44000000 		.4byte	.LVL37
+ 783 0300 43050000 		.4byte	0x543
+ 784 0304 0E       		.uleb128 0xe
+ 785 0305 4A000000 		.4byte	.LVL38
+ 786 0309 4E050000 		.4byte	0x54e
+ 787 030d 17030000 		.4byte	0x317
+ 788 0311 0F       		.uleb128 0xf
+ 789 0312 01       		.uleb128 0x1
+ 790 0313 50       		.byte	0x50
+ 791 0314 01       		.uleb128 0x1
+ 792 0315 30       		.byte	0x30
+ 793 0316 00       		.byte	0
+ 794 0317 0E       		.uleb128 0xe
+ 795 0318 56000000 		.4byte	.LVL39
+ 796 031c 4E050000 		.4byte	0x54e
+ 797 0320 2A030000 		.4byte	0x32a
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 19
+
+
+ 798 0324 0F       		.uleb128 0xf
+ 799 0325 01       		.uleb128 0x1
+ 800 0326 50       		.byte	0x50
+ 801 0327 01       		.uleb128 0x1
+ 802 0328 31       		.byte	0x31
+ 803 0329 00       		.byte	0
+ 804 032a 0E       		.uleb128 0xe
+ 805 032b 5E000000 		.4byte	.LVL40
+ 806 032f 4E050000 		.4byte	0x54e
+ 807 0333 3D030000 		.4byte	0x33d
+ 808 0337 0F       		.uleb128 0xf
+ 809 0338 01       		.uleb128 0x1
+ 810 0339 50       		.byte	0x50
+ 811 033a 01       		.uleb128 0x1
+ 812 033b 30       		.byte	0x30
+ 813 033c 00       		.byte	0
+ 814 033d 0E       		.uleb128 0xe
+ 815 033e 64000000 		.4byte	.LVL41
+ 816 0342 59050000 		.4byte	0x559
+ 817 0346 54030000 		.4byte	0x354
+ 818 034a 0F       		.uleb128 0xf
+ 819 034b 01       		.uleb128 0x1
+ 820 034c 50       		.byte	0x50
+ 821 034d 05       		.uleb128 0x5
+ 822 034e 03       		.byte	0x3
+ 823 034f 00000000 		.4byte	ADC_EOC_isr
+ 824 0353 00       		.byte	0
+ 825 0354 0E       		.uleb128 0xe
+ 826 0355 6A000000 		.4byte	.LVL42
+ 827 0359 64050000 		.4byte	0x564
+ 828 035d 6B030000 		.4byte	0x36b
+ 829 0361 0F       		.uleb128 0xf
+ 830 0362 01       		.uleb128 0x1
+ 831 0363 50       		.byte	0x50
+ 832 0364 05       		.uleb128 0x5
+ 833 0365 03       		.byte	0x3
+ 834 0366 00000000 		.4byte	comp_isr
+ 835 036a 00       		.byte	0
+ 836 036b 12       		.uleb128 0x12
+ 837 036c 70000000 		.4byte	.LVL43
+ 838 0370 6F050000 		.4byte	0x56f
+ 839 0374 0F       		.uleb128 0xf
+ 840 0375 01       		.uleb128 0x1
+ 841 0376 50       		.byte	0x50
+ 842 0377 05       		.uleb128 0x5
+ 843 0378 03       		.byte	0x3
+ 844 0379 00000000 		.4byte	counter_overflow_isr
+ 845 037d 00       		.byte	0
+ 846 037e 00       		.byte	0
+ 847 037f 13       		.uleb128 0x13
+ 848 0380 D6020000 		.4byte	.LASF75
+ 849 0384 01       		.byte	0x1
+ 850 0385 78       		.byte	0x78
+ 851 0386 97000000 		.4byte	0x97
+ 852 038a 00000000 		.4byte	.LFB64
+ 853 038e 10000000 		.4byte	.LFE64-.LFB64
+ 854 0392 01       		.uleb128 0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 20
+
+
+ 855 0393 9C       		.byte	0x9c
+ 856 0394 AC030000 		.4byte	0x3ac
+ 857 0398 12       		.uleb128 0x12
+ 858 0399 08000000 		.4byte	.LVL44
+ 859 039d 7A050000 		.4byte	0x57a
+ 860 03a1 0F       		.uleb128 0xf
+ 861 03a2 01       		.uleb128 0x1
+ 862 03a3 50       		.byte	0x50
+ 863 03a4 05       		.uleb128 0x5
+ 864 03a5 03       		.byte	0x3
+ 865 03a6 00000000 		.4byte	.LANCHOR0
+ 866 03aa 00       		.byte	0
+ 867 03ab 00       		.byte	0
+ 868 03ac 10       		.uleb128 0x10
+ 869 03ad 7F000000 		.4byte	.LASF34
+ 870 03b1 01       		.byte	0x1
+ 871 03b2 80       		.byte	0x80
+ 872 03b3 00000000 		.4byte	.LFB65
+ 873 03b7 10000000 		.4byte	.LFE65-.LFB65
+ 874 03bb 01       		.uleb128 0x1
+ 875 03bc 9C       		.byte	0x9c
+ 876 03bd D5030000 		.4byte	0x3d5
+ 877 03c1 12       		.uleb128 0x12
+ 878 03c2 08000000 		.4byte	.LVL45
+ 879 03c6 85050000 		.4byte	0x585
+ 880 03ca 0F       		.uleb128 0xf
+ 881 03cb 01       		.uleb128 0x1
+ 882 03cc 50       		.byte	0x50
+ 883 03cd 05       		.uleb128 0x5
+ 884 03ce 03       		.byte	0x3
+ 885 03cf 00000000 		.4byte	.LANCHOR0
+ 886 03d3 00       		.byte	0
+ 887 03d4 00       		.byte	0
+ 888 03d5 10       		.uleb128 0x10
+ 889 03d6 ED020000 		.4byte	.LASF35
+ 890 03da 01       		.byte	0x1
+ 891 03db 88       		.byte	0x88
+ 892 03dc 00000000 		.4byte	.LFB66
+ 893 03e0 0C000000 		.4byte	.LFE66-.LFB66
+ 894 03e4 01       		.uleb128 0x1
+ 895 03e5 9C       		.byte	0x9c
+ 896 03e6 F8030000 		.4byte	0x3f8
+ 897 03ea 14       		.uleb128 0x14
+ 898 03eb 48000000 		.4byte	.LASF37
+ 899 03ef 01       		.byte	0x1
+ 900 03f0 88       		.byte	0x88
+ 901 03f1 F8030000 		.4byte	0x3f8
+ 902 03f5 01       		.uleb128 0x1
+ 903 03f6 50       		.byte	0x50
+ 904 03f7 00       		.byte	0
+ 905 03f8 02       		.uleb128 0x2
+ 906 03f9 01       		.byte	0x1
+ 907 03fa 02       		.byte	0x2
+ 908 03fb B5020000 		.4byte	.LASF38
+ 909 03ff 15       		.uleb128 0x15
+ 910 0400 70010000 		.4byte	.LASF76
+ 911 0404 01       		.byte	0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 21
+
+
+ 912 0405 8F       		.byte	0x8f
+ 913 0406 F8030000 		.4byte	0x3f8
+ 914 040a 00000000 		.4byte	.LFB67
+ 915 040e 0C000000 		.4byte	.LFE67-.LFB67
+ 916 0412 01       		.uleb128 0x1
+ 917 0413 9C       		.byte	0x9c
+ 918 0414 16       		.uleb128 0x16
+ 919 0415 9A020000 		.4byte	.LASF39
+ 920 0419 01       		.byte	0x1
+ 921 041a 2B       		.byte	0x2b
+ 922 041b 25040000 		.4byte	0x425
+ 923 041f 05       		.uleb128 0x5
+ 924 0420 03       		.byte	0x3
+ 925 0421 00000000 		.4byte	_filter
+ 926 0425 17       		.uleb128 0x17
+ 927 0426 35010000 		.4byte	0x135
+ 928 042a 16       		.uleb128 0x16
+ 929 042b DB010000 		.4byte	.LASF40
+ 930 042f 01       		.byte	0x1
+ 931 0430 2D       		.byte	0x2d
+ 932 0431 3B040000 		.4byte	0x43b
+ 933 0435 05       		.uleb128 0x5
+ 934 0436 03       		.byte	0x3
+ 935 0437 08000000 		.4byte	_use_led_state
+ 936 043b 17       		.uleb128 0x17
+ 937 043c F8030000 		.4byte	0x3f8
+ 938 0440 18       		.uleb128 0x18
+ 939 0441 7E040000 		.4byte	.LASF77
+ 940 0445 12       		.byte	0x12
+ 941 0446 1207     		.2byte	0x712
+ 942 0448 4C040000 		.4byte	0x44c
+ 943 044c 17       		.uleb128 0x17
+ 944 044d A2000000 		.4byte	0xa2
+ 945 0451 19       		.uleb128 0x19
+ 946 0452 2A040000 		.4byte	.LASF41
+ 947 0456 2A040000 		.4byte	.LASF41
+ 948 045a 06       		.byte	0x6
+ 949 045b 5D       		.byte	0x5d
+ 950 045c 19       		.uleb128 0x19
+ 951 045d 72020000 		.4byte	.LASF42
+ 952 0461 72020000 		.4byte	.LASF42
+ 953 0465 05       		.byte	0x5
+ 954 0466 3D       		.byte	0x3d
+ 955 0467 19       		.uleb128 0x19
+ 956 0468 C3010000 		.4byte	.LASF43
+ 957 046c C3010000 		.4byte	.LASF43
+ 958 0470 06       		.byte	0x6
+ 959 0471 5A       		.byte	0x5a
+ 960 0472 19       		.uleb128 0x19
+ 961 0473 11040000 		.4byte	.LASF44
+ 962 0477 11040000 		.4byte	.LASF44
+ 963 047b 07       		.byte	0x7
+ 964 047c 28       		.byte	0x28
+ 965 047d 19       		.uleb128 0x19
+ 966 047e 19050000 		.4byte	.LASF45
+ 967 0482 19050000 		.4byte	.LASF45
+ 968 0486 08       		.byte	0x8
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 22
+
+
+ 969 0487 29       		.byte	0x29
+ 970 0488 19       		.uleb128 0x19
+ 971 0489 3E000000 		.4byte	.LASF46
+ 972 048d 3E000000 		.4byte	.LASF46
+ 973 0491 08       		.byte	0x8
+ 974 0492 26       		.byte	0x26
+ 975 0493 19       		.uleb128 0x19
+ 976 0494 6C040000 		.4byte	.LASF47
+ 977 0498 6C040000 		.4byte	.LASF47
+ 978 049c 09       		.byte	0x9
+ 979 049d 3A       		.byte	0x3a
+ 980 049e 19       		.uleb128 0x19
+ 981 049f C6020000 		.4byte	.LASF48
+ 982 04a3 C6020000 		.4byte	.LASF48
+ 983 04a7 0A       		.byte	0xa
+ 984 04a8 37       		.byte	0x37
+ 985 04a9 19       		.uleb128 0x19
+ 986 04aa 15030000 		.4byte	.LASF49
+ 987 04ae 15030000 		.4byte	.LASF49
+ 988 04b2 0B       		.byte	0xb
+ 989 04b3 28       		.byte	0x28
+ 990 04b4 19       		.uleb128 0x19
+ 991 04b5 61000000 		.4byte	.LASF50
+ 992 04b9 61000000 		.4byte	.LASF50
+ 993 04bd 06       		.byte	0x6
+ 994 04be 52       		.byte	0x52
+ 995 04bf 19       		.uleb128 0x19
+ 996 04c0 46030000 		.4byte	.LASF51
+ 997 04c4 46030000 		.4byte	.LASF51
+ 998 04c8 0C       		.byte	0xc
+ 999 04c9 28       		.byte	0x28
+ 1000 04ca 19       		.uleb128 0x19
+ 1001 04cb C6000000 		.4byte	.LASF52
+ 1002 04cf C6000000 		.4byte	.LASF52
+ 1003 04d3 05       		.byte	0x5
+ 1004 04d4 36       		.byte	0x36
+ 1005 04d5 19       		.uleb128 0x19
+ 1006 04d6 4E050000 		.4byte	.LASF53
+ 1007 04da 4E050000 		.4byte	.LASF53
+ 1008 04de 0D       		.byte	0xd
+ 1009 04df 33       		.byte	0x33
+ 1010 04e0 19       		.uleb128 0x19
+ 1011 04e1 79030000 		.4byte	.LASF54
+ 1012 04e5 79030000 		.4byte	.LASF54
+ 1013 04e9 0D       		.byte	0xd
+ 1014 04ea 37       		.byte	0x37
+ 1015 04eb 19       		.uleb128 0x19
+ 1016 04ec 31010000 		.4byte	.LASF55
+ 1017 04f0 31010000 		.4byte	.LASF55
+ 1018 04f4 0A       		.byte	0xa
+ 1019 04f5 33       		.byte	0x33
+ 1020 04f6 19       		.uleb128 0x19
+ 1021 04f7 34030000 		.4byte	.LASF56
+ 1022 04fb 34030000 		.4byte	.LASF56
+ 1023 04ff 09       		.byte	0x9
+ 1024 0500 34       		.byte	0x34
+ 1025 0501 19       		.uleb128 0x19
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 23
+
+
+ 1026 0502 2A000000 		.4byte	.LASF57
+ 1027 0506 2A000000 		.4byte	.LASF57
+ 1028 050a 09       		.byte	0x9
+ 1029 050b D1       		.byte	0xd1
+ 1030 050c 19       		.uleb128 0x19
+ 1031 050d 01020000 		.4byte	.LASF58
+ 1032 0511 01020000 		.4byte	.LASF58
+ 1033 0515 0B       		.byte	0xb
+ 1034 0516 23       		.byte	0x23
+ 1035 0517 19       		.uleb128 0x19
+ 1036 0518 E1000000 		.4byte	.LASF59
+ 1037 051c E1000000 		.4byte	.LASF59
+ 1038 0520 0E       		.byte	0xe
+ 1039 0521 3F       		.byte	0x3f
+ 1040 0522 19       		.uleb128 0x19
+ 1041 0523 13020000 		.4byte	.LASF60
+ 1042 0527 13020000 		.4byte	.LASF60
+ 1043 052b 06       		.byte	0x6
+ 1044 052c 4F       		.byte	0x4f
+ 1045 052d 19       		.uleb128 0x19
+ 1046 052e 22050000 		.4byte	.LASF61
+ 1047 0532 22050000 		.4byte	.LASF61
+ 1048 0536 0F       		.byte	0xf
+ 1049 0537 25       		.byte	0x25
+ 1050 0538 19       		.uleb128 0x19
+ 1051 0539 EF000000 		.4byte	.LASF62
+ 1052 053d EF000000 		.4byte	.LASF62
+ 1053 0541 10       		.byte	0x10
+ 1054 0542 3E       		.byte	0x3e
+ 1055 0543 19       		.uleb128 0x19
+ 1056 0544 BB020000 		.4byte	.LASF63
+ 1057 0548 BB020000 		.4byte	.LASF63
+ 1058 054c 11       		.byte	0x11
+ 1059 054d 67       		.byte	0x67
+ 1060 054e 19       		.uleb128 0x19
+ 1061 054f 3E010000 		.4byte	.LASF64
+ 1062 0553 3E010000 		.4byte	.LASF64
+ 1063 0557 0F       		.byte	0xf
+ 1064 0558 27       		.byte	0x27
+ 1065 0559 19       		.uleb128 0x19
+ 1066 055a A2020000 		.4byte	.LASF65
+ 1067 055e A2020000 		.4byte	.LASF65
+ 1068 0562 0B       		.byte	0xb
+ 1069 0563 18       		.byte	0x18
+ 1070 0564 19       		.uleb128 0x19
+ 1071 0565 8D010000 		.4byte	.LASF66
+ 1072 0569 8D010000 		.4byte	.LASF66
+ 1073 056d 07       		.byte	0x7
+ 1074 056e 18       		.byte	0x18
+ 1075 056f 19       		.uleb128 0x19
+ 1076 0570 00000000 		.4byte	.LASF67
+ 1077 0574 00000000 		.4byte	.LASF67
+ 1078 0578 0C       		.byte	0xc
+ 1079 0579 18       		.byte	0x18
+ 1080 057a 19       		.uleb128 0x19
+ 1081 057b 43020000 		.4byte	.LASF68
+ 1082 057f 43020000 		.4byte	.LASF68
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 24
+
+
+ 1083 0583 05       		.byte	0x5
+ 1084 0584 46       		.byte	0x46
+ 1085 0585 19       		.uleb128 0x19
+ 1086 0586 50010000 		.4byte	.LASF69
+ 1087 058a 50010000 		.4byte	.LASF69
+ 1088 058e 05       		.byte	0x5
+ 1089 058f 4B       		.byte	0x4b
+ 1090 0590 00       		.byte	0
+ 1091              		.section	.debug_abbrev,"",%progbits
+ 1092              	.Ldebug_abbrev0:
+ 1093 0000 01       		.uleb128 0x1
+ 1094 0001 11       		.uleb128 0x11
+ 1095 0002 01       		.byte	0x1
+ 1096 0003 25       		.uleb128 0x25
+ 1097 0004 0E       		.uleb128 0xe
+ 1098 0005 13       		.uleb128 0x13
+ 1099 0006 0B       		.uleb128 0xb
+ 1100 0007 03       		.uleb128 0x3
+ 1101 0008 0E       		.uleb128 0xe
+ 1102 0009 1B       		.uleb128 0x1b
+ 1103 000a 0E       		.uleb128 0xe
+ 1104 000b 55       		.uleb128 0x55
+ 1105 000c 17       		.uleb128 0x17
+ 1106 000d 11       		.uleb128 0x11
+ 1107 000e 01       		.uleb128 0x1
+ 1108 000f 10       		.uleb128 0x10
+ 1109 0010 17       		.uleb128 0x17
+ 1110 0011 00       		.byte	0
+ 1111 0012 00       		.byte	0
+ 1112 0013 02       		.uleb128 0x2
+ 1113 0014 24       		.uleb128 0x24
+ 1114 0015 00       		.byte	0
+ 1115 0016 0B       		.uleb128 0xb
+ 1116 0017 0B       		.uleb128 0xb
+ 1117 0018 3E       		.uleb128 0x3e
+ 1118 0019 0B       		.uleb128 0xb
+ 1119 001a 03       		.uleb128 0x3
+ 1120 001b 0E       		.uleb128 0xe
+ 1121 001c 00       		.byte	0
+ 1122 001d 00       		.byte	0
+ 1123 001e 03       		.uleb128 0x3
+ 1124 001f 16       		.uleb128 0x16
+ 1125 0020 00       		.byte	0
+ 1126 0021 03       		.uleb128 0x3
+ 1127 0022 0E       		.uleb128 0xe
+ 1128 0023 3A       		.uleb128 0x3a
+ 1129 0024 0B       		.uleb128 0xb
+ 1130 0025 3B       		.uleb128 0x3b
+ 1131 0026 0B       		.uleb128 0xb
+ 1132 0027 49       		.uleb128 0x49
+ 1133 0028 13       		.uleb128 0x13
+ 1134 0029 00       		.byte	0
+ 1135 002a 00       		.byte	0
+ 1136 002b 04       		.uleb128 0x4
+ 1137 002c 24       		.uleb128 0x24
+ 1138 002d 00       		.byte	0
+ 1139 002e 0B       		.uleb128 0xb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 25
+
+
+ 1140 002f 0B       		.uleb128 0xb
+ 1141 0030 3E       		.uleb128 0x3e
+ 1142 0031 0B       		.uleb128 0xb
+ 1143 0032 03       		.uleb128 0x3
+ 1144 0033 08       		.uleb128 0x8
+ 1145 0034 00       		.byte	0
+ 1146 0035 00       		.byte	0
+ 1147 0036 05       		.uleb128 0x5
+ 1148 0037 04       		.uleb128 0x4
+ 1149 0038 01       		.byte	0x1
+ 1150 0039 03       		.uleb128 0x3
+ 1151 003a 0E       		.uleb128 0xe
+ 1152 003b 0B       		.uleb128 0xb
+ 1153 003c 0B       		.uleb128 0xb
+ 1154 003d 49       		.uleb128 0x49
+ 1155 003e 13       		.uleb128 0x13
+ 1156 003f 3A       		.uleb128 0x3a
+ 1157 0040 0B       		.uleb128 0xb
+ 1158 0041 3B       		.uleb128 0x3b
+ 1159 0042 0B       		.uleb128 0xb
+ 1160 0043 01       		.uleb128 0x1
+ 1161 0044 13       		.uleb128 0x13
+ 1162 0045 00       		.byte	0
+ 1163 0046 00       		.byte	0
+ 1164 0047 06       		.uleb128 0x6
+ 1165 0048 28       		.uleb128 0x28
+ 1166 0049 00       		.byte	0
+ 1167 004a 03       		.uleb128 0x3
+ 1168 004b 0E       		.uleb128 0xe
+ 1169 004c 1C       		.uleb128 0x1c
+ 1170 004d 0B       		.uleb128 0xb
+ 1171 004e 00       		.byte	0
+ 1172 004f 00       		.byte	0
+ 1173 0050 07       		.uleb128 0x7
+ 1174 0051 13       		.uleb128 0x13
+ 1175 0052 01       		.byte	0x1
+ 1176 0053 03       		.uleb128 0x3
+ 1177 0054 0E       		.uleb128 0xe
+ 1178 0055 0B       		.uleb128 0xb
+ 1179 0056 0B       		.uleb128 0xb
+ 1180 0057 3A       		.uleb128 0x3a
+ 1181 0058 0B       		.uleb128 0xb
+ 1182 0059 3B       		.uleb128 0x3b
+ 1183 005a 0B       		.uleb128 0xb
+ 1184 005b 01       		.uleb128 0x1
+ 1185 005c 13       		.uleb128 0x13
+ 1186 005d 00       		.byte	0
+ 1187 005e 00       		.byte	0
+ 1188 005f 08       		.uleb128 0x8
+ 1189 0060 0D       		.uleb128 0xd
+ 1190 0061 00       		.byte	0
+ 1191 0062 03       		.uleb128 0x3
+ 1192 0063 0E       		.uleb128 0xe
+ 1193 0064 3A       		.uleb128 0x3a
+ 1194 0065 0B       		.uleb128 0xb
+ 1195 0066 3B       		.uleb128 0x3b
+ 1196 0067 0B       		.uleb128 0xb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 26
+
+
+ 1197 0068 49       		.uleb128 0x49
+ 1198 0069 13       		.uleb128 0x13
+ 1199 006a 38       		.uleb128 0x38
+ 1200 006b 0B       		.uleb128 0xb
+ 1201 006c 00       		.byte	0
+ 1202 006d 00       		.byte	0
+ 1203 006e 09       		.uleb128 0x9
+ 1204 006f 0F       		.uleb128 0xf
+ 1205 0070 00       		.byte	0
+ 1206 0071 0B       		.uleb128 0xb
+ 1207 0072 0B       		.uleb128 0xb
+ 1208 0073 49       		.uleb128 0x49
+ 1209 0074 13       		.uleb128 0x13
+ 1210 0075 00       		.byte	0
+ 1211 0076 00       		.byte	0
+ 1212 0077 0A       		.uleb128 0xa
+ 1213 0078 2E       		.uleb128 0x2e
+ 1214 0079 01       		.byte	0x1
+ 1215 007a 3F       		.uleb128 0x3f
+ 1216 007b 19       		.uleb128 0x19
+ 1217 007c 03       		.uleb128 0x3
+ 1218 007d 0E       		.uleb128 0xe
+ 1219 007e 3A       		.uleb128 0x3a
+ 1220 007f 0B       		.uleb128 0xb
+ 1221 0080 3B       		.uleb128 0x3b
+ 1222 0081 0B       		.uleb128 0xb
+ 1223 0082 27       		.uleb128 0x27
+ 1224 0083 19       		.uleb128 0x19
+ 1225 0084 11       		.uleb128 0x11
+ 1226 0085 01       		.uleb128 0x1
+ 1227 0086 12       		.uleb128 0x12
+ 1228 0087 06       		.uleb128 0x6
+ 1229 0088 40       		.uleb128 0x40
+ 1230 0089 18       		.uleb128 0x18
+ 1231 008a 9642     		.uleb128 0x2116
+ 1232 008c 19       		.uleb128 0x19
+ 1233 008d 01       		.uleb128 0x1
+ 1234 008e 13       		.uleb128 0x13
+ 1235 008f 00       		.byte	0
+ 1236 0090 00       		.byte	0
+ 1237 0091 0B       		.uleb128 0xb
+ 1238 0092 34       		.uleb128 0x34
+ 1239 0093 00       		.byte	0
+ 1240 0094 03       		.uleb128 0x3
+ 1241 0095 0E       		.uleb128 0xe
+ 1242 0096 3A       		.uleb128 0x3a
+ 1243 0097 0B       		.uleb128 0xb
+ 1244 0098 3B       		.uleb128 0x3b
+ 1245 0099 0B       		.uleb128 0xb
+ 1246 009a 49       		.uleb128 0x49
+ 1247 009b 13       		.uleb128 0x13
+ 1248 009c 02       		.uleb128 0x2
+ 1249 009d 17       		.uleb128 0x17
+ 1250 009e 00       		.byte	0
+ 1251 009f 00       		.byte	0
+ 1252 00a0 0C       		.uleb128 0xc
+ 1253 00a1 34       		.uleb128 0x34
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 27
+
+
+ 1254 00a2 00       		.byte	0
+ 1255 00a3 03       		.uleb128 0x3
+ 1256 00a4 08       		.uleb128 0x8
+ 1257 00a5 3A       		.uleb128 0x3a
+ 1258 00a6 0B       		.uleb128 0xb
+ 1259 00a7 3B       		.uleb128 0x3b
+ 1260 00a8 0B       		.uleb128 0xb
+ 1261 00a9 49       		.uleb128 0x49
+ 1262 00aa 13       		.uleb128 0x13
+ 1263 00ab 02       		.uleb128 0x2
+ 1264 00ac 17       		.uleb128 0x17
+ 1265 00ad 00       		.byte	0
+ 1266 00ae 00       		.byte	0
+ 1267 00af 0D       		.uleb128 0xd
+ 1268 00b0 898201   		.uleb128 0x4109
+ 1269 00b3 00       		.byte	0
+ 1270 00b4 11       		.uleb128 0x11
+ 1271 00b5 01       		.uleb128 0x1
+ 1272 00b6 31       		.uleb128 0x31
+ 1273 00b7 13       		.uleb128 0x13
+ 1274 00b8 00       		.byte	0
+ 1275 00b9 00       		.byte	0
+ 1276 00ba 0E       		.uleb128 0xe
+ 1277 00bb 898201   		.uleb128 0x4109
+ 1278 00be 01       		.byte	0x1
+ 1279 00bf 11       		.uleb128 0x11
+ 1280 00c0 01       		.uleb128 0x1
+ 1281 00c1 31       		.uleb128 0x31
+ 1282 00c2 13       		.uleb128 0x13
+ 1283 00c3 01       		.uleb128 0x1
+ 1284 00c4 13       		.uleb128 0x13
+ 1285 00c5 00       		.byte	0
+ 1286 00c6 00       		.byte	0
+ 1287 00c7 0F       		.uleb128 0xf
+ 1288 00c8 8A8201   		.uleb128 0x410a
+ 1289 00cb 00       		.byte	0
+ 1290 00cc 02       		.uleb128 0x2
+ 1291 00cd 18       		.uleb128 0x18
+ 1292 00ce 9142     		.uleb128 0x2111
+ 1293 00d0 18       		.uleb128 0x18
+ 1294 00d1 00       		.byte	0
+ 1295 00d2 00       		.byte	0
+ 1296 00d3 10       		.uleb128 0x10
+ 1297 00d4 2E       		.uleb128 0x2e
+ 1298 00d5 01       		.byte	0x1
+ 1299 00d6 3F       		.uleb128 0x3f
+ 1300 00d7 19       		.uleb128 0x19
+ 1301 00d8 03       		.uleb128 0x3
+ 1302 00d9 0E       		.uleb128 0xe
+ 1303 00da 3A       		.uleb128 0x3a
+ 1304 00db 0B       		.uleb128 0xb
+ 1305 00dc 3B       		.uleb128 0x3b
+ 1306 00dd 0B       		.uleb128 0xb
+ 1307 00de 27       		.uleb128 0x27
+ 1308 00df 19       		.uleb128 0x19
+ 1309 00e0 11       		.uleb128 0x11
+ 1310 00e1 01       		.uleb128 0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 28
+
+
+ 1311 00e2 12       		.uleb128 0x12
+ 1312 00e3 06       		.uleb128 0x6
+ 1313 00e4 40       		.uleb128 0x40
+ 1314 00e5 18       		.uleb128 0x18
+ 1315 00e6 9742     		.uleb128 0x2117
+ 1316 00e8 19       		.uleb128 0x19
+ 1317 00e9 01       		.uleb128 0x1
+ 1318 00ea 13       		.uleb128 0x13
+ 1319 00eb 00       		.byte	0
+ 1320 00ec 00       		.byte	0
+ 1321 00ed 11       		.uleb128 0x11
+ 1322 00ee 05       		.uleb128 0x5
+ 1323 00ef 00       		.byte	0
+ 1324 00f0 03       		.uleb128 0x3
+ 1325 00f1 0E       		.uleb128 0xe
+ 1326 00f2 3A       		.uleb128 0x3a
+ 1327 00f3 0B       		.uleb128 0xb
+ 1328 00f4 3B       		.uleb128 0x3b
+ 1329 00f5 0B       		.uleb128 0xb
+ 1330 00f6 49       		.uleb128 0x49
+ 1331 00f7 13       		.uleb128 0x13
+ 1332 00f8 02       		.uleb128 0x2
+ 1333 00f9 17       		.uleb128 0x17
+ 1334 00fa 00       		.byte	0
+ 1335 00fb 00       		.byte	0
+ 1336 00fc 12       		.uleb128 0x12
+ 1337 00fd 898201   		.uleb128 0x4109
+ 1338 0100 01       		.byte	0x1
+ 1339 0101 11       		.uleb128 0x11
+ 1340 0102 01       		.uleb128 0x1
+ 1341 0103 31       		.uleb128 0x31
+ 1342 0104 13       		.uleb128 0x13
+ 1343 0105 00       		.byte	0
+ 1344 0106 00       		.byte	0
+ 1345 0107 13       		.uleb128 0x13
+ 1346 0108 2E       		.uleb128 0x2e
+ 1347 0109 01       		.byte	0x1
+ 1348 010a 3F       		.uleb128 0x3f
+ 1349 010b 19       		.uleb128 0x19
+ 1350 010c 03       		.uleb128 0x3
+ 1351 010d 0E       		.uleb128 0xe
+ 1352 010e 3A       		.uleb128 0x3a
+ 1353 010f 0B       		.uleb128 0xb
+ 1354 0110 3B       		.uleb128 0x3b
+ 1355 0111 0B       		.uleb128 0xb
+ 1356 0112 27       		.uleb128 0x27
+ 1357 0113 19       		.uleb128 0x19
+ 1358 0114 49       		.uleb128 0x49
+ 1359 0115 13       		.uleb128 0x13
+ 1360 0116 11       		.uleb128 0x11
+ 1361 0117 01       		.uleb128 0x1
+ 1362 0118 12       		.uleb128 0x12
+ 1363 0119 06       		.uleb128 0x6
+ 1364 011a 40       		.uleb128 0x40
+ 1365 011b 18       		.uleb128 0x18
+ 1366 011c 9742     		.uleb128 0x2117
+ 1367 011e 19       		.uleb128 0x19
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 29
+
+
+ 1368 011f 01       		.uleb128 0x1
+ 1369 0120 13       		.uleb128 0x13
+ 1370 0121 00       		.byte	0
+ 1371 0122 00       		.byte	0
+ 1372 0123 14       		.uleb128 0x14
+ 1373 0124 05       		.uleb128 0x5
+ 1374 0125 00       		.byte	0
+ 1375 0126 03       		.uleb128 0x3
+ 1376 0127 0E       		.uleb128 0xe
+ 1377 0128 3A       		.uleb128 0x3a
+ 1378 0129 0B       		.uleb128 0xb
+ 1379 012a 3B       		.uleb128 0x3b
+ 1380 012b 0B       		.uleb128 0xb
+ 1381 012c 49       		.uleb128 0x49
+ 1382 012d 13       		.uleb128 0x13
+ 1383 012e 02       		.uleb128 0x2
+ 1384 012f 18       		.uleb128 0x18
+ 1385 0130 00       		.byte	0
+ 1386 0131 00       		.byte	0
+ 1387 0132 15       		.uleb128 0x15
+ 1388 0133 2E       		.uleb128 0x2e
+ 1389 0134 00       		.byte	0
+ 1390 0135 3F       		.uleb128 0x3f
+ 1391 0136 19       		.uleb128 0x19
+ 1392 0137 03       		.uleb128 0x3
+ 1393 0138 0E       		.uleb128 0xe
+ 1394 0139 3A       		.uleb128 0x3a
+ 1395 013a 0B       		.uleb128 0xb
+ 1396 013b 3B       		.uleb128 0x3b
+ 1397 013c 0B       		.uleb128 0xb
+ 1398 013d 27       		.uleb128 0x27
+ 1399 013e 19       		.uleb128 0x19
+ 1400 013f 49       		.uleb128 0x49
+ 1401 0140 13       		.uleb128 0x13
+ 1402 0141 11       		.uleb128 0x11
+ 1403 0142 01       		.uleb128 0x1
+ 1404 0143 12       		.uleb128 0x12
+ 1405 0144 06       		.uleb128 0x6
+ 1406 0145 40       		.uleb128 0x40
+ 1407 0146 18       		.uleb128 0x18
+ 1408 0147 9742     		.uleb128 0x2117
+ 1409 0149 19       		.uleb128 0x19
+ 1410 014a 00       		.byte	0
+ 1411 014b 00       		.byte	0
+ 1412 014c 16       		.uleb128 0x16
+ 1413 014d 34       		.uleb128 0x34
+ 1414 014e 00       		.byte	0
+ 1415 014f 03       		.uleb128 0x3
+ 1416 0150 0E       		.uleb128 0xe
+ 1417 0151 3A       		.uleb128 0x3a
+ 1418 0152 0B       		.uleb128 0xb
+ 1419 0153 3B       		.uleb128 0x3b
+ 1420 0154 0B       		.uleb128 0xb
+ 1421 0155 49       		.uleb128 0x49
+ 1422 0156 13       		.uleb128 0x13
+ 1423 0157 02       		.uleb128 0x2
+ 1424 0158 18       		.uleb128 0x18
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 30
+
+
+ 1425 0159 00       		.byte	0
+ 1426 015a 00       		.byte	0
+ 1427 015b 17       		.uleb128 0x17
+ 1428 015c 35       		.uleb128 0x35
+ 1429 015d 00       		.byte	0
+ 1430 015e 49       		.uleb128 0x49
+ 1431 015f 13       		.uleb128 0x13
+ 1432 0160 00       		.byte	0
+ 1433 0161 00       		.byte	0
+ 1434 0162 18       		.uleb128 0x18
+ 1435 0163 34       		.uleb128 0x34
+ 1436 0164 00       		.byte	0
+ 1437 0165 03       		.uleb128 0x3
+ 1438 0166 0E       		.uleb128 0xe
+ 1439 0167 3A       		.uleb128 0x3a
+ 1440 0168 0B       		.uleb128 0xb
+ 1441 0169 3B       		.uleb128 0x3b
+ 1442 016a 05       		.uleb128 0x5
+ 1443 016b 49       		.uleb128 0x49
+ 1444 016c 13       		.uleb128 0x13
+ 1445 016d 3F       		.uleb128 0x3f
+ 1446 016e 19       		.uleb128 0x19
+ 1447 016f 3C       		.uleb128 0x3c
+ 1448 0170 19       		.uleb128 0x19
+ 1449 0171 00       		.byte	0
+ 1450 0172 00       		.byte	0
+ 1451 0173 19       		.uleb128 0x19
+ 1452 0174 2E       		.uleb128 0x2e
+ 1453 0175 00       		.byte	0
+ 1454 0176 3F       		.uleb128 0x3f
+ 1455 0177 19       		.uleb128 0x19
+ 1456 0178 3C       		.uleb128 0x3c
+ 1457 0179 19       		.uleb128 0x19
+ 1458 017a 6E       		.uleb128 0x6e
+ 1459 017b 0E       		.uleb128 0xe
+ 1460 017c 03       		.uleb128 0x3
+ 1461 017d 0E       		.uleb128 0xe
+ 1462 017e 3A       		.uleb128 0x3a
+ 1463 017f 0B       		.uleb128 0xb
+ 1464 0180 3B       		.uleb128 0x3b
+ 1465 0181 0B       		.uleb128 0xb
+ 1466 0182 00       		.byte	0
+ 1467 0183 00       		.byte	0
+ 1468 0184 00       		.byte	0
+ 1469              		.section	.debug_loc,"",%progbits
+ 1470              	.Ldebug_loc0:
+ 1471              	.LLST0:
+ 1472 0000 06000000 		.4byte	.LVL0
+ 1473 0004 0E000000 		.4byte	.LVL1
+ 1474 0008 0100     		.2byte	0x1
+ 1475 000a 50       		.byte	0x50
+ 1476 000b 1A000000 		.4byte	.LVL3
+ 1477 000f 1C000000 		.4byte	.LVL4
+ 1478 0013 0100     		.2byte	0x1
+ 1479 0015 50       		.byte	0x50
+ 1480 0016 00000000 		.4byte	0
+ 1481 001a 00000000 		.4byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 31
+
+
+ 1482              	.LLST1:
+ 1483 001e 1C000000 		.4byte	.LVL4
+ 1484 0022 30000000 		.4byte	.LVL8
+ 1485 0026 0100     		.2byte	0x1
+ 1486 0028 54       		.byte	0x54
+ 1487 0029 00000000 		.4byte	0
+ 1488 002d 00000000 		.4byte	0
+ 1489              	.LLST2:
+ 1490 0031 06000000 		.4byte	.LVL14
+ 1491 0035 0B000000 		.4byte	.LVL15-1
+ 1492 0039 0100     		.2byte	0x1
+ 1493 003b 50       		.byte	0x50
+ 1494 003c 00000000 		.4byte	0
+ 1495 0040 00000000 		.4byte	0
+ 1496              	.LLST3:
+ 1497 0044 00000000 		.4byte	.LVL23
+ 1498 0048 08000000 		.4byte	.LVL24
+ 1499 004c 0100     		.2byte	0x1
+ 1500 004e 50       		.byte	0x50
+ 1501 004f 08000000 		.4byte	.LVL24
+ 1502 0053 84000000 		.4byte	.LFE63
+ 1503 0057 0400     		.2byte	0x4
+ 1504 0059 F3       		.byte	0xf3
+ 1505 005a 01       		.uleb128 0x1
+ 1506 005b 50       		.byte	0x50
+ 1507 005c 9F       		.byte	0x9f
+ 1508 005d 00000000 		.4byte	0
+ 1509 0061 00000000 		.4byte	0
+ 1510              		.section	.debug_aranges,"",%progbits
+ 1511 0000 54000000 		.4byte	0x54
+ 1512 0004 0200     		.2byte	0x2
+ 1513 0006 00000000 		.4byte	.Ldebug_info0
+ 1514 000a 04       		.byte	0x4
+ 1515 000b 00       		.byte	0
+ 1516 000c 0000     		.2byte	0
+ 1517 000e 0000     		.2byte	0
+ 1518 0010 00000000 		.4byte	.LFB68
+ 1519 0014 68000000 		.4byte	.LFE68-.LFB68
+ 1520 0018 00000000 		.4byte	.LFB69
+ 1521 001c 28000000 		.4byte	.LFE69-.LFB69
+ 1522 0020 00000000 		.4byte	.LFB70
+ 1523 0024 18000000 		.4byte	.LFE70-.LFB70
+ 1524 0028 00000000 		.4byte	.LFB63
+ 1525 002c 84000000 		.4byte	.LFE63-.LFB63
+ 1526 0030 00000000 		.4byte	.LFB64
+ 1527 0034 10000000 		.4byte	.LFE64-.LFB64
+ 1528 0038 00000000 		.4byte	.LFB65
+ 1529 003c 10000000 		.4byte	.LFE65-.LFB65
+ 1530 0040 00000000 		.4byte	.LFB66
+ 1531 0044 0C000000 		.4byte	.LFE66-.LFB66
+ 1532 0048 00000000 		.4byte	.LFB67
+ 1533 004c 0C000000 		.4byte	.LFE67-.LFB67
+ 1534 0050 00000000 		.4byte	0
+ 1535 0054 00000000 		.4byte	0
+ 1536              		.section	.debug_ranges,"",%progbits
+ 1537              	.Ldebug_ranges0:
+ 1538 0000 00000000 		.4byte	.LFB68
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 32
+
+
+ 1539 0004 68000000 		.4byte	.LFE68
+ 1540 0008 00000000 		.4byte	.LFB69
+ 1541 000c 28000000 		.4byte	.LFE69
+ 1542 0010 00000000 		.4byte	.LFB70
+ 1543 0014 18000000 		.4byte	.LFE70
+ 1544 0018 00000000 		.4byte	.LFB63
+ 1545 001c 84000000 		.4byte	.LFE63
+ 1546 0020 00000000 		.4byte	.LFB64
+ 1547 0024 10000000 		.4byte	.LFE64
+ 1548 0028 00000000 		.4byte	.LFB65
+ 1549 002c 10000000 		.4byte	.LFE65
+ 1550 0030 00000000 		.4byte	.LFB66
+ 1551 0034 0C000000 		.4byte	.LFE66
+ 1552 0038 00000000 		.4byte	.LFB67
+ 1553 003c 0C000000 		.4byte	.LFE67
+ 1554 0040 00000000 		.4byte	0
+ 1555 0044 00000000 		.4byte	0
+ 1556              		.section	.debug_line,"",%progbits
+ 1557              	.Ldebug_line0:
+ 1558 0000 E0020000 		.section	.debug_str,"MS",%progbits,1
+ 1558      02001202 
+ 1558      00000201 
+ 1558      FB0E0D00 
+ 1558      01010101 
+ 1559              	.LASF67:
+ 1560 0000 48425F4F 		.ascii	"HB_Overflow_Int_StartEx\000"
+ 1560      76657266 
+ 1560      6C6F775F 
+ 1560      496E745F 
+ 1560      53746172 
+ 1561              	.LASF27:
+ 1562 0018 52756E6E 		.ascii	"Running_Average_t\000"
+ 1562      696E675F 
+ 1562      41766572 
+ 1562      6167655F 
+ 1562      7400
+ 1563              	.LASF57:
+ 1564 002a 48425F41 		.ascii	"HB_ADC_StartConvert\000"
+ 1564      44435F53 
+ 1564      74617274 
+ 1564      436F6E76 
+ 1564      65727400 
+ 1565              	.LASF46:
+ 1566 003e 4C45445F 		.ascii	"LED_Write\000"
+ 1566      57726974 
+ 1566      6500
+ 1567              	.LASF37:
+ 1568 0048 73746174 		.ascii	"state\000"
+ 1568      6500
+ 1569              	.LASF2:
+ 1570 004e 73686F72 		.ascii	"short int\000"
+ 1570      7420696E 
+ 1570      7400
+ 1571              	.LASF23:
+ 1572 0058 73697A65 		.ascii	"sizetype\000"
+ 1572      74797065 
+ 1572      00
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 33
+
+
+ 1573              	.LASF50:
+ 1574 0061 48425F43 		.ascii	"HB_Counter_ReadStatusRegister\000"
+ 1574      6F756E74 
+ 1574      65725F52 
+ 1574      65616453 
+ 1574      74617475 
+ 1575              	.LASF34:
+ 1576 007f 68656172 		.ascii	"heartbeat_clear\000"
+ 1576      74626561 
+ 1576      745F636C 
+ 1576      65617200 
+ 1577              	.LASF33:
+ 1578 008f 68656172 		.ascii	"heartbeat_init\000"
+ 1578      74626561 
+ 1578      745F696E 
+ 1578      697400
+ 1579              	.LASF4:
+ 1580 009e 5F5F7569 		.ascii	"__uint16_t\000"
+ 1580      6E743136 
+ 1580      5F7400
+ 1581              	.LASF26:
+ 1582 00a9 68656164 		.ascii	"head\000"
+ 1582      00
+ 1583              	.LASF12:
+ 1584 00ae 75696E74 		.ascii	"uint8_t\000"
+ 1584      385F7400 
+ 1585              	.LASF74:
+ 1586 00b6 52756E6E 		.ascii	"Running_Average\000"
+ 1586      696E675F 
+ 1586      41766572 
+ 1586      61676500 
+ 1587              	.LASF52:
+ 1588 00c6 72756E6E 		.ascii	"running_average_init\000"
+ 1588      696E675F 
+ 1588      61766572 
+ 1588      6167655F 
+ 1588      696E6974 
+ 1589              	.LASF28:
+ 1590 00db 636F756E 		.ascii	"count\000"
+ 1590      7400
+ 1591              	.LASF59:
+ 1592 00e1 48425F43 		.ascii	"HB_Comp_Start\000"
+ 1592      6F6D705F 
+ 1592      53746172 
+ 1592      7400
+ 1593              	.LASF62:
+ 1594 00ef 48425F50 		.ascii	"HB_PGA_Start\000"
+ 1594      47415F53 
+ 1594      74617274 
+ 1594      00
+ 1595              	.LASF0:
+ 1596 00fc 7369676E 		.ascii	"signed char\000"
+ 1596      65642063 
+ 1596      68617200 
+ 1597              	.LASF19:
+ 1598 0108 666C6F61 		.ascii	"float\000"
+ 1598      7400
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 34
+
+
+ 1599              	.LASF15:
+ 1600 010e 48454152 		.ascii	"HEARTBEAT_SOURCE_OFF\000"
+ 1600      54424541 
+ 1600      545F534F 
+ 1600      55524345 
+ 1600      5F4F4646 
+ 1601              	.LASF9:
+ 1602 0123 6C6F6E67 		.ascii	"long long int\000"
+ 1602      206C6F6E 
+ 1602      6720696E 
+ 1602      7400
+ 1603              	.LASF55:
+ 1604 0131 48425F44 		.ascii	"HB_DAC_Start\000"
+ 1604      41435F53 
+ 1604      74617274 
+ 1604      00
+ 1605              	.LASF64:
+ 1606 013e 48425F4D 		.ascii	"HB_MUX_FastSelect\000"
+ 1606      55585F46 
+ 1606      61737453 
+ 1606      656C6563 
+ 1606      7400
+ 1607              	.LASF69:
+ 1608 0150 72756E6E 		.ascii	"running_average_clear\000"
+ 1608      696E675F 
+ 1608      61766572 
+ 1608      6167655F 
+ 1608      636C6561 
+ 1609              	.LASF3:
+ 1610 0166 5F5F7569 		.ascii	"__uint8_t\000"
+ 1610      6E74385F 
+ 1610      7400
+ 1611              	.LASF76:
+ 1612 0170 68656172 		.ascii	"heartbeat_get_use_LED\000"
+ 1612      74626561 
+ 1612      745F6765 
+ 1612      745F7573 
+ 1612      655F4C45 
+ 1613              	.LASF36:
+ 1614 0186 736F7572 		.ascii	"source\000"
+ 1614      636500
+ 1615              	.LASF66:
+ 1616 018d 48425F43 		.ascii	"HB_Comp_Int_StartEx\000"
+ 1616      6F6D705F 
+ 1616      496E745F 
+ 1616      53746172 
+ 1616      74457800 
+ 1617              	.LASF31:
+ 1618 01a1 6164635F 		.ascii	"adc_val\000"
+ 1618      76616C00 
+ 1619              	.LASF22:
+ 1620 01a9 6C6F6E67 		.ascii	"long double\000"
+ 1620      20646F75 
+ 1620      626C6500 
+ 1621              	.LASF1:
+ 1622 01b5 756E7369 		.ascii	"unsigned char\000"
+ 1622      676E6564 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 35
+
+
+ 1622      20636861 
+ 1622      7200
+ 1623              	.LASF43:
+ 1624 01c3 48425F43 		.ascii	"HB_Counter_WriteCounter\000"
+ 1624      6F756E74 
+ 1624      65725F57 
+ 1624      72697465 
+ 1624      436F756E 
+ 1625              	.LASF40:
+ 1626 01db 5F757365 		.ascii	"_use_led_state\000"
+ 1626      5F6C6564 
+ 1626      5F737461 
+ 1626      746500
+ 1627              	.LASF10:
+ 1628 01ea 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 1628      206C6F6E 
+ 1628      6720756E 
+ 1628      7369676E 
+ 1628      65642069 
+ 1629              	.LASF58:
+ 1630 0201 48425F41 		.ascii	"HB_ADC_IRQ_Enable\000"
+ 1630      44435F49 
+ 1630      52515F45 
+ 1630      6E61626C 
+ 1630      6500
+ 1631              	.LASF60:
+ 1632 0213 48425F43 		.ascii	"HB_Counter_Start\000"
+ 1632      6F756E74 
+ 1632      65725F53 
+ 1632      74617274 
+ 1632      00
+ 1633              	.LASF11:
+ 1634 0224 756E7369 		.ascii	"unsigned int\000"
+ 1634      676E6564 
+ 1634      20696E74 
+ 1634      00
+ 1635              	.LASF13:
+ 1636 0231 75696E74 		.ascii	"uint16_t\000"
+ 1636      31365F74 
+ 1636      00
+ 1637              	.LASF29:
+ 1638 023a 636F6D70 		.ascii	"comp_isr\000"
+ 1638      5F697372 
+ 1638      00
+ 1639              	.LASF68:
+ 1640 0243 72756E6E 		.ascii	"running_average_result\000"
+ 1640      696E675F 
+ 1640      61766572 
+ 1640      6167655F 
+ 1640      72657375 
+ 1641              	.LASF5:
+ 1642 025a 73686F72 		.ascii	"short unsigned int\000"
+ 1642      7420756E 
+ 1642      7369676E 
+ 1642      65642069 
+ 1642      6E7400
+ 1643              	.LASF21:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 36
+
+
+ 1644 026d 63686172 		.ascii	"char\000"
+ 1644      00
+ 1645              	.LASF42:
+ 1646 0272 72756E6E 		.ascii	"running_average_update\000"
+ 1646      696E675F 
+ 1646      61766572 
+ 1646      6167655F 
+ 1646      75706461 
+ 1647              	.LASF7:
+ 1648 0289 6C6F6E67 		.ascii	"long int\000"
+ 1648      20696E74 
+ 1648      00
+ 1649              	.LASF14:
+ 1650 0292 696E7433 		.ascii	"int32_t\000"
+ 1650      325F7400 
+ 1651              	.LASF39:
+ 1652 029a 5F66696C 		.ascii	"_filter\000"
+ 1652      74657200 
+ 1653              	.LASF65:
+ 1654 02a2 48425F41 		.ascii	"HB_ADC_IRQ_StartEx\000"
+ 1654      44435F49 
+ 1654      52515F53 
+ 1654      74617274 
+ 1654      457800
+ 1655              	.LASF38:
+ 1656 02b5 5F426F6F 		.ascii	"_Bool\000"
+ 1656      6C00
+ 1657              	.LASF63:
+ 1658 02bb 495F4842 		.ascii	"I_HB_Start\000"
+ 1658      5F537461 
+ 1658      727400
+ 1659              	.LASF48:
+ 1660 02c6 48425F44 		.ascii	"HB_DAC_SetValue\000"
+ 1660      41435F53 
+ 1660      65745661 
+ 1660      6C756500 
+ 1661              	.LASF75:
+ 1662 02d6 68656172 		.ascii	"heartbeat_get_bpm\000"
+ 1662      74626561 
+ 1662      745F6765 
+ 1662      745F6270 
+ 1662      6D00
+ 1663              	.LASF24:
+ 1664 02e8 62696E73 		.ascii	"bins\000"
+ 1664      00
+ 1665              	.LASF35:
+ 1666 02ed 68656172 		.ascii	"heartbeat_set_use_LED\000"
+ 1666      74626561 
+ 1666      745F7365 
+ 1666      745F7573 
+ 1666      655F4C45 
+ 1667              	.LASF8:
+ 1668 0303 6C6F6E67 		.ascii	"long unsigned int\000"
+ 1668      20756E73 
+ 1668      69676E65 
+ 1668      6420696E 
+ 1668      7400
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 37
+
+
+ 1669              	.LASF49:
+ 1670 0315 48425F41 		.ascii	"HB_ADC_IRQ_ClearPending\000"
+ 1670      44435F49 
+ 1670      52515F43 
+ 1670      6C656172 
+ 1670      50656E64 
+ 1671              	.LASF20:
+ 1672 032d 646F7562 		.ascii	"double\000"
+ 1672      6C6500
+ 1673              	.LASF56:
+ 1674 0334 48425F41 		.ascii	"HB_ADC_Start\000"
+ 1674      44435F53 
+ 1674      74617274 
+ 1674      00
+ 1675              	.LASF25:
+ 1676 0341 73697A65 		.ascii	"size\000"
+ 1676      00
+ 1677              	.LASF51:
+ 1678 0346 48425F4F 		.ascii	"HB_Overflow_Int_ClearPending\000"
+ 1678      76657266 
+ 1678      6C6F775F 
+ 1678      496E745F 
+ 1678      436C6561 
+ 1679              	.LASF30:
+ 1680 0363 4144435F 		.ascii	"ADC_EOC_isr\000"
+ 1680      454F435F 
+ 1680      69737200 
+ 1681              	.LASF6:
+ 1682 036f 5F5F696E 		.ascii	"__int32_t\000"
+ 1682      7433325F 
+ 1682      7400
+ 1683              	.LASF54:
+ 1684 0379 48425F43 		.ascii	"HB_Comp_Neg_DAC_SetValue\000"
+ 1684      6F6D705F 
+ 1684      4E65675F 
+ 1684      4441435F 
+ 1684      53657456 
+ 1685              	.LASF32:
+ 1686 0392 636F756E 		.ascii	"counter_overflow_isr\000"
+ 1686      7465725F 
+ 1686      6F766572 
+ 1686      666C6F77 
+ 1686      5F697372 
+ 1687              	.LASF16:
+ 1688 03a7 48454152 		.ascii	"HEARTBEAT_SOURCE_INTERNAL\000"
+ 1688      54424541 
+ 1688      545F534F 
+ 1688      55524345 
+ 1688      5F494E54 
+ 1689              	.LASF72:
+ 1690 03c1 433A5C55 		.ascii	"C:\\Users\\henrichsc\\Desktop\\School\\Senior_year\\"
+ 1690      73657273 
+ 1690      5C68656E 
+ 1690      72696368 
+ 1690      73635C44 
+ 1691 03ef 66616C6C 		.ascii	"fall\\CE4920\\lab\\Milestone_2.cydsn\000"
+ 1691      5C434534 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 38
+
+
+ 1691      3932305C 
+ 1691      6C61625C 
+ 1691      4D696C65 
+ 1692              	.LASF44:
+ 1693 0411 48425F43 		.ascii	"HB_Comp_Int_ClearPending\000"
+ 1693      6F6D705F 
+ 1693      496E745F 
+ 1693      436C6561 
+ 1693      7250656E 
+ 1694              	.LASF41:
+ 1695 042a 48425F43 		.ascii	"HB_Counter_ReadCounter\000"
+ 1695      6F756E74 
+ 1695      65725F52 
+ 1695      65616443 
+ 1695      6F756E74 
+ 1696              	.LASF73:
+ 1697 0441 48656172 		.ascii	"Heartbeat_Source\000"
+ 1697      74626561 
+ 1697      745F536F 
+ 1697      75726365 
+ 1697      00
+ 1698              	.LASF17:
+ 1699 0452 48454152 		.ascii	"HEARTBEAT_SOURCE_EXTERNAL\000"
+ 1699      54424541 
+ 1699      545F534F 
+ 1699      55524345 
+ 1699      5F455854 
+ 1700              	.LASF47:
+ 1701 046c 48425F41 		.ascii	"HB_ADC_GetResult8\000"
+ 1701      44435F47 
+ 1701      65745265 
+ 1701      73756C74 
+ 1701      3800
+ 1702              	.LASF77:
+ 1703 047e 49544D5F 		.ascii	"ITM_RxBuffer\000"
+ 1703      52784275 
+ 1703      66666572 
+ 1703      00
+ 1704              	.LASF70:
+ 1705 048b 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 1705      43313120 
+ 1705      352E342E 
+ 1705      31203230 
+ 1705      31363036 
+ 1706 04be 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m3 -mthumb -g -O"
+ 1706      20726576 
+ 1706      6973696F 
+ 1706      6E203233 
+ 1706      37373135 
+ 1707 04f1 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 1707      66756E63 
+ 1707      74696F6E 
+ 1707      2D736563 
+ 1707      74696F6E 
+ 1708              	.LASF45:
+ 1709 0519 4C45445F 		.ascii	"LED_Read\000"
+ 1709      52656164 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccLVcrK0.s 			page 39
+
+
+ 1709      00
+ 1710              	.LASF61:
+ 1711 0522 48425F4D 		.ascii	"HB_MUX_Start\000"
+ 1711      55585F53 
+ 1711      74617274 
+ 1711      00
+ 1712              	.LASF18:
+ 1713 052f 48656172 		.ascii	"Heartbeat_Source_e\000"
+ 1713      74626561 
+ 1713      745F536F 
+ 1713      75726365 
+ 1713      5F6500
+ 1714              	.LASF71:
+ 1715 0542 48656172 		.ascii	"Heartbeat.c\000"
+ 1715      74626561 
+ 1715      742E6300 
+ 1716              	.LASF53:
+ 1717 054e 48425F43 		.ascii	"HB_Comp_Neg_DAC_Start\000"
+ 1717      6F6D705F 
+ 1717      4E65675F 
+ 1717      4441435F 
+ 1717      53746172 
+ 1718              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

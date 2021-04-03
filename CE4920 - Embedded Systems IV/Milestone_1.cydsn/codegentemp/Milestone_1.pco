@@ -1,0 +1,96 @@
+# Milestone_1
+# 2017-09-14 14:01:21Z
+
+# IO_0@[IOP=(1)][IoId=(0)] is reserved: SWDDebugEnabled
+dont_use_io iocell 1 0
+# IO_1@[IOP=(1)][IoId=(1)] is reserved: SWDDebugEnabled
+dont_use_io iocell 1 1
+# IO_3@[IOP=(1)][IoId=(3)] is reserved: SWDDebugEnabled
+dont_use_io iocell 1 3
+set_location "ClockBlock" clockblockcell -1 -1 0
+set_io "\CapSense:CmodCH0(0)\" iocell 6 4
+set_io "\CapSense:PortCH0(0)\" iocell 5 5
+set_io "\CapSense:PortCH0(1)\" iocell 5 6
+set_io "\CapSense:PortCH0(2)\" iocell 5 0
+set_io "\CapSense:PortCH0(3)\" iocell 5 1
+set_io "\CapSense:PortCH0(4)\" iocell 5 2
+set_io "\CapSense:PortCH0(5)\" iocell 5 3
+set_io "\CapSense:PortCH0(6)\" iocell 5 4
+set_location "CapSense" capsensecell -1 -1 0
+set_io "RST(0)" iocell 6 1
+set_io "Tone(0)" iocell 12 4
+set_io "\LCD:LCDPort(0)\" iocell 2 0
+set_io "\LCD:LCDPort(1)\" iocell 2 1
+set_io "\LCD:LCDPort(2)\" iocell 2 2
+set_io "\LCD:LCDPort(3)\" iocell 2 3
+set_io "\LCD:LCDPort(4)\" iocell 2 4
+set_io "\LCD:LCDPort(5)\" iocell 2 5
+set_io "\LCD:LCDPort(6)\" iocell 2 6
+set_io "Motor(0)" iocell 12 5
+set_io "\USBUART:Dm(0)\" iocell 15 7
+set_location "\USBUART:Dp\" logicalport -1 -1 15
+set_io "\USBUART:Dp(0)\" iocell 15 6
+set_io "LED(0)" iocell 6 3
+set_location "\CapSense:MeasureCH0:cs_addr_win_2\" 3 1 0 0
+set_location "\CapSense:MeasureCH0:cs_addr_win_1\" 3 1 0 3
+set_location "\CapSense:MeasureCH0:cs_addr_win_0\" 3 1 1 0
+set_location "\CapSense:MeasureCH0:cs_addr_cnt_2\" 3 1 0 2
+set_location "\CapSense:MeasureCH0:cs_addr_cnt_1\" 3 1 1 1
+set_location "\CapSense:MeasureCH0:cs_addr_cnt_0\" 3 1 1 2
+set_location "\CapSense:PreChargeClk\" 3 0 0 0
+set_location "\Tone_F:PWMUDB:status_2\" 1 0 1 3
+set_location "\Tone_D:CounterUDB:status_0\" 2 2 1 0
+set_location "\Tone_D:CounterUDB:status_2\" 2 2 1 2
+set_location "\Tone_D:CounterUDB:count_enable\" 2 2 0 0
+set_location "\CapSense:BufCH0\" csabufcell -1 -1 0
+set_location "\CapSense:CompCH0:ctComp\" comparatorcell -1 -1 1
+set_location "\CapSense:IdacCH0:viDAC8\" vidaccell -1 -1 0
+set_location "__ONE__" 3 2 1 2
+set_location "\CapSense:MeasureCH0:genblk1:SyncCMPR\" 3 1 5 0
+set_location "\CapSense:MeasureCH0:UDB:Window:u0\" 2 1 2
+set_location "\CapSense:MeasureCH0:UDB:Counter:u0\" 3 1 2
+set_location "\CapSense:ClockGen:SyncCtrl:CtrlReg\" 3 0 6
+set_location "\CapSense:ClockGen:ScanSpeed\" 2 0 7
+set_location "\CapSense:ClockGen:FF:Prescaler\" timercell -1 -1 0
+set_location "\CapSense:ClockGen:sC16:PRSdp:u0\" 2 0 2
+set_location "\CapSense:ClockGen:sC16:PRSdp:u1\" 3 0 2
+set_location "\CapSense:IsrCH0\" interrupt -1 -1 1
+set_location "Tone_Int" interrupt -1 -1 0
+set_location "\PWM:PWMHW\" timercell -1 -1 1
+set_location "\USBUART:dp_int\" interrupt -1 -1 12
+set_location "\USBUART:USB\" usbcell -1 -1 0
+set_location "\USBUART:ep_3\" interrupt -1 -1 4
+set_location "\USBUART:ep_2\" interrupt -1 -1 3
+set_location "\USBUART:ep_1\" interrupt -1 -1 2
+set_location "\USBUART:ep_0\" interrupt -1 -1 24
+set_location "\USBUART:bus_reset\" interrupt -1 -1 23
+set_location "\USBUART:arb_int\" interrupt -1 -1 22
+set_location "\USBUART:sof_int\" interrupt -1 -1 21
+set_location "\Tone_F:PWMUDB:genblk1:ctrlreg\" 1 0 6
+set_location "\Tone_F:PWMUDB:genblk8:stsreg\" 1 0 4
+set_location "\Tone_F:PWMUDB:sP16:pwmdp:u0\" 0 0 2
+set_location "\Tone_F:PWMUDB:sP16:pwmdp:u1\" 1 0 2
+set_location "\Tone_D:CounterUDB:sCTRLReg:ctrlreg\" 2 2 6
+set_location "\Tone_D:CounterUDB:sSTSReg:stsreg\" 2 2 4
+set_location "\Tone_D:CounterUDB:sC16:counterdp:u0\" 3 2 2
+set_location "\Tone_D:CounterUDB:sC16:counterdp:u1\" 2 2 2
+set_location "\CapSense:Net_1603\" 3 0 1 0
+set_location "\CapSense:MeasureCH0:wndState_2\" 3 1 1 3
+set_location "\CapSense:MeasureCH0:wndState_1\" 3 0 1 1
+set_location "\CapSense:MeasureCH0:wndState_0\" 3 1 0 1
+set_location "\CapSense:ClockGen:clock_detect_reg\" 2 0 0 0
+set_location "\CapSense:ClockGen:tmp_ppulse_reg\" 2 0 0 1
+set_location "\CapSense:ClockGen:tmp_ppulse_dly\" 2 0 1 0
+set_location "\CapSense:ClockGen:cstate_2\" 3 0 0 2
+set_location "\CapSense:mrst\" 3 0 0 3
+set_location "\CapSense:ClockGen:inter_reset\" 3 0 0 1
+set_location "\FreqDiv:not_last_reset\" 2 1 0 0
+set_location "Net_600" 2 2 0 1
+set_location "\FreqDiv:count_0\" 2 1 0 1
+set_location "\Tone_F:PWMUDB:runmode_enable\" 1 0 0 0
+set_location "\Tone_F:PWMUDB:prevCompare1\" 1 0 0 3
+set_location "\Tone_F:PWMUDB:status_0\" 1 0 1 0
+set_location "Net_357" 0 0 0 1
+set_location "\Tone_D:CounterUDB:overflow_reg_i\" 2 2 1 1
+set_location "\Tone_D:CounterUDB:prevCompare\" 2 2 0 2
+set_location "\Tone_D:CounterUDB:count_stored_i\" 2 2 0 3

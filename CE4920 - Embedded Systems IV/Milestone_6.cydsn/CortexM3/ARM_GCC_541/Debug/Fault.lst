@@ -1,0 +1,1196 @@
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"Fault.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.fault_init,"ax",%progbits
+  20              		.align	2
+  21              		.global	fault_init
+  22              		.thumb
+  23              		.thumb_func
+  24              		.type	fault_init, %function
+  25              	fault_init:
+  26              	.LFB63:
+  27              		.file 1 "Fault.c"
+   1:Fault.c       **** /**
+   2:Fault.c       ****  * Fault
+   3:Fault.c       ****  * @author Curt Henrichs
+   4:Fault.c       ****  * @date 10-17-17
+   5:Fault.c       ****  *
+   6:Fault.c       ****  * Fault detection module will determine if any component have failed. If
+   7:Fault.c       ****  * failure occured then the watchdog epxire unless system has entered a critical
+   8:Fault.c       ****  * section, where then the main loop takes control of the watchdog.
+   9:Fault.c       ****  */
+  10:Fault.c       **** 
+  11:Fault.c       **** //=============================================================================
+  12:Fault.c       **** //                                  Libraries
+  13:Fault.c       **** //=============================================================================
+  14:Fault.c       ****  
+  15:Fault.c       **** #include "Fault.h"
+  16:Fault.c       **** #include <project.h>
+  17:Fault.c       **** 
+  18:Fault.c       **** //=============================================================================
+  19:Fault.c       **** //                         Interrupt Handler Prototypes
+  20:Fault.c       **** //=============================================================================
+  21:Fault.c       **** 
+  22:Fault.c       **** /**
+  23:Fault.c       ****  * Fault Detection ISR triggered on watchdog feed timer overflow. ISR will 
+  24:Fault.c       ****  * check for all possible faults and if a fault occurs, it will cause the
+  25:Fault.c       ****  * system to reset.
+  26:Fault.c       ****  */
+  27:Fault.c       **** CY_ISR_PROTO(fault_detection_isr);
+  28:Fault.c       **** 
+  29:Fault.c       **** //=============================================================================
+  30:Fault.c       **** //                             Private Attributes
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 2
+
+
+  31:Fault.c       **** //=============================================================================
+  32:Fault.c       **** 
+  33:Fault.c       **** /**
+  34:Fault.c       ****  * Flag to signal main program has entered a critical section where watchdog
+  35:Fault.c       ****  * should not cause immediate reset.
+  36:Fault.c       ****  */
+  37:Fault.c       **** static volatile bool _critical_section = false;
+  38:Fault.c       **** 
+  39:Fault.c       **** //=============================================================================
+  40:Fault.c       **** //                         Public Function Implementation
+  41:Fault.c       **** //=============================================================================
+  42:Fault.c       **** 
+  43:Fault.c       **** /**
+  44:Fault.c       ****  * Initialization function for fault detection software module
+  45:Fault.c       ****  */
+  46:Fault.c       **** void fault_init(void){
+  28              		.loc 1 46 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32 0000 08B5     		push	{r3, lr}
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 3, -8
+  35              		.cfi_offset 14, -4
+  47:Fault.c       ****     //start watchdog timer
+  48:Fault.c       ****     Watchdog_Timer_Overflow_Int_StartEx(fault_detection_isr);
+  36              		.loc 1 48 0
+  37 0002 0548     		ldr	r0, .L3
+  38 0004 FFF7FEFF 		bl	Watchdog_Timer_Overflow_Int_StartEx
+  39              	.LVL0:
+  49:Fault.c       ****     Watchdog_Timer_Start();
+  40              		.loc 1 49 0
+  41 0008 FFF7FEFF 		bl	Watchdog_Timer_Start
+  42              	.LVL1:
+  50:Fault.c       ****     
+  51:Fault.c       ****     //start watchdog
+  52:Fault.c       ****     CyWdtStart(CYWDT_128_TICKS,CYWDT_LPMODE_NOCHANGE);
+  43              		.loc 1 52 0
+  44 000c 0021     		movs	r1, #0
+  45 000e 0220     		movs	r0, #2
+  46 0010 FFF7FEFF 		bl	CyWdtStart
+  47              	.LVL2:
+  48 0014 08BD     		pop	{r3, pc}
+  49              	.L4:
+  50 0016 00BF     		.align	2
+  51              	.L3:
+  52 0018 00000000 		.word	fault_detection_isr
+  53              		.cfi_endproc
+  54              	.LFE63:
+  55              		.size	fault_init, .-fault_init
+  56              		.section	.text.fault_check_for_failure,"ax",%progbits
+  57              		.align	2
+  58              		.global	fault_check_for_failure
+  59              		.thumb
+  60              		.thumb_func
+  61              		.type	fault_check_for_failure, %function
+  62              	fault_check_for_failure:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 3
+
+
+  63              	.LFB64:
+  53:Fault.c       **** }
+  54:Fault.c       **** 
+  55:Fault.c       **** /**
+  56:Fault.c       ****  * Checks hardware signals noting component failure.
+  57:Fault.c       ****  * @return true if a module has failed, false if module 
+  58:Fault.c       ****  */
+  59:Fault.c       **** bool fault_check_for_failure(void){
+  64              		.loc 1 59 0
+  65              		.cfi_startproc
+  66              		@ args = 0, pretend = 0, frame = 0
+  67              		@ frame_needed = 0, uses_anonymous_args = 0
+  68 0000 08B5     		push	{r3, lr}
+  69              		.cfi_def_cfa_offset 8
+  70              		.cfi_offset 3, -8
+  71              		.cfi_offset 14, -4
+  60:Fault.c       ****     return  !(Heartbeat_COP_Read() && Motor_COP_Read() && UserInput_COP_Read());
+  72              		.loc 1 60 0
+  73 0002 FFF7FEFF 		bl	Heartbeat_COP_Read
+  74              	.LVL3:
+  75 0006 38B1     		cbz	r0, .L7
+  76              		.loc 1 60 0 is_stmt 0 discriminator 2
+  77 0008 FFF7FEFF 		bl	Motor_COP_Read
+  78              	.LVL4:
+  79 000c 30B1     		cbz	r0, .L8
+  80              		.loc 1 60 0 discriminator 4
+  81 000e FFF7FEFF 		bl	UserInput_COP_Read
+  82              	.LVL5:
+  83 0012 28B1     		cbz	r0, .L9
+  84              		.loc 1 60 0
+  85 0014 0020     		movs	r0, #0
+  86 0016 08BD     		pop	{r3, pc}
+  87              	.L7:
+  88 0018 0120     		movs	r0, #1
+  89 001a 08BD     		pop	{r3, pc}
+  90              	.L8:
+  91 001c 0120     		movs	r0, #1
+  92 001e 08BD     		pop	{r3, pc}
+  93              	.L9:
+  94 0020 0120     		movs	r0, #1
+  61:Fault.c       **** }
+  95              		.loc 1 61 0 is_stmt 1
+  96 0022 08BD     		pop	{r3, pc}
+  97              		.cfi_endproc
+  98              	.LFE64:
+  99              		.size	fault_check_for_failure, .-fault_check_for_failure
+ 100              		.section	.text.fault_detection_isr,"ax",%progbits
+ 101              		.align	2
+ 102              		.global	fault_detection_isr
+ 103              		.thumb
+ 104              		.thumb_func
+ 105              		.type	fault_detection_isr, %function
+ 106              	fault_detection_isr:
+ 107              	.LFB67:
+  62:Fault.c       **** 
+  63:Fault.c       **** /**
+  64:Fault.c       ****  * Generates the fault code associated to the components failed.
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 4
+
+
+  65:Fault.c       ****  * result is a bit field that follows form
+  66:Fault.c       ****  * b8 : 0
+  67:Fault.c       ****  * b7 : 0
+  68:Fault.c       ****  * b6 : 0
+  69:Fault.c       ****  * b5 : 0
+  70:Fault.c       ****  * b4 : 0
+  71:Fault.c       ****  * b3 : 1 if input failed else 0
+  72:Fault.c       ****  * b2 : 1 if motor failed else 0
+  73:Fault.c       ****  * b1 : 1 if heartbeat failed else 0
+  74:Fault.c       ****  * @return error code as detailed above
+  75:Fault.c       ****  */
+  76:Fault.c       **** uint8_t fault_code(void){
+  77:Fault.c       ****     uint8_t code = 0x00;
+  78:Fault.c       ****     code += (!Heartbeat_COP_Read()) << 0;
+  79:Fault.c       ****     code += (!Motor_COP_Read()) << 1;
+  80:Fault.c       ****     code += (!UserInput_COP_Read()) << 2;
+  81:Fault.c       ****     return code;
+  82:Fault.c       **** }
+  83:Fault.c       **** 
+  84:Fault.c       **** /**
+  85:Fault.c       ****  * Signals to the fault module whether to supress watchdog expiration even if
+  86:Fault.c       ****  * component has failed. Ideally used when main loop is interacting with the 
+  87:Fault.c       ****  * motor, which needs to be slowly backed off.
+  88:Fault.c       **** * @param s is boolean signaling to module whether if in critical section
+  89:Fault.c       ****  */
+  90:Fault.c       **** void fault_in_critical_section(bool s){
+  91:Fault.c       ****     _critical_section = s;
+  92:Fault.c       **** }
+  93:Fault.c       **** 
+  94:Fault.c       **** //=============================================================================
+  95:Fault.c       **** //                       Interrupt Handler Implementation
+  96:Fault.c       **** //=============================================================================
+  97:Fault.c       **** 
+  98:Fault.c       **** /**
+  99:Fault.c       ****  * Fault Detection ISR triggered on watchdog feed timer overflow. ISR will 
+ 100:Fault.c       ****  * check for all possible faults and if a fault occurs, it will cause the
+ 101:Fault.c       ****  * system to reset.
+ 102:Fault.c       ****  */
+ 103:Fault.c       **** CY_ISR(fault_detection_isr){
+ 108              		.loc 1 103 0
+ 109              		.cfi_startproc
+ 110              		@ args = 0, pretend = 0, frame = 0
+ 111              		@ frame_needed = 0, uses_anonymous_args = 0
+ 112 0000 08B5     		push	{r3, lr}
+ 113              		.cfi_def_cfa_offset 8
+ 114              		.cfi_offset 3, -8
+ 115              		.cfi_offset 14, -4
+ 104:Fault.c       ****     
+ 105:Fault.c       ****     //feed watchdog only if no faults exist
+ 106:Fault.c       ****     if(!fault_check_for_failure() || _critical_section){
+ 116              		.loc 1 106 0
+ 117 0002 FFF7FEFF 		bl	fault_check_for_failure
+ 118              	.LVL6:
+ 119 0006 20B1     		cbz	r0, .L12
+ 120              		.loc 1 106 0 is_stmt 0 discriminator 1
+ 121 0008 054B     		ldr	r3, .L15
+ 122 000a 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 5
+
+
+ 123 000c 13F0FF0F 		tst	r3, #255
+ 124 0010 01D0     		beq	.L13
+ 125              	.L12:
+ 107:Fault.c       ****         CyWdtClear();
+ 126              		.loc 1 107 0 is_stmt 1
+ 127 0012 FFF7FEFF 		bl	CyWdtClear
+ 128              	.LVL7:
+ 129              	.L13:
+ 108:Fault.c       ****     }
+ 109:Fault.c       ****         
+ 110:Fault.c       ****     //clear source of interrupt
+ 111:Fault.c       ****     Watchdog_Timer_ReadStatusRegister();
+ 130              		.loc 1 111 0
+ 131 0016 FFF7FEFF 		bl	Watchdog_Timer_ReadStatusRegister
+ 132              	.LVL8:
+ 112:Fault.c       ****     Watchdog_Timer_Overflow_Int_ClearPending();
+ 133              		.loc 1 112 0
+ 134 001a FFF7FEFF 		bl	Watchdog_Timer_Overflow_Int_ClearPending
+ 135              	.LVL9:
+ 136 001e 08BD     		pop	{r3, pc}
+ 137              	.L16:
+ 138              		.align	2
+ 139              	.L15:
+ 140 0020 00000000 		.word	.LANCHOR0
+ 141              		.cfi_endproc
+ 142              	.LFE67:
+ 143              		.size	fault_detection_isr, .-fault_detection_isr
+ 144              		.section	.text.fault_code,"ax",%progbits
+ 145              		.align	2
+ 146              		.global	fault_code
+ 147              		.thumb
+ 148              		.thumb_func
+ 149              		.type	fault_code, %function
+ 150              	fault_code:
+ 151              	.LFB65:
+  76:Fault.c       ****     uint8_t code = 0x00;
+ 152              		.loc 1 76 0
+ 153              		.cfi_startproc
+ 154              		@ args = 0, pretend = 0, frame = 0
+ 155              		@ frame_needed = 0, uses_anonymous_args = 0
+ 156 0000 10B5     		push	{r4, lr}
+ 157              		.cfi_def_cfa_offset 8
+ 158              		.cfi_offset 4, -8
+ 159              		.cfi_offset 14, -4
+ 160              	.LVL10:
+  78:Fault.c       ****     code += (!Motor_COP_Read()) << 1;
+ 161              		.loc 1 78 0
+ 162 0002 FFF7FEFF 		bl	Heartbeat_COP_Read
+ 163              	.LVL11:
+ 164 0006 B0FA80F4 		clz	r4, r0
+ 165 000a 6409     		lsrs	r4, r4, #5
+ 166              	.LVL12:
+  79:Fault.c       ****     code += (!UserInput_COP_Read()) << 2;
+ 167              		.loc 1 79 0
+ 168 000c FFF7FEFF 		bl	Motor_COP_Read
+ 169              	.LVL13:
+ 170 0010 08B9     		cbnz	r0, .L20
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 6
+
+
+ 171 0012 0220     		movs	r0, #2
+ 172 0014 00E0     		b	.L18
+ 173              	.L20:
+ 174 0016 0020     		movs	r0, #0
+ 175              	.L18:
+  79:Fault.c       ****     code += (!UserInput_COP_Read()) << 2;
+ 176              		.loc 1 79 0 is_stmt 0 discriminator 4
+ 177 0018 0444     		add	r4, r4, r0
+ 178              	.LVL14:
+  80:Fault.c       ****     return code;
+ 179              		.loc 1 80 0 is_stmt 1 discriminator 4
+ 180 001a FFF7FEFF 		bl	UserInput_COP_Read
+ 181              	.LVL15:
+ 182 001e 08B9     		cbnz	r0, .L21
+  80:Fault.c       ****     return code;
+ 183              		.loc 1 80 0 is_stmt 0
+ 184 0020 0420     		movs	r0, #4
+ 185 0022 00E0     		b	.L19
+ 186              	.L21:
+ 187 0024 0020     		movs	r0, #0
+ 188              	.L19:
+  80:Fault.c       ****     return code;
+ 189              		.loc 1 80 0 discriminator 4
+ 190 0026 2044     		add	r0, r0, r4
+ 191              	.LVL16:
+  82:Fault.c       **** 
+ 192              		.loc 1 82 0 is_stmt 1 discriminator 4
+ 193 0028 C0B2     		uxtb	r0, r0
+ 194 002a 10BD     		pop	{r4, pc}
+ 195              		.cfi_endproc
+ 196              	.LFE65:
+ 197              		.size	fault_code, .-fault_code
+ 198              		.section	.text.fault_in_critical_section,"ax",%progbits
+ 199              		.align	2
+ 200              		.global	fault_in_critical_section
+ 201              		.thumb
+ 202              		.thumb_func
+ 203              		.type	fault_in_critical_section, %function
+ 204              	fault_in_critical_section:
+ 205              	.LFB66:
+  90:Fault.c       ****     _critical_section = s;
+ 206              		.loc 1 90 0
+ 207              		.cfi_startproc
+ 208              		@ args = 0, pretend = 0, frame = 0
+ 209              		@ frame_needed = 0, uses_anonymous_args = 0
+ 210              		@ link register save eliminated.
+ 211              	.LVL17:
+  91:Fault.c       **** }
+ 212              		.loc 1 91 0
+ 213 0000 014B     		ldr	r3, .L24
+ 214 0002 1870     		strb	r0, [r3]
+ 215 0004 7047     		bx	lr
+ 216              	.L25:
+ 217 0006 00BF     		.align	2
+ 218              	.L24:
+ 219 0008 00000000 		.word	.LANCHOR0
+ 220              		.cfi_endproc
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 7
+
+
+ 221              	.LFE66:
+ 222              		.size	fault_in_critical_section, .-fault_in_critical_section
+ 223              		.bss
+ 224              		.set	.LANCHOR0,. + 0
+ 225              		.type	_critical_section, %object
+ 226              		.size	_critical_section, 1
+ 227              	_critical_section:
+ 228 0000 00       		.space	1
+ 229              		.text
+ 230              	.Letext0:
+ 231              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 232              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 233              		.file 4 "Generated_Source\\PSoC5/Watchdog_Timer_Overflow_Int.h"
+ 234              		.file 5 "Generated_Source\\PSoC5/Watchdog_Timer.h"
+ 235              		.file 6 "Generated_Source\\PSoC5/CyLib.h"
+ 236              		.file 7 "Generated_Source\\PSoC5/Heartbeat_COP.h"
+ 237              		.file 8 "Generated_Source\\PSoC5/Motor_COP.h"
+ 238              		.file 9 "Generated_Source\\PSoC5/UserInput_COP.h"
+ 239              		.file 10 "Generated_Source\\PSoC5/core_cm3.h"
+ 240              		.section	.debug_info,"",%progbits
+ 241              	.Ldebug_info0:
+ 242 0000 66020000 		.4byte	0x266
+ 243 0004 0400     		.2byte	0x4
+ 244 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 245 000a 04       		.byte	0x4
+ 246 000b 01       		.uleb128 0x1
+ 247 000c 7C000000 		.4byte	.LASF35
+ 248 0010 0C       		.byte	0xc
+ 249 0011 5B020000 		.4byte	.LASF36
+ 250 0015 BA020000 		.4byte	.LASF37
+ 251 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 252 001d 00000000 		.4byte	0
+ 253 0021 00000000 		.4byte	.Ldebug_line0
+ 254 0025 02       		.uleb128 0x2
+ 255 0026 01       		.byte	0x1
+ 256 0027 06       		.byte	0x6
+ 257 0028 62000000 		.4byte	.LASF0
+ 258 002c 03       		.uleb128 0x3
+ 259 002d 00000000 		.4byte	.LASF4
+ 260 0031 02       		.byte	0x2
+ 261 0032 1D       		.byte	0x1d
+ 262 0033 37000000 		.4byte	0x37
+ 263 0037 02       		.uleb128 0x2
+ 264 0038 01       		.byte	0x1
+ 265 0039 08       		.byte	0x8
+ 266 003a 6E000000 		.4byte	.LASF1
+ 267 003e 02       		.uleb128 0x2
+ 268 003f 02       		.byte	0x2
+ 269 0040 05       		.byte	0x5
+ 270 0041 63020000 		.4byte	.LASF2
+ 271 0045 02       		.uleb128 0x2
+ 272 0046 02       		.byte	0x2
+ 273 0047 07       		.byte	0x7
+ 274 0048 1C010000 		.4byte	.LASF3
+ 275 004c 03       		.uleb128 0x3
+ 276 004d 0A000000 		.4byte	.LASF5
+ 277 0051 02       		.byte	0x2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 8
+
+
+ 278 0052 3F       		.byte	0x3f
+ 279 0053 57000000 		.4byte	0x57
+ 280 0057 02       		.uleb128 0x2
+ 281 0058 04       		.byte	0x4
+ 282 0059 05       		.byte	0x5
+ 283 005a 7C020000 		.4byte	.LASF6
+ 284 005e 02       		.uleb128 0x2
+ 285 005f 04       		.byte	0x4
+ 286 0060 07       		.byte	0x7
+ 287 0061 0A010000 		.4byte	.LASF7
+ 288 0065 02       		.uleb128 0x2
+ 289 0066 08       		.byte	0x8
+ 290 0067 05       		.byte	0x5
+ 291 0068 33020000 		.4byte	.LASF8
+ 292 006c 02       		.uleb128 0x2
+ 293 006d 08       		.byte	0x8
+ 294 006e 07       		.byte	0x7
+ 295 006f E5010000 		.4byte	.LASF9
+ 296 0073 04       		.uleb128 0x4
+ 297 0074 04       		.byte	0x4
+ 298 0075 05       		.byte	0x5
+ 299 0076 696E7400 		.ascii	"int\000"
+ 300 007a 02       		.uleb128 0x2
+ 301 007b 04       		.byte	0x4
+ 302 007c 07       		.byte	0x7
+ 303 007d 9C010000 		.4byte	.LASF10
+ 304 0081 03       		.uleb128 0x3
+ 305 0082 FC010000 		.4byte	.LASF11
+ 306 0086 03       		.byte	0x3
+ 307 0087 18       		.byte	0x18
+ 308 0088 2C000000 		.4byte	0x2c
+ 309 008c 03       		.uleb128 0x3
+ 310 008d 22020000 		.4byte	.LASF12
+ 311 0091 03       		.byte	0x3
+ 312 0092 2C       		.byte	0x2c
+ 313 0093 4C000000 		.4byte	0x4c
+ 314 0097 02       		.uleb128 0x2
+ 315 0098 04       		.byte	0x4
+ 316 0099 04       		.byte	0x4
+ 317 009a 5C000000 		.4byte	.LASF13
+ 318 009e 02       		.uleb128 0x2
+ 319 009f 08       		.byte	0x8
+ 320 00a0 04       		.byte	0x4
+ 321 00a1 59010000 		.4byte	.LASF14
+ 322 00a5 02       		.uleb128 0x2
+ 323 00a6 01       		.byte	0x1
+ 324 00a7 08       		.byte	0x8
+ 325 00a8 85020000 		.4byte	.LASF15
+ 326 00ac 02       		.uleb128 0x2
+ 327 00ad 08       		.byte	0x8
+ 328 00ae 04       		.byte	0x4
+ 329 00af 8A020000 		.4byte	.LASF16
+ 330 00b3 02       		.uleb128 0x2
+ 331 00b4 04       		.byte	0x4
+ 332 00b5 07       		.byte	0x7
+ 333 00b6 2A020000 		.4byte	.LASF17
+ 334 00ba 05       		.uleb128 0x5
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 9
+
+
+ 335 00bb 96020000 		.4byte	.LASF19
+ 336 00bf 01       		.byte	0x1
+ 337 00c0 2E       		.byte	0x2e
+ 338 00c1 00000000 		.4byte	.LFB63
+ 339 00c5 1C000000 		.4byte	.LFE63-.LFB63
+ 340 00c9 01       		.uleb128 0x1
+ 341 00ca 9C       		.byte	0x9c
+ 342 00cb 04010000 		.4byte	0x104
+ 343 00cf 06       		.uleb128 0x6
+ 344 00d0 08000000 		.4byte	.LVL0
+ 345 00d4 06020000 		.4byte	0x206
+ 346 00d8 E6000000 		.4byte	0xe6
+ 347 00dc 07       		.uleb128 0x7
+ 348 00dd 01       		.uleb128 0x1
+ 349 00de 50       		.byte	0x50
+ 350 00df 05       		.uleb128 0x5
+ 351 00e0 03       		.byte	0x3
+ 352 00e1 00000000 		.4byte	fault_detection_isr
+ 353 00e5 00       		.byte	0
+ 354 00e6 08       		.uleb128 0x8
+ 355 00e7 0C000000 		.4byte	.LVL1
+ 356 00eb 11020000 		.4byte	0x211
+ 357 00ef 09       		.uleb128 0x9
+ 358 00f0 14000000 		.4byte	.LVL2
+ 359 00f4 1C020000 		.4byte	0x21c
+ 360 00f8 07       		.uleb128 0x7
+ 361 00f9 01       		.uleb128 0x1
+ 362 00fa 50       		.byte	0x50
+ 363 00fb 01       		.uleb128 0x1
+ 364 00fc 32       		.byte	0x32
+ 365 00fd 07       		.uleb128 0x7
+ 366 00fe 01       		.uleb128 0x1
+ 367 00ff 51       		.byte	0x51
+ 368 0100 01       		.uleb128 0x1
+ 369 0101 30       		.byte	0x30
+ 370 0102 00       		.byte	0
+ 371 0103 00       		.byte	0
+ 372 0104 0A       		.uleb128 0xa
+ 373 0105 A9010000 		.4byte	.LASF21
+ 374 0109 01       		.byte	0x1
+ 375 010a 3B       		.byte	0x3b
+ 376 010b 39010000 		.4byte	0x139
+ 377 010f 00000000 		.4byte	.LFB64
+ 378 0113 24000000 		.4byte	.LFE64-.LFB64
+ 379 0117 01       		.uleb128 0x1
+ 380 0118 9C       		.byte	0x9c
+ 381 0119 39010000 		.4byte	0x139
+ 382 011d 08       		.uleb128 0x8
+ 383 011e 06000000 		.4byte	.LVL3
+ 384 0122 27020000 		.4byte	0x227
+ 385 0126 08       		.uleb128 0x8
+ 386 0127 0C000000 		.4byte	.LVL4
+ 387 012b 32020000 		.4byte	0x232
+ 388 012f 08       		.uleb128 0x8
+ 389 0130 12000000 		.4byte	.LVL5
+ 390 0134 3D020000 		.4byte	0x23d
+ 391 0138 00       		.byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 10
+
+
+ 392 0139 02       		.uleb128 0x2
+ 393 013a 01       		.byte	0x1
+ 394 013b 02       		.byte	0x2
+ 395 013c B4020000 		.4byte	.LASF18
+ 396 0140 05       		.uleb128 0x5
+ 397 0141 3D000000 		.4byte	.LASF20
+ 398 0145 01       		.byte	0x1
+ 399 0146 67       		.byte	0x67
+ 400 0147 00000000 		.4byte	.LFB67
+ 401 014b 24000000 		.4byte	.LFE67-.LFB67
+ 402 014f 01       		.uleb128 0x1
+ 403 0150 9C       		.byte	0x9c
+ 404 0151 7A010000 		.4byte	0x17a
+ 405 0155 08       		.uleb128 0x8
+ 406 0156 06000000 		.4byte	.LVL6
+ 407 015a 04010000 		.4byte	0x104
+ 408 015e 08       		.uleb128 0x8
+ 409 015f 16000000 		.4byte	.LVL7
+ 410 0163 48020000 		.4byte	0x248
+ 411 0167 08       		.uleb128 0x8
+ 412 0168 1A000000 		.4byte	.LVL8
+ 413 016c 53020000 		.4byte	0x253
+ 414 0170 08       		.uleb128 0x8
+ 415 0171 1E000000 		.4byte	.LVL9
+ 416 0175 5E020000 		.4byte	0x25e
+ 417 0179 00       		.byte	0
+ 418 017a 0A       		.uleb128 0xa
+ 419 017b 51000000 		.4byte	.LASF22
+ 420 017f 01       		.byte	0x1
+ 421 0180 4C       		.byte	0x4c
+ 422 0181 81000000 		.4byte	0x81
+ 423 0185 00000000 		.4byte	.LFB65
+ 424 0189 2C000000 		.4byte	.LFE65-.LFB65
+ 425 018d 01       		.uleb128 0x1
+ 426 018e 9C       		.byte	0x9c
+ 427 018f BE010000 		.4byte	0x1be
+ 428 0193 0B       		.uleb128 0xb
+ 429 0194 60010000 		.4byte	.LASF24
+ 430 0198 01       		.byte	0x1
+ 431 0199 4D       		.byte	0x4d
+ 432 019a 81000000 		.4byte	0x81
+ 433 019e 00000000 		.4byte	.LLST0
+ 434 01a2 08       		.uleb128 0x8
+ 435 01a3 06000000 		.4byte	.LVL11
+ 436 01a7 27020000 		.4byte	0x227
+ 437 01ab 08       		.uleb128 0x8
+ 438 01ac 10000000 		.4byte	.LVL13
+ 439 01b0 32020000 		.4byte	0x232
+ 440 01b4 08       		.uleb128 0x8
+ 441 01b5 1E000000 		.4byte	.LVL15
+ 442 01b9 3D020000 		.4byte	0x23d
+ 443 01bd 00       		.byte	0
+ 444 01be 05       		.uleb128 0x5
+ 445 01bf 41020000 		.4byte	.LASF23
+ 446 01c3 01       		.byte	0x1
+ 447 01c4 5A       		.byte	0x5a
+ 448 01c5 00000000 		.4byte	.LFB66
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 11
+
+
+ 449 01c9 0C000000 		.4byte	.LFE66-.LFB66
+ 450 01cd 01       		.uleb128 0x1
+ 451 01ce 9C       		.byte	0x9c
+ 452 01cf DF010000 		.4byte	0x1df
+ 453 01d3 0C       		.uleb128 0xc
+ 454 01d4 7300     		.ascii	"s\000"
+ 455 01d6 01       		.byte	0x1
+ 456 01d7 5A       		.byte	0x5a
+ 457 01d8 39010000 		.4byte	0x139
+ 458 01dc 01       		.uleb128 0x1
+ 459 01dd 50       		.byte	0x50
+ 460 01de 00       		.byte	0
+ 461 01df 0D       		.uleb128 0xd
+ 462 01e0 2F010000 		.4byte	.LASF25
+ 463 01e4 01       		.byte	0x1
+ 464 01e5 25       		.byte	0x25
+ 465 01e6 F0010000 		.4byte	0x1f0
+ 466 01ea 05       		.uleb128 0x5
+ 467 01eb 03       		.byte	0x3
+ 468 01ec 00000000 		.4byte	_critical_section
+ 469 01f0 0E       		.uleb128 0xe
+ 470 01f1 39010000 		.4byte	0x139
+ 471 01f5 0F       		.uleb128 0xf
+ 472 01f6 41010000 		.4byte	.LASF38
+ 473 01fa 0A       		.byte	0xa
+ 474 01fb 1207     		.2byte	0x712
+ 475 01fd 01020000 		.4byte	0x201
+ 476 0201 0E       		.uleb128 0xe
+ 477 0202 8C000000 		.4byte	0x8c
+ 478 0206 10       		.uleb128 0x10
+ 479 0207 C1010000 		.4byte	.LASF26
+ 480 020b C1010000 		.4byte	.LASF26
+ 481 020f 04       		.byte	0x4
+ 482 0210 18       		.byte	0x18
+ 483 0211 10       		.uleb128 0x10
+ 484 0212 87010000 		.4byte	.LASF27
+ 485 0216 87010000 		.4byte	.LASF27
+ 486 021a 05       		.byte	0x5
+ 487 021b 5A       		.byte	0x5a
+ 488 021c 10       		.uleb128 0x10
+ 489 021d 04020000 		.4byte	.LASF28
+ 490 0221 04020000 		.4byte	.LASF28
+ 491 0225 06       		.byte	0x6
+ 492 0226 72       		.byte	0x72
+ 493 0227 10       		.uleb128 0x10
+ 494 0228 A1020000 		.4byte	.LASF29
+ 495 022c A1020000 		.4byte	.LASF29
+ 496 0230 07       		.byte	0x7
+ 497 0231 29       		.byte	0x29
+ 498 0232 10       		.uleb128 0x10
+ 499 0233 6D020000 		.4byte	.LASF30
+ 500 0237 6D020000 		.4byte	.LASF30
+ 501 023b 08       		.byte	0x8
+ 502 023c 29       		.byte	0x29
+ 503 023d 10       		.uleb128 0x10
+ 504 023e 0F020000 		.4byte	.LASF31
+ 505 0242 0F020000 		.4byte	.LASF31
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 12
+
+
+ 506 0246 09       		.byte	0x9
+ 507 0247 29       		.byte	0x29
+ 508 0248 10       		.uleb128 0x10
+ 509 0249 4E010000 		.4byte	.LASF32
+ 510 024d 4E010000 		.4byte	.LASF32
+ 511 0251 06       		.byte	0x6
+ 512 0252 73       		.byte	0x73
+ 513 0253 10       		.uleb128 0x10
+ 514 0254 65010000 		.4byte	.LASF33
+ 515 0258 65010000 		.4byte	.LASF33
+ 516 025c 05       		.byte	0x5
+ 517 025d 5E       		.byte	0x5e
+ 518 025e 10       		.uleb128 0x10
+ 519 025f 14000000 		.4byte	.LASF34
+ 520 0263 14000000 		.4byte	.LASF34
+ 521 0267 04       		.byte	0x4
+ 522 0268 28       		.byte	0x28
+ 523 0269 00       		.byte	0
+ 524              		.section	.debug_abbrev,"",%progbits
+ 525              	.Ldebug_abbrev0:
+ 526 0000 01       		.uleb128 0x1
+ 527 0001 11       		.uleb128 0x11
+ 528 0002 01       		.byte	0x1
+ 529 0003 25       		.uleb128 0x25
+ 530 0004 0E       		.uleb128 0xe
+ 531 0005 13       		.uleb128 0x13
+ 532 0006 0B       		.uleb128 0xb
+ 533 0007 03       		.uleb128 0x3
+ 534 0008 0E       		.uleb128 0xe
+ 535 0009 1B       		.uleb128 0x1b
+ 536 000a 0E       		.uleb128 0xe
+ 537 000b 55       		.uleb128 0x55
+ 538 000c 17       		.uleb128 0x17
+ 539 000d 11       		.uleb128 0x11
+ 540 000e 01       		.uleb128 0x1
+ 541 000f 10       		.uleb128 0x10
+ 542 0010 17       		.uleb128 0x17
+ 543 0011 00       		.byte	0
+ 544 0012 00       		.byte	0
+ 545 0013 02       		.uleb128 0x2
+ 546 0014 24       		.uleb128 0x24
+ 547 0015 00       		.byte	0
+ 548 0016 0B       		.uleb128 0xb
+ 549 0017 0B       		.uleb128 0xb
+ 550 0018 3E       		.uleb128 0x3e
+ 551 0019 0B       		.uleb128 0xb
+ 552 001a 03       		.uleb128 0x3
+ 553 001b 0E       		.uleb128 0xe
+ 554 001c 00       		.byte	0
+ 555 001d 00       		.byte	0
+ 556 001e 03       		.uleb128 0x3
+ 557 001f 16       		.uleb128 0x16
+ 558 0020 00       		.byte	0
+ 559 0021 03       		.uleb128 0x3
+ 560 0022 0E       		.uleb128 0xe
+ 561 0023 3A       		.uleb128 0x3a
+ 562 0024 0B       		.uleb128 0xb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 13
+
+
+ 563 0025 3B       		.uleb128 0x3b
+ 564 0026 0B       		.uleb128 0xb
+ 565 0027 49       		.uleb128 0x49
+ 566 0028 13       		.uleb128 0x13
+ 567 0029 00       		.byte	0
+ 568 002a 00       		.byte	0
+ 569 002b 04       		.uleb128 0x4
+ 570 002c 24       		.uleb128 0x24
+ 571 002d 00       		.byte	0
+ 572 002e 0B       		.uleb128 0xb
+ 573 002f 0B       		.uleb128 0xb
+ 574 0030 3E       		.uleb128 0x3e
+ 575 0031 0B       		.uleb128 0xb
+ 576 0032 03       		.uleb128 0x3
+ 577 0033 08       		.uleb128 0x8
+ 578 0034 00       		.byte	0
+ 579 0035 00       		.byte	0
+ 580 0036 05       		.uleb128 0x5
+ 581 0037 2E       		.uleb128 0x2e
+ 582 0038 01       		.byte	0x1
+ 583 0039 3F       		.uleb128 0x3f
+ 584 003a 19       		.uleb128 0x19
+ 585 003b 03       		.uleb128 0x3
+ 586 003c 0E       		.uleb128 0xe
+ 587 003d 3A       		.uleb128 0x3a
+ 588 003e 0B       		.uleb128 0xb
+ 589 003f 3B       		.uleb128 0x3b
+ 590 0040 0B       		.uleb128 0xb
+ 591 0041 27       		.uleb128 0x27
+ 592 0042 19       		.uleb128 0x19
+ 593 0043 11       		.uleb128 0x11
+ 594 0044 01       		.uleb128 0x1
+ 595 0045 12       		.uleb128 0x12
+ 596 0046 06       		.uleb128 0x6
+ 597 0047 40       		.uleb128 0x40
+ 598 0048 18       		.uleb128 0x18
+ 599 0049 9742     		.uleb128 0x2117
+ 600 004b 19       		.uleb128 0x19
+ 601 004c 01       		.uleb128 0x1
+ 602 004d 13       		.uleb128 0x13
+ 603 004e 00       		.byte	0
+ 604 004f 00       		.byte	0
+ 605 0050 06       		.uleb128 0x6
+ 606 0051 898201   		.uleb128 0x4109
+ 607 0054 01       		.byte	0x1
+ 608 0055 11       		.uleb128 0x11
+ 609 0056 01       		.uleb128 0x1
+ 610 0057 31       		.uleb128 0x31
+ 611 0058 13       		.uleb128 0x13
+ 612 0059 01       		.uleb128 0x1
+ 613 005a 13       		.uleb128 0x13
+ 614 005b 00       		.byte	0
+ 615 005c 00       		.byte	0
+ 616 005d 07       		.uleb128 0x7
+ 617 005e 8A8201   		.uleb128 0x410a
+ 618 0061 00       		.byte	0
+ 619 0062 02       		.uleb128 0x2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 14
+
+
+ 620 0063 18       		.uleb128 0x18
+ 621 0064 9142     		.uleb128 0x2111
+ 622 0066 18       		.uleb128 0x18
+ 623 0067 00       		.byte	0
+ 624 0068 00       		.byte	0
+ 625 0069 08       		.uleb128 0x8
+ 626 006a 898201   		.uleb128 0x4109
+ 627 006d 00       		.byte	0
+ 628 006e 11       		.uleb128 0x11
+ 629 006f 01       		.uleb128 0x1
+ 630 0070 31       		.uleb128 0x31
+ 631 0071 13       		.uleb128 0x13
+ 632 0072 00       		.byte	0
+ 633 0073 00       		.byte	0
+ 634 0074 09       		.uleb128 0x9
+ 635 0075 898201   		.uleb128 0x4109
+ 636 0078 01       		.byte	0x1
+ 637 0079 11       		.uleb128 0x11
+ 638 007a 01       		.uleb128 0x1
+ 639 007b 31       		.uleb128 0x31
+ 640 007c 13       		.uleb128 0x13
+ 641 007d 00       		.byte	0
+ 642 007e 00       		.byte	0
+ 643 007f 0A       		.uleb128 0xa
+ 644 0080 2E       		.uleb128 0x2e
+ 645 0081 01       		.byte	0x1
+ 646 0082 3F       		.uleb128 0x3f
+ 647 0083 19       		.uleb128 0x19
+ 648 0084 03       		.uleb128 0x3
+ 649 0085 0E       		.uleb128 0xe
+ 650 0086 3A       		.uleb128 0x3a
+ 651 0087 0B       		.uleb128 0xb
+ 652 0088 3B       		.uleb128 0x3b
+ 653 0089 0B       		.uleb128 0xb
+ 654 008a 27       		.uleb128 0x27
+ 655 008b 19       		.uleb128 0x19
+ 656 008c 49       		.uleb128 0x49
+ 657 008d 13       		.uleb128 0x13
+ 658 008e 11       		.uleb128 0x11
+ 659 008f 01       		.uleb128 0x1
+ 660 0090 12       		.uleb128 0x12
+ 661 0091 06       		.uleb128 0x6
+ 662 0092 40       		.uleb128 0x40
+ 663 0093 18       		.uleb128 0x18
+ 664 0094 9742     		.uleb128 0x2117
+ 665 0096 19       		.uleb128 0x19
+ 666 0097 01       		.uleb128 0x1
+ 667 0098 13       		.uleb128 0x13
+ 668 0099 00       		.byte	0
+ 669 009a 00       		.byte	0
+ 670 009b 0B       		.uleb128 0xb
+ 671 009c 34       		.uleb128 0x34
+ 672 009d 00       		.byte	0
+ 673 009e 03       		.uleb128 0x3
+ 674 009f 0E       		.uleb128 0xe
+ 675 00a0 3A       		.uleb128 0x3a
+ 676 00a1 0B       		.uleb128 0xb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 15
+
+
+ 677 00a2 3B       		.uleb128 0x3b
+ 678 00a3 0B       		.uleb128 0xb
+ 679 00a4 49       		.uleb128 0x49
+ 680 00a5 13       		.uleb128 0x13
+ 681 00a6 02       		.uleb128 0x2
+ 682 00a7 17       		.uleb128 0x17
+ 683 00a8 00       		.byte	0
+ 684 00a9 00       		.byte	0
+ 685 00aa 0C       		.uleb128 0xc
+ 686 00ab 05       		.uleb128 0x5
+ 687 00ac 00       		.byte	0
+ 688 00ad 03       		.uleb128 0x3
+ 689 00ae 08       		.uleb128 0x8
+ 690 00af 3A       		.uleb128 0x3a
+ 691 00b0 0B       		.uleb128 0xb
+ 692 00b1 3B       		.uleb128 0x3b
+ 693 00b2 0B       		.uleb128 0xb
+ 694 00b3 49       		.uleb128 0x49
+ 695 00b4 13       		.uleb128 0x13
+ 696 00b5 02       		.uleb128 0x2
+ 697 00b6 18       		.uleb128 0x18
+ 698 00b7 00       		.byte	0
+ 699 00b8 00       		.byte	0
+ 700 00b9 0D       		.uleb128 0xd
+ 701 00ba 34       		.uleb128 0x34
+ 702 00bb 00       		.byte	0
+ 703 00bc 03       		.uleb128 0x3
+ 704 00bd 0E       		.uleb128 0xe
+ 705 00be 3A       		.uleb128 0x3a
+ 706 00bf 0B       		.uleb128 0xb
+ 707 00c0 3B       		.uleb128 0x3b
+ 708 00c1 0B       		.uleb128 0xb
+ 709 00c2 49       		.uleb128 0x49
+ 710 00c3 13       		.uleb128 0x13
+ 711 00c4 02       		.uleb128 0x2
+ 712 00c5 18       		.uleb128 0x18
+ 713 00c6 00       		.byte	0
+ 714 00c7 00       		.byte	0
+ 715 00c8 0E       		.uleb128 0xe
+ 716 00c9 35       		.uleb128 0x35
+ 717 00ca 00       		.byte	0
+ 718 00cb 49       		.uleb128 0x49
+ 719 00cc 13       		.uleb128 0x13
+ 720 00cd 00       		.byte	0
+ 721 00ce 00       		.byte	0
+ 722 00cf 0F       		.uleb128 0xf
+ 723 00d0 34       		.uleb128 0x34
+ 724 00d1 00       		.byte	0
+ 725 00d2 03       		.uleb128 0x3
+ 726 00d3 0E       		.uleb128 0xe
+ 727 00d4 3A       		.uleb128 0x3a
+ 728 00d5 0B       		.uleb128 0xb
+ 729 00d6 3B       		.uleb128 0x3b
+ 730 00d7 05       		.uleb128 0x5
+ 731 00d8 49       		.uleb128 0x49
+ 732 00d9 13       		.uleb128 0x13
+ 733 00da 3F       		.uleb128 0x3f
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 16
+
+
+ 734 00db 19       		.uleb128 0x19
+ 735 00dc 3C       		.uleb128 0x3c
+ 736 00dd 19       		.uleb128 0x19
+ 737 00de 00       		.byte	0
+ 738 00df 00       		.byte	0
+ 739 00e0 10       		.uleb128 0x10
+ 740 00e1 2E       		.uleb128 0x2e
+ 741 00e2 00       		.byte	0
+ 742 00e3 3F       		.uleb128 0x3f
+ 743 00e4 19       		.uleb128 0x19
+ 744 00e5 3C       		.uleb128 0x3c
+ 745 00e6 19       		.uleb128 0x19
+ 746 00e7 6E       		.uleb128 0x6e
+ 747 00e8 0E       		.uleb128 0xe
+ 748 00e9 03       		.uleb128 0x3
+ 749 00ea 0E       		.uleb128 0xe
+ 750 00eb 3A       		.uleb128 0x3a
+ 751 00ec 0B       		.uleb128 0xb
+ 752 00ed 3B       		.uleb128 0x3b
+ 753 00ee 0B       		.uleb128 0xb
+ 754 00ef 00       		.byte	0
+ 755 00f0 00       		.byte	0
+ 756 00f1 00       		.byte	0
+ 757              		.section	.debug_loc,"",%progbits
+ 758              	.Ldebug_loc0:
+ 759              	.LLST0:
+ 760 0000 02000000 		.4byte	.LVL10
+ 761 0004 0C000000 		.4byte	.LVL12
+ 762 0008 0200     		.2byte	0x2
+ 763 000a 30       		.byte	0x30
+ 764 000b 9F       		.byte	0x9f
+ 765 000c 0C000000 		.4byte	.LVL12
+ 766 0010 28000000 		.4byte	.LVL16
+ 767 0014 0100     		.2byte	0x1
+ 768 0016 54       		.byte	0x54
+ 769 0017 28000000 		.4byte	.LVL16
+ 770 001b 2C000000 		.4byte	.LFE65
+ 771 001f 0100     		.2byte	0x1
+ 772 0021 50       		.byte	0x50
+ 773 0022 00000000 		.4byte	0
+ 774 0026 00000000 		.4byte	0
+ 775              		.section	.debug_aranges,"",%progbits
+ 776 0000 3C000000 		.4byte	0x3c
+ 777 0004 0200     		.2byte	0x2
+ 778 0006 00000000 		.4byte	.Ldebug_info0
+ 779 000a 04       		.byte	0x4
+ 780 000b 00       		.byte	0
+ 781 000c 0000     		.2byte	0
+ 782 000e 0000     		.2byte	0
+ 783 0010 00000000 		.4byte	.LFB63
+ 784 0014 1C000000 		.4byte	.LFE63-.LFB63
+ 785 0018 00000000 		.4byte	.LFB64
+ 786 001c 24000000 		.4byte	.LFE64-.LFB64
+ 787 0020 00000000 		.4byte	.LFB67
+ 788 0024 24000000 		.4byte	.LFE67-.LFB67
+ 789 0028 00000000 		.4byte	.LFB65
+ 790 002c 2C000000 		.4byte	.LFE65-.LFB65
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 17
+
+
+ 791 0030 00000000 		.4byte	.LFB66
+ 792 0034 0C000000 		.4byte	.LFE66-.LFB66
+ 793 0038 00000000 		.4byte	0
+ 794 003c 00000000 		.4byte	0
+ 795              		.section	.debug_ranges,"",%progbits
+ 796              	.Ldebug_ranges0:
+ 797 0000 00000000 		.4byte	.LFB63
+ 798 0004 1C000000 		.4byte	.LFE63
+ 799 0008 00000000 		.4byte	.LFB64
+ 800 000c 24000000 		.4byte	.LFE64
+ 801 0010 00000000 		.4byte	.LFB67
+ 802 0014 24000000 		.4byte	.LFE67
+ 803 0018 00000000 		.4byte	.LFB65
+ 804 001c 2C000000 		.4byte	.LFE65
+ 805 0020 00000000 		.4byte	.LFB66
+ 806 0024 0C000000 		.4byte	.LFE66
+ 807 0028 00000000 		.4byte	0
+ 808 002c 00000000 		.4byte	0
+ 809              		.section	.debug_line,"",%progbits
+ 810              	.Ldebug_line0:
+ 811 0000 42020000 		.section	.debug_str,"MS",%progbits,1
+ 811      0200B501 
+ 811      00000201 
+ 811      FB0E0D00 
+ 811      01010101 
+ 812              	.LASF4:
+ 813 0000 5F5F7569 		.ascii	"__uint8_t\000"
+ 813      6E74385F 
+ 813      7400
+ 814              	.LASF5:
+ 815 000a 5F5F696E 		.ascii	"__int32_t\000"
+ 815      7433325F 
+ 815      7400
+ 816              	.LASF34:
+ 817 0014 57617463 		.ascii	"Watchdog_Timer_Overflow_Int_ClearPending\000"
+ 817      68646F67 
+ 817      5F54696D 
+ 817      65725F4F 
+ 817      76657266 
+ 818              	.LASF20:
+ 819 003d 6661756C 		.ascii	"fault_detection_isr\000"
+ 819      745F6465 
+ 819      74656374 
+ 819      696F6E5F 
+ 819      69737200 
+ 820              	.LASF22:
+ 821 0051 6661756C 		.ascii	"fault_code\000"
+ 821      745F636F 
+ 821      646500
+ 822              	.LASF13:
+ 823 005c 666C6F61 		.ascii	"float\000"
+ 823      7400
+ 824              	.LASF0:
+ 825 0062 7369676E 		.ascii	"signed char\000"
+ 825      65642063 
+ 825      68617200 
+ 826              	.LASF1:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 18
+
+
+ 827 006e 756E7369 		.ascii	"unsigned char\000"
+ 827      676E6564 
+ 827      20636861 
+ 827      7200
+ 828              	.LASF35:
+ 829 007c 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 829      43313120 
+ 829      352E342E 
+ 829      31203230 
+ 829      31363036 
+ 830 00af 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m3 -mthumb -g -O"
+ 830      20726576 
+ 830      6973696F 
+ 830      6E203233 
+ 830      37373135 
+ 831 00e2 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 831      66756E63 
+ 831      74696F6E 
+ 831      2D736563 
+ 831      74696F6E 
+ 832              	.LASF7:
+ 833 010a 6C6F6E67 		.ascii	"long unsigned int\000"
+ 833      20756E73 
+ 833      69676E65 
+ 833      6420696E 
+ 833      7400
+ 834              	.LASF3:
+ 835 011c 73686F72 		.ascii	"short unsigned int\000"
+ 835      7420756E 
+ 835      7369676E 
+ 835      65642069 
+ 835      6E7400
+ 836              	.LASF25:
+ 837 012f 5F637269 		.ascii	"_critical_section\000"
+ 837      74696361 
+ 837      6C5F7365 
+ 837      6374696F 
+ 837      6E00
+ 838              	.LASF38:
+ 839 0141 49544D5F 		.ascii	"ITM_RxBuffer\000"
+ 839      52784275 
+ 839      66666572 
+ 839      00
+ 840              	.LASF32:
+ 841 014e 43795764 		.ascii	"CyWdtClear\000"
+ 841      74436C65 
+ 841      617200
+ 842              	.LASF14:
+ 843 0159 646F7562 		.ascii	"double\000"
+ 843      6C6500
+ 844              	.LASF24:
+ 845 0160 636F6465 		.ascii	"code\000"
+ 845      00
+ 846              	.LASF33:
+ 847 0165 57617463 		.ascii	"Watchdog_Timer_ReadStatusRegister\000"
+ 847      68646F67 
+ 847      5F54696D 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 19
+
+
+ 847      65725F52 
+ 847      65616453 
+ 848              	.LASF27:
+ 849 0187 57617463 		.ascii	"Watchdog_Timer_Start\000"
+ 849      68646F67 
+ 849      5F54696D 
+ 849      65725F53 
+ 849      74617274 
+ 850              	.LASF10:
+ 851 019c 756E7369 		.ascii	"unsigned int\000"
+ 851      676E6564 
+ 851      20696E74 
+ 851      00
+ 852              	.LASF21:
+ 853 01a9 6661756C 		.ascii	"fault_check_for_failure\000"
+ 853      745F6368 
+ 853      65636B5F 
+ 853      666F725F 
+ 853      6661696C 
+ 854              	.LASF26:
+ 855 01c1 57617463 		.ascii	"Watchdog_Timer_Overflow_Int_StartEx\000"
+ 855      68646F67 
+ 855      5F54696D 
+ 855      65725F4F 
+ 855      76657266 
+ 856              	.LASF9:
+ 857 01e5 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 857      206C6F6E 
+ 857      6720756E 
+ 857      7369676E 
+ 857      65642069 
+ 858              	.LASF11:
+ 859 01fc 75696E74 		.ascii	"uint8_t\000"
+ 859      385F7400 
+ 860              	.LASF28:
+ 861 0204 43795764 		.ascii	"CyWdtStart\000"
+ 861      74537461 
+ 861      727400
+ 862              	.LASF31:
+ 863 020f 55736572 		.ascii	"UserInput_COP_Read\000"
+ 863      496E7075 
+ 863      745F434F 
+ 863      505F5265 
+ 863      616400
+ 864              	.LASF12:
+ 865 0222 696E7433 		.ascii	"int32_t\000"
+ 865      325F7400 
+ 866              	.LASF17:
+ 867 022a 73697A65 		.ascii	"sizetype\000"
+ 867      74797065 
+ 867      00
+ 868              	.LASF8:
+ 869 0233 6C6F6E67 		.ascii	"long long int\000"
+ 869      206C6F6E 
+ 869      6720696E 
+ 869      7400
+ 870              	.LASF23:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccxLr4vP.s 			page 20
+
+
+ 871 0241 6661756C 		.ascii	"fault_in_critical_section\000"
+ 871      745F696E 
+ 871      5F637269 
+ 871      74696361 
+ 871      6C5F7365 
+ 872              	.LASF36:
+ 873 025b 4661756C 		.ascii	"Fault.c\000"
+ 873      742E6300 
+ 874              	.LASF2:
+ 875 0263 73686F72 		.ascii	"short int\000"
+ 875      7420696E 
+ 875      7400
+ 876              	.LASF30:
+ 877 026d 4D6F746F 		.ascii	"Motor_COP_Read\000"
+ 877      725F434F 
+ 877      505F5265 
+ 877      616400
+ 878              	.LASF6:
+ 879 027c 6C6F6E67 		.ascii	"long int\000"
+ 879      20696E74 
+ 879      00
+ 880              	.LASF15:
+ 881 0285 63686172 		.ascii	"char\000"
+ 881      00
+ 882              	.LASF16:
+ 883 028a 6C6F6E67 		.ascii	"long double\000"
+ 883      20646F75 
+ 883      626C6500 
+ 884              	.LASF19:
+ 885 0296 6661756C 		.ascii	"fault_init\000"
+ 885      745F696E 
+ 885      697400
+ 886              	.LASF29:
+ 887 02a1 48656172 		.ascii	"Heartbeat_COP_Read\000"
+ 887      74626561 
+ 887      745F434F 
+ 887      505F5265 
+ 887      616400
+ 888              	.LASF18:
+ 889 02b4 5F426F6F 		.ascii	"_Bool\000"
+ 889      6C00
+ 890              	.LASF37:
+ 891 02ba 433A5C55 		.ascii	"C:\\Users\\henrichsc\\Desktop\\School\\Senior_year\\"
+ 891      73657273 
+ 891      5C68656E 
+ 891      72696368 
+ 891      73635C44 
+ 892 02e8 66616C6C 		.ascii	"fall\\CE4920\\lab\\Milestone_6.cydsn\000"
+ 892      5C434534 
+ 892      3932305C 
+ 892      6C61625C 
+ 892      4D696C65 
+ 893              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

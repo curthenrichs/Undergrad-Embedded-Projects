@@ -1,0 +1,8 @@
+C:\Users\henrichsc\Desktop\School\Senior_year\fall\CE4920\lab\project1.cydsn\project1.cyprj|68887b65-5dc2-481c-b4a1-6c3268ec0433
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\default\CyAnnotationLibrary\CyAnnotationLibrary.cylib\CyAnnotationLibrary.cyprj|aacd81a8-211c-4b40-8d34-c6fcef3ece7d
+C:\Users\henrichsc\Documents\PSoC Creator\4.1\Downloads ( 4.1).cylib\Downloads ( 4.1).cyprj|f9b5d295-cc35-4720-b56f-c1eea4c551ea
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cycomponentlibraryupdates\CyComponentLibraryUpdates.cylib\CyComponentLibraryUpdates.cyprj|c52b46a4-a55e-4186-8982-fba0c8138991
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cycomponentlibrary\CyComponentLibrary.cylib\CyComponentLibrary.cyprj|dc1233d9-801b-408a-9da0-5da149abbf2f
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\CyPrimitives.cyprj|0c776361-2394-42c6-b10d-224ab3c9624b
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\default\CyReferenceLibrary\CyReferenceLibrary.cylib\CyReferenceLibrary.cyprj|0322c1af-fe75-462a-8cb2-8646240428e8
+C:\Users\henrichsc\Desktop\School\Senior_year\fall\CE4920\lab\CapSense_CSD_Design01.cydsn\CapSense_CSD_Design01.cyprj|852a8414-b2be-4c55-a643-a341b0d51bab

@@ -1,0 +1,11 @@
+C:\Users\henrichsc\Desktop\School\Senior_year\fall\CE4920\lab\Milestone_1.cydsn\Milestone_1.cyprj|73380091-de54-4eb1-b6b7-7af9c0b35fd0
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\default\CyAnnotationLibrary\CyAnnotationLibrary.cylib\CyAnnotationLibrary.cyprj|f6e7627b-da3c-4aca-83bd-c870103e19ff
+C:\Users\henrichsc\Documents\PSoC Creator\4.1\Downloads ( 4.1).cylib\Downloads ( 4.1).cyprj|cc44bab3-4e44-48b7-bb14-42713fe7efb1
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cycomponentlibraryupdates\CyComponentLibraryUpdates.cylib\CyComponentLibraryUpdates.cyprj|65dcc56c-2908-4201-b900-29c2f6429122
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cycomponentlibrary\CyComponentLibrary.cylib\CyComponentLibrary.cyprj|cdb8b4f7-e9d6-4fd9-81e0-730f5f4b428c
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\CyPrimitives.cyprj|61ba7efa-1cbc-4a2b-a29b-44d6c43bb2a1
+C:\Users\henrichsc\Desktop\School\Senior_year\fall\CE4920\lab\Milestone_2.cydsn\Milestone_2.cyprj|3c73403b-5c29-4410-9039-304e0294501e
+C:\Users\henrichsc\Desktop\School\Senior_year\fall\CE4920\lab\USBFS_UART01.cydsn\USBFS_UART01.cyprj|c055f9b5-2f05-4e8c-b2e0-0d58088337e7
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\default\CyReferenceLibrary\CyReferenceLibrary.cylib\CyReferenceLibrary.cyprj|38059500-6137-46da-9cd8-1ceda1d17080
+C:\Users\henrichsc\Desktop\School\Senior_year\fall\CE4920\lab\Milestone_3.cydsn\Milestone_3.cyprj|7c520bf4-3e06-4d70-9804-472917838e5d
+C:\Users\henrichsc\Desktop\School\Senior_year\fall\CE4920\lab\Milestone_6.cydsn\Milestone_6.cyprj|f5c8c806-a63f-476e-a358-06feb1962395

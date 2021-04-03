@@ -1,0 +1,2422 @@
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"cymetadata.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.global	cy_metadata
+  20              		.global	cy_meta_flashprotect
+  21              		.global	cy_meta_wonvl
+  22              		.global	cy_meta_custnvl
+  23              		.global	cy_meta_configecc
+  24              		.section	.cyconfigecc,"a",%progbits
+  25              		.align	2
+  26              		.type	cy_meta_configecc, %object
+  27              		.size	cy_meta_configecc, 1820
+  28              	cy_meta_configecc:
+  29 0000 01       		.byte	1
+  30 0001 45       		.byte	69
+  31 0002 00       		.byte	0
+  32 0003 40       		.byte	64
+  33 0004 03       		.byte	3
+  34 0005 4F       		.byte	79
+  35 0006 00       		.byte	0
+  36 0007 40       		.byte	64
+  37 0008 04       		.byte	4
+  38 0009 52       		.byte	82
+  39 000a 00       		.byte	0
+  40 000b 40       		.byte	64
+  41 000c 01       		.byte	1
+  42 000d 5A       		.byte	90
+  43 000e 00       		.byte	0
+  44 000f 40       		.byte	64
+  45 0010 01       		.byte	1
+  46 0011 5B       		.byte	91
+  47 0012 00       		.byte	0
+  48 0013 40       		.byte	64
+  49 0014 07       		.byte	7
+  50 0015 64       		.byte	100
+  51 0016 00       		.byte	0
+  52 0017 40       		.byte	64
+  53 0018 03       		.byte	3
+  54 0019 65       		.byte	101
+  55 001a 00       		.byte	0
+  56 001b 40       		.byte	64
+  57 001c 02       		.byte	2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 2
+
+
+  58 001d 03       		.byte	3
+  59 001e 01       		.byte	1
+  60 001f 40       		.byte	64
+  61 0020 55       		.byte	85
+  62 0021 04       		.byte	4
+  63 0022 01       		.byte	1
+  64 0023 40       		.byte	64
+  65 0024 31       		.byte	49
+  66 0025 05       		.byte	5
+  67 0026 01       		.byte	1
+  68 0027 40       		.byte	64
+  69 0028 56       		.byte	86
+  70 0029 06       		.byte	6
+  71 002a 01       		.byte	1
+  72 002b 40       		.byte	64
+  73 002c 3B       		.byte	59
+  74 002d 07       		.byte	7
+  75 002e 01       		.byte	1
+  76 002f 40       		.byte	64
+  77 0030 04       		.byte	4
+  78 0031 09       		.byte	9
+  79 0032 01       		.byte	1
+  80 0033 40       		.byte	64
+  81 0034 02       		.byte	2
+  82 0035 0B       		.byte	11
+  83 0036 01       		.byte	1
+  84 0037 40       		.byte	64
+  85 0038 01       		.byte	1
+  86 0039 0D       		.byte	13
+  87 003a 01       		.byte	1
+  88 003b 40       		.byte	64
+  89 003c 58       		.byte	88
+  90 003d 14       		.byte	20
+  91 003e 01       		.byte	1
+  92 003f 40       		.byte	64
+  93 0040 39       		.byte	57
+  94 0041 15       		.byte	21
+  95 0042 01       		.byte	1
+  96 0043 40       		.byte	64
+  97 0044 52       		.byte	82
+  98 0045 16       		.byte	22
+  99 0046 01       		.byte	1
+ 100 0047 40       		.byte	64
+ 101 0048 31       		.byte	49
+ 102 0049 17       		.byte	23
+ 103 004a 01       		.byte	1
+ 104 004b 40       		.byte	64
+ 105 004c 01       		.byte	1
+ 106 004d 19       		.byte	25
+ 107 004e 01       		.byte	1
+ 108 004f 40       		.byte	64
+ 109 0050 40       		.byte	64
+ 110 0051 1A       		.byte	26
+ 111 0052 01       		.byte	1
+ 112 0053 40       		.byte	64
+ 113 0054 1F       		.byte	31
+ 114 0055 1B       		.byte	27
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 3
+
+
+ 115 0056 01       		.byte	1
+ 116 0057 40       		.byte	64
+ 117 0058 08       		.byte	8
+ 118 0059 40       		.byte	64
+ 119 005a 01       		.byte	1
+ 120 005b 40       		.byte	64
+ 121 005c 0C       		.byte	12
+ 122 005d 41       		.byte	65
+ 123 005e 01       		.byte	1
+ 124 005f 40       		.byte	64
+ 125 0060 09       		.byte	9
+ 126 0061 42       		.byte	66
+ 127 0062 01       		.byte	1
+ 128 0063 40       		.byte	64
+ 129 0064 10       		.byte	16
+ 130 0065 43       		.byte	67
+ 131 0066 01       		.byte	1
+ 132 0067 40       		.byte	64
+ 133 0068 02       		.byte	2
+ 134 0069 44       		.byte	68
+ 135 006a 01       		.byte	1
+ 136 006b 40       		.byte	64
+ 137 006c 04       		.byte	4
+ 138 006d 45       		.byte	69
+ 139 006e 01       		.byte	1
+ 140 006f 40       		.byte	64
+ 141 0070 0A       		.byte	10
+ 142 0071 46       		.byte	70
+ 143 0072 01       		.byte	1
+ 144 0073 40       		.byte	64
+ 145 0074 0E       		.byte	14
+ 146 0075 47       		.byte	71
+ 147 0076 01       		.byte	1
+ 148 0077 40       		.byte	64
+ 149 0078 0D       		.byte	13
+ 150 0079 48       		.byte	72
+ 151 007a 01       		.byte	1
+ 152 007b 40       		.byte	64
+ 153 007c 0C       		.byte	12
+ 154 007d 49       		.byte	73
+ 155 007e 01       		.byte	1
+ 156 007f 40       		.byte	64
+ 157 0080 04       		.byte	4
+ 158 0081 4C       		.byte	76
+ 159 0082 01       		.byte	1
+ 160 0083 40       		.byte	64
+ 161 0084 0A       		.byte	10
+ 162 0085 4D       		.byte	77
+ 163 0086 01       		.byte	1
+ 164 0087 40       		.byte	64
+ 165 0088 05       		.byte	5
+ 166 0089 50       		.byte	80
+ 167 008a 01       		.byte	1
+ 168 008b 40       		.byte	64
+ 169 008c 03       		.byte	3
+ 170 008d 51       		.byte	81
+ 171 008e 01       		.byte	1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 4
+
+
+ 172 008f 40       		.byte	64
+ 173 0090 7E       		.byte	126
+ 174 0091 02       		.byte	2
+ 175 0092 0A       		.byte	10
+ 176 0093 72       		.byte	114
+ 177 0094 0D       		.byte	13
+ 178 0095 20       		.byte	32
+ 179 0096 16       		.byte	22
+ 180 0097 1B       		.byte	27
+ 181 0098 2E       		.byte	46
+ 182 0099 7F       		.byte	127
+ 183 009a 60       		.byte	96
+ 184 009b 10       		.byte	16
+ 185 009c 61       		.byte	97
+ 186 009d 30       		.byte	48
+ 187 009e 7C       		.byte	124
+ 188 009f 40       		.byte	64
+ 189 00a0 97       		.byte	-105
+ 190 00a1 01       		.byte	1
+ 191 00a2 27       		.byte	39
+ 192 00a3 84       		.byte	-124
+ 193 00a4 04       		.byte	4
+ 194 00a5 FF       		.byte	-1
+ 195 00a6 05       		.byte	5
+ 196 00a7 FF       		.byte	-1
+ 197 00a8 14       		.byte	20
+ 198 00a9 FF       		.byte	-1
+ 199 00aa 15       		.byte	21
+ 200 00ab FF       		.byte	-1
+ 201 00ac 24       		.byte	36
+ 202 00ad FF       		.byte	-1
+ 203 00ae 25       		.byte	37
+ 204 00af FF       		.byte	-1
+ 205 00b0 87       		.byte	-121
+ 206 00b1 1F       		.byte	31
+ 207 00b2 85       		.byte	-123
+ 208 00b3 67       		.byte	103
+ 209 00b4 87       		.byte	-121
+ 210 00b5 67       		.byte	103
+ 211 00b6 8B       		.byte	-117
+ 212 00b7 0D       		.byte	13
+ 213 00b8 87       		.byte	-121
+ 214 00b9 04       		.byte	4
+ 215 00ba E6       		.byte	-26
+ 216 00bb 02       		.byte	2
+ 217 00bc 04       		.byte	4
+ 218 00bd 04       		.byte	4
+ 219 00be 06       		.byte	6
+ 220 00bf 01       		.byte	1
+ 221 00c0 26       		.byte	38
+ 222 00c1 05       		.byte	5
+ 223 00c2 28       		.byte	40
+ 224 00c3 04       		.byte	4
+ 225 00c4 2A       		.byte	42
+ 226 00c5 02       		.byte	2
+ 227 00c6 2C       		.byte	44
+ 228 00c7 01       		.byte	1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 5
+
+
+ 229 00c8 2E       		.byte	46
+ 230 00c9 04       		.byte	4
+ 231 00ca 32       		.byte	50
+ 232 00cb 04       		.byte	4
+ 233 00cc 34       		.byte	52
+ 234 00cd 03       		.byte	3
+ 235 00ce 3E       		.byte	62
+ 236 00cf 14       		.byte	20
+ 237 00d0 40       		.byte	64
+ 238 00d1 32       		.byte	50
+ 239 00d2 41       		.byte	65
+ 240 00d3 04       		.byte	4
+ 241 00d4 45       		.byte	69
+ 242 00d5 02       		.byte	2
+ 243 00d6 46       		.byte	70
+ 244 00d7 60       		.byte	96
+ 245 00d8 47       		.byte	71
+ 246 00d9 22       		.byte	34
+ 247 00da 48       		.byte	72
+ 248 00db 39       		.byte	57
+ 249 00dc 58       		.byte	88
+ 250 00dd 04       		.byte	4
+ 251 00de 5A       		.byte	90
+ 252 00df 04       		.byte	4
+ 253 00e0 5F       		.byte	95
+ 254 00e1 01       		.byte	1
+ 255 00e2 61       		.byte	97
+ 256 00e3 0C       		.byte	12
+ 257 00e4 62       		.byte	98
+ 258 00e5 F0       		.byte	-16
+ 259 00e6 63       		.byte	99
+ 260 00e7 0C       		.byte	12
+ 261 00e8 65       		.byte	101
+ 262 00e9 0C       		.byte	12
+ 263 00ea 67       		.byte	103
+ 264 00eb 0C       		.byte	12
+ 265 00ec 68       		.byte	104
+ 266 00ed 40       		.byte	64
+ 267 00ee 69       		.byte	105
+ 268 00ef 4C       		.byte	76
+ 269 00f0 6A       		.byte	106
+ 270 00f1 40       		.byte	64
+ 271 00f2 6B       		.byte	107
+ 272 00f3 4C       		.byte	76
+ 273 00f4 6C       		.byte	108
+ 274 00f5 90       		.byte	-112
+ 275 00f6 6D       		.byte	109
+ 276 00f7 58       		.byte	88
+ 277 00f8 6F       		.byte	111
+ 278 00f9 0C       		.byte	12
+ 279 00fa 82       		.byte	-126
+ 280 00fb 10       		.byte	16
+ 281 00fc 84       		.byte	-124
+ 282 00fd 03       		.byte	3
+ 283 00fe 85       		.byte	-123
+ 284 00ff 15       		.byte	21
+ 285 0100 89       		.byte	-119
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 6
+
+
+ 286 0101 80       		.byte	-128
+ 287 0102 8A       		.byte	-118
+ 288 0103 03       		.byte	3
+ 289 0104 8F       		.byte	-113
+ 290 0105 30       		.byte	48
+ 291 0106 90       		.byte	-112
+ 292 0107 04       		.byte	4
+ 293 0108 91       		.byte	-111
+ 294 0109 3C       		.byte	60
+ 295 010a 95       		.byte	-107
+ 296 010b 80       		.byte	-128
+ 297 010c 96       		.byte	-106
+ 298 010d 03       		.byte	3
+ 299 010e 97       		.byte	-105
+ 300 010f 3F       		.byte	63
+ 301 0110 99       		.byte	-103
+ 302 0111 8F       		.byte	-113
+ 303 0112 9A       		.byte	-102
+ 304 0113 0C       		.byte	12
+ 305 0114 9B       		.byte	-101
+ 306 0115 40       		.byte	64
+ 307 0116 9F       		.byte	-97
+ 308 0117 80       		.byte	-128
+ 309 0118 A4       		.byte	-92
+ 310 0119 01       		.byte	1
+ 311 011a A5       		.byte	-91
+ 312 011b 2A       		.byte	42
+ 313 011c A8       		.byte	-88
+ 314 011d 02       		.byte	2
+ 315 011e A9       		.byte	-87
+ 316 011f 80       		.byte	-128
+ 317 0120 AC       		.byte	-84
+ 318 0121 03       		.byte	3
+ 319 0122 AF       		.byte	-81
+ 320 0123 80       		.byte	-128
+ 321 0124 B0       		.byte	-80
+ 322 0125 08       		.byte	8
+ 323 0126 B1       		.byte	-79
+ 324 0127 03       		.byte	3
+ 325 0128 B2       		.byte	-78
+ 326 0129 04       		.byte	4
+ 327 012a B3       		.byte	-77
+ 328 012b 70       		.byte	112
+ 329 012c B4       		.byte	-76
+ 330 012d 10       		.byte	16
+ 331 012e B5       		.byte	-75
+ 332 012f 80       		.byte	-128
+ 333 0130 B6       		.byte	-74
+ 334 0131 03       		.byte	3
+ 335 0132 B7       		.byte	-73
+ 336 0133 0C       		.byte	12
+ 337 0134 BE       		.byte	-66
+ 338 0135 40       		.byte	64
+ 339 0136 BF       		.byte	-65
+ 340 0137 45       		.byte	69
+ 341 0138 C0       		.byte	-64
+ 342 0139 12       		.byte	18
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 7
+
+
+ 343 013a C1       		.byte	-63
+ 344 013b 04       		.byte	4
+ 345 013c C6       		.byte	-58
+ 346 013d 26       		.byte	38
+ 347 013e C8       		.byte	-56
+ 348 013f 0C       		.byte	12
+ 349 0140 D6       		.byte	-42
+ 350 0141 08       		.byte	8
+ 351 0142 D8       		.byte	-40
+ 352 0143 04       		.byte	4
+ 353 0144 D9       		.byte	-39
+ 354 0145 04       		.byte	4
+ 355 0146 DA       		.byte	-38
+ 356 0147 04       		.byte	4
+ 357 0148 DB       		.byte	-37
+ 358 0149 0C       		.byte	12
+ 359 014a DC       		.byte	-36
+ 360 014b 07       		.byte	7
+ 361 014c DF       		.byte	-33
+ 362 014d 01       		.byte	1
+ 363 014e E1       		.byte	-31
+ 364 014f 0C       		.byte	12
+ 365 0150 E2       		.byte	-30
+ 366 0151 F0       		.byte	-16
+ 367 0152 E3       		.byte	-29
+ 368 0153 0C       		.byte	12
+ 369 0154 E5       		.byte	-27
+ 370 0155 0C       		.byte	12
+ 371 0156 E7       		.byte	-25
+ 372 0157 0C       		.byte	12
+ 373 0158 E8       		.byte	-24
+ 374 0159 40       		.byte	64
+ 375 015a E9       		.byte	-23
+ 376 015b 4C       		.byte	76
+ 377 015c EA       		.byte	-22
+ 378 015d 40       		.byte	64
+ 379 015e EB       		.byte	-21
+ 380 015f 4C       		.byte	76
+ 381 0160 EC       		.byte	-20
+ 382 0161 90       		.byte	-112
+ 383 0162 ED       		.byte	-19
+ 384 0163 58       		.byte	88
+ 385 0164 EF       		.byte	-17
+ 386 0165 0C       		.byte	12
+ 387 0166 03       		.byte	3
+ 388 0167 20       		.byte	32
+ 389 0168 05       		.byte	5
+ 390 0169 02       		.byte	2
+ 391 016a 07       		.byte	7
+ 392 016b 28       		.byte	40
+ 393 016c 0D       		.byte	13
+ 394 016d 22       		.byte	34
+ 395 016e 0F       		.byte	15
+ 396 016f 20       		.byte	32
+ 397 0170 10       		.byte	16
+ 398 0171 02       		.byte	2
+ 399 0172 13       		.byte	19
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 8
+
+
+ 400 0173 28       		.byte	40
+ 401 0174 14       		.byte	20
+ 402 0175 02       		.byte	2
+ 403 0176 15       		.byte	21
+ 404 0177 28       		.byte	40
+ 405 0178 18       		.byte	24
+ 406 0179 14       		.byte	20
+ 407 017a 1D       		.byte	29
+ 408 017b A2       		.byte	-94
+ 409 017c 1F       		.byte	31
+ 410 017d 04       		.byte	4
+ 411 017e 24       		.byte	36
+ 412 017f 40       		.byte	64
+ 413 0180 27       		.byte	39
+ 414 0181 1A       		.byte	26
+ 415 0182 2E       		.byte	46
+ 416 0183 40       		.byte	64
+ 417 0184 2F       		.byte	47
+ 418 0185 2A       		.byte	42
+ 419 0186 34       		.byte	52
+ 420 0187 02       		.byte	2
+ 421 0188 36       		.byte	54
+ 422 0189 80       		.byte	-128
+ 423 018a 37       		.byte	55
+ 424 018b 28       		.byte	40
+ 425 018c 3D       		.byte	61
+ 426 018d 20       		.byte	32
+ 427 018e 3F       		.byte	63
+ 428 018f 84       		.byte	-124
+ 429 0190 40       		.byte	64
+ 430 0191 54       		.byte	84
+ 431 0192 45       		.byte	69
+ 432 0193 80       		.byte	-128
+ 433 0194 47       		.byte	71
+ 434 0195 12       		.byte	18
+ 435 0196 4B       		.byte	75
+ 436 0197 04       		.byte	4
+ 437 0198 50       		.byte	80
+ 438 0199 02       		.byte	2
+ 439 019a 51       		.byte	81
+ 440 019b 14       		.byte	20
+ 441 019c 52       		.byte	82
+ 442 019d 02       		.byte	2
+ 443 019e 53       		.byte	83
+ 444 019f 20       		.byte	32
+ 445 01a0 57       		.byte	87
+ 446 01a1 50       		.byte	80
+ 447 01a2 5D       		.byte	93
+ 448 01a3 40       		.byte	64
+ 449 01a4 64       		.byte	100
+ 450 01a5 02       		.byte	2
+ 451 01a6 7F       		.byte	127
+ 452 01a7 02       		.byte	2
+ 453 01a8 8D       		.byte	-115
+ 454 01a9 10       		.byte	16
+ 455 01aa 91       		.byte	-111
+ 456 01ab 40       		.byte	64
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 9
+
+
+ 457 01ac 97       		.byte	-105
+ 458 01ad 08       		.byte	8
+ 459 01ae B5       		.byte	-75
+ 460 01af 40       		.byte	64
+ 461 01b0 C0       		.byte	-64
+ 462 01b1 74       		.byte	116
+ 463 01b2 C2       		.byte	-62
+ 464 01b3 70       		.byte	112
+ 465 01b4 C4       		.byte	-60
+ 466 01b5 E7       		.byte	-25
+ 467 01b6 CA       		.byte	-54
+ 468 01b7 70       		.byte	112
+ 469 01b8 CC       		.byte	-52
+ 470 01b9 F0       		.byte	-16
+ 471 01ba CE       		.byte	-50
+ 472 01bb 70       		.byte	112
+ 473 01bc D0       		.byte	-48
+ 474 01bd B7       		.byte	-73
+ 475 01be D6       		.byte	-42
+ 476 01bf 10       		.byte	16
+ 477 01c0 D8       		.byte	-40
+ 478 01c1 10       		.byte	16
+ 479 01c2 DE       		.byte	-34
+ 480 01c3 10       		.byte	16
+ 481 01c4 E2       		.byte	-30
+ 482 01c5 08       		.byte	8
+ 483 01c6 E6       		.byte	-26
+ 484 01c7 10       		.byte	16
+ 485 01c8 00       		.byte	0
+ 486 01c9 01       		.byte	1
+ 487 01ca 01       		.byte	1
+ 488 01cb 77       		.byte	119
+ 489 01cc 03       		.byte	3
+ 490 01cd 08       		.byte	8
+ 491 01ce 07       		.byte	7
+ 492 01cf 06       		.byte	6
+ 493 01d0 09       		.byte	9
+ 494 01d1 7D       		.byte	125
+ 495 01d2 0B       		.byte	11
+ 496 01d3 02       		.byte	2
+ 497 01d4 0C       		.byte	12
+ 498 01d5 3A       		.byte	58
+ 499 01d6 0D       		.byte	13
+ 500 01d7 08       		.byte	8
+ 501 01d8 0E       		.byte	14
+ 502 01d9 04       		.byte	4
+ 503 01da 11       		.byte	17
+ 504 01db 10       		.byte	16
+ 505 01dc 13       		.byte	19
+ 506 01dd 01       		.byte	1
+ 507 01de 14       		.byte	20
+ 508 01df 16       		.byte	22
+ 509 01e0 15       		.byte	21
+ 510 01e1 4E       		.byte	78
+ 511 01e2 16       		.byte	22
+ 512 01e3 28       		.byte	40
+ 513 01e4 17       		.byte	23
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 10
+
+
+ 514 01e5 31       		.byte	49
+ 515 01e6 18       		.byte	24
+ 516 01e7 2E       		.byte	46
+ 517 01e8 19       		.byte	25
+ 518 01e9 3F       		.byte	63
+ 519 01ea 1A       		.byte	26
+ 520 01eb 10       		.byte	16
+ 521 01ec 1B       		.byte	27
+ 522 01ed 40       		.byte	64
+ 523 01ee 1E       		.byte	30
+ 524 01ef 01       		.byte	1
+ 525 01f0 1F       		.byte	31
+ 526 01f1 06       		.byte	6
+ 527 01f2 22       		.byte	34
+ 528 01f3 06       		.byte	6
+ 529 01f4 25       		.byte	37
+ 530 01f5 20       		.byte	32
+ 531 01f6 27       		.byte	39
+ 532 01f7 01       		.byte	1
+ 533 01f8 28       		.byte	40
+ 534 01f9 20       		.byte	32
+ 535 01fa 29       		.byte	41
+ 536 01fb 7F       		.byte	127
+ 537 01fc 2A       		.byte	42
+ 538 01fd 08       		.byte	8
+ 539 01fe 2F       		.byte	47
+ 540 01ff 80       		.byte	-128
+ 541 0200 30       		.byte	48
+ 542 0201 01       		.byte	1
+ 543 0202 31       		.byte	49
+ 544 0203 80       		.byte	-128
+ 545 0204 32       		.byte	50
+ 546 0205 30       		.byte	48
+ 547 0206 33       		.byte	51
+ 548 0207 04       		.byte	4
+ 549 0208 34       		.byte	52
+ 550 0209 02       		.byte	2
+ 551 020a 35       		.byte	53
+ 552 020b 03       		.byte	3
+ 553 020c 36       		.byte	54
+ 554 020d 0C       		.byte	12
+ 555 020e 37       		.byte	55
+ 556 020f 78       		.byte	120
+ 557 0210 40       		.byte	64
+ 558 0211 04       		.byte	4
+ 559 0212 41       		.byte	65
+ 560 0213 02       		.byte	2
+ 561 0214 49       		.byte	73
+ 562 0215 FF       		.byte	-1
+ 563 0216 4A       		.byte	74
+ 564 0217 FF       		.byte	-1
+ 565 0218 4B       		.byte	75
+ 566 0219 FF       		.byte	-1
+ 567 021a 4C       		.byte	76
+ 568 021b 02       		.byte	2
+ 569 021c 4D       		.byte	77
+ 570 021d 0C       		.byte	12
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 11
+
+
+ 571 021e 4E       		.byte	78
+ 572 021f F8       		.byte	-8
+ 573 0220 52       		.byte	82
+ 574 0221 17       		.byte	23
+ 575 0222 58       		.byte	88
+ 576 0223 04       		.byte	4
+ 577 0224 59       		.byte	89
+ 578 0225 04       		.byte	4
+ 579 0226 5A       		.byte	90
+ 580 0227 04       		.byte	4
+ 581 0228 5B       		.byte	91
+ 582 0229 04       		.byte	4
+ 583 022a 5F       		.byte	95
+ 584 022b 01       		.byte	1
+ 585 022c 62       		.byte	98
+ 586 022d 48       		.byte	72
+ 587 022e 63       		.byte	99
+ 588 022f A1       		.byte	-95
+ 589 0230 68       		.byte	104
+ 590 0231 F0       		.byte	-16
+ 591 0232 6A       		.byte	106
+ 592 0233 F0       		.byte	-16
+ 593 0234 6C       		.byte	108
+ 594 0235 F0       		.byte	-16
+ 595 0236 6E       		.byte	110
+ 596 0237 F0       		.byte	-16
+ 597 0238 82       		.byte	-126
+ 598 0239 04       		.byte	4
+ 599 023a 8A       		.byte	-118
+ 600 023b 01       		.byte	1
+ 601 023c A0       		.byte	-96
+ 602 023d 01       		.byte	1
+ 603 023e A2       		.byte	-94
+ 604 023f 02       		.byte	2
+ 605 0240 AE       		.byte	-82
+ 606 0241 02       		.byte	2
+ 607 0242 B2       		.byte	-78
+ 608 0243 04       		.byte	4
+ 609 0244 B4       		.byte	-76
+ 610 0245 03       		.byte	3
+ 611 0246 B6       		.byte	-74
+ 612 0247 04       		.byte	4
+ 613 0248 BE       		.byte	-66
+ 614 0249 10       		.byte	16
+ 615 024a C0       		.byte	-64
+ 616 024b 04       		.byte	4
+ 617 024c C1       		.byte	-63
+ 618 024d 02       		.byte	2
+ 619 024e C7       		.byte	-57
+ 620 024f A0       		.byte	-96
+ 621 0250 C9       		.byte	-55
+ 622 0251 FF       		.byte	-1
+ 623 0252 CA       		.byte	-54
+ 624 0253 FF       		.byte	-1
+ 625 0254 CB       		.byte	-53
+ 626 0255 FF       		.byte	-1
+ 627 0256 CC       		.byte	-52
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 12
+
+
+ 628 0257 03       		.byte	3
+ 629 0258 CD       		.byte	-51
+ 630 0259 0C       		.byte	12
+ 631 025a CE       		.byte	-50
+ 632 025b F4       		.byte	-12
+ 633 025c D6       		.byte	-42
+ 634 025d 02       		.byte	2
+ 635 025e D8       		.byte	-40
+ 636 025f 04       		.byte	4
+ 637 0260 DA       		.byte	-38
+ 638 0261 04       		.byte	4
+ 639 0262 DB       		.byte	-37
+ 640 0263 04       		.byte	4
+ 641 0264 DE       		.byte	-34
+ 642 0265 08       		.byte	8
+ 643 0266 DF       		.byte	-33
+ 644 0267 01       		.byte	1
+ 645 0268 E2       		.byte	-30
+ 646 0269 48       		.byte	72
+ 647 026a E3       		.byte	-29
+ 648 026b A1       		.byte	-95
+ 649 026c E8       		.byte	-24
+ 650 026d F0       		.byte	-16
+ 651 026e EA       		.byte	-22
+ 652 026f F0       		.byte	-16
+ 653 0270 EC       		.byte	-20
+ 654 0271 F0       		.byte	-16
+ 655 0272 EE       		.byte	-18
+ 656 0273 F0       		.byte	-16
+ 657 0274 00       		.byte	0
+ 658 0275 10       		.byte	16
+ 659 0276 01       		.byte	1
+ 660 0277 02       		.byte	2
+ 661 0278 05       		.byte	5
+ 662 0279 40       		.byte	64
+ 663 027a 07       		.byte	7
+ 664 027b 40       		.byte	64
+ 665 027c 0D       		.byte	13
+ 666 027d 20       		.byte	32
+ 667 027e 0E       		.byte	14
+ 668 027f 21       		.byte	33
+ 669 0280 10       		.byte	16
+ 670 0281 82       		.byte	-126
+ 671 0282 15       		.byte	21
+ 672 0283 10       		.byte	16
+ 673 0284 17       		.byte	23
+ 674 0285 01       		.byte	1
+ 675 0286 18       		.byte	24
+ 676 0287 14       		.byte	20
+ 677 0288 19       		.byte	25
+ 678 0289 80       		.byte	-128
+ 679 028a 1A       		.byte	26
+ 680 028b 01       		.byte	1
+ 681 028c 1D       		.byte	29
+ 682 028d 62       		.byte	98
+ 683 028e 1E       		.byte	30
+ 684 028f 28       		.byte	40
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 13
+
+
+ 685 0290 1F       		.byte	31
+ 686 0291 08       		.byte	8
+ 687 0292 24       		.byte	36
+ 688 0293 01       		.byte	1
+ 689 0294 25       		.byte	37
+ 690 0295 10       		.byte	16
+ 691 0296 26       		.byte	38
+ 692 0297 80       		.byte	-128
+ 693 0298 27       		.byte	39
+ 694 0299 60       		.byte	96
+ 695 029a 2D       		.byte	45
+ 696 029b 80       		.byte	-128
+ 697 029c 2F       		.byte	47
+ 698 029d 28       		.byte	40
+ 699 029e 35       		.byte	53
+ 700 029f 40       		.byte	64
+ 701 02a0 36       		.byte	54
+ 702 02a1 02       		.byte	2
+ 703 02a2 37       		.byte	55
+ 704 02a3 28       		.byte	40
+ 705 02a4 3C       		.byte	60
+ 706 02a5 01       		.byte	1
+ 707 02a6 3D       		.byte	61
+ 708 02a7 20       		.byte	32
+ 709 02a8 3E       		.byte	62
+ 710 02a9 44       		.byte	68
+ 711 02aa 41       		.byte	65
+ 712 02ab 22       		.byte	34
+ 713 02ac 45       		.byte	69
+ 714 02ad 22       		.byte	34
+ 715 02ae 50       		.byte	80
+ 716 02af 02       		.byte	2
+ 717 02b0 6D       		.byte	109
+ 718 02b1 10       		.byte	16
+ 719 02b2 6E       		.byte	110
+ 720 02b3 04       		.byte	4
+ 721 02b4 6F       		.byte	111
+ 722 02b5 01       		.byte	1
+ 723 02b6 72       		.byte	114
+ 724 02b7 40       		.byte	64
+ 725 02b8 74       		.byte	116
+ 726 02b9 80       		.byte	-128
+ 727 02ba 7A       		.byte	122
+ 728 02bb 04       		.byte	4
+ 729 02bc 84       		.byte	-124
+ 730 02bd 80       		.byte	-128
+ 731 02be 8E       		.byte	-114
+ 732 02bf 04       		.byte	4
+ 733 02c0 96       		.byte	-106
+ 734 02c1 40       		.byte	64
+ 735 02c2 9B       		.byte	-101
+ 736 02c3 08       		.byte	8
+ 737 02c4 9F       		.byte	-97
+ 738 02c5 20       		.byte	32
+ 739 02c6 A2       		.byte	-94
+ 740 02c7 02       		.byte	2
+ 741 02c8 A3       		.byte	-93
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 14
+
+
+ 742 02c9 20       		.byte	32
+ 743 02ca A5       		.byte	-91
+ 744 02cb 10       		.byte	16
+ 745 02cc A6       		.byte	-90
+ 746 02cd 80       		.byte	-128
+ 747 02ce A7       		.byte	-89
+ 748 02cf 08       		.byte	8
+ 749 02d0 B0       		.byte	-80
+ 750 02d1 02       		.byte	2
+ 751 02d2 B5       		.byte	-75
+ 752 02d3 02       		.byte	2
+ 753 02d4 C0       		.byte	-64
+ 754 02d5 9A       		.byte	-102
+ 755 02d6 C2       		.byte	-62
+ 756 02d7 E0       		.byte	-32
+ 757 02d8 C4       		.byte	-60
+ 758 02d9 59       		.byte	89
+ 759 02da CA       		.byte	-54
+ 760 02db 70       		.byte	112
+ 761 02dc CC       		.byte	-52
+ 762 02dd F0       		.byte	-16
+ 763 02de CE       		.byte	-50
+ 764 02df F0       		.byte	-16
+ 765 02e0 D0       		.byte	-48
+ 766 02e1 A5       		.byte	-91
+ 767 02e2 DE       		.byte	-34
+ 768 02e3 04       		.byte	4
+ 769 02e4 E0       		.byte	-32
+ 770 02e5 80       		.byte	-128
+ 771 02e6 E2       		.byte	-30
+ 772 02e7 40       		.byte	64
+ 773 02e8 EE       		.byte	-18
+ 774 02e9 04       		.byte	4
+ 775 02ea E0       		.byte	-32
+ 776 02eb 80       		.byte	-128
+ 777 02ec E8       		.byte	-24
+ 778 02ed 20       		.byte	32
+ 779 02ee EA       		.byte	-22
+ 780 02ef 40       		.byte	64
+ 781 02f0 EE       		.byte	-18
+ 782 02f1 04       		.byte	4
+ 783 02f2 E2       		.byte	-30
+ 784 02f3 08       		.byte	8
+ 785 02f4 EA       		.byte	-22
+ 786 02f5 40       		.byte	64
+ 787 02f6 E6       		.byte	-26
+ 788 02f7 02       		.byte	2
+ 789 02f8 0A       		.byte	10
+ 790 02f9 01       		.byte	1
+ 791 02fa 30       		.byte	48
+ 792 02fb 01       		.byte	1
+ 793 02fc 38       		.byte	56
+ 794 02fd 20       		.byte	32
+ 795 02fe 3A       		.byte	58
+ 796 02ff 02       		.byte	2
+ 797 0300 3E       		.byte	62
+ 798 0301 10       		.byte	16
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 15
+
+
+ 799 0302 40       		.byte	64
+ 800 0303 65       		.byte	101
+ 801 0304 41       		.byte	65
+ 802 0305 02       		.byte	2
+ 803 0306 49       		.byte	73
+ 804 0307 FF       		.byte	-1
+ 805 0308 4A       		.byte	74
+ 806 0309 FF       		.byte	-1
+ 807 030a 4B       		.byte	75
+ 808 030b FF       		.byte	-1
+ 809 030c 4D       		.byte	77
+ 810 030d A0       		.byte	-96
+ 811 030e 4F       		.byte	79
+ 812 030f 01       		.byte	1
+ 813 0310 50       		.byte	80
+ 814 0311 18       		.byte	24
+ 815 0312 58       		.byte	88
+ 816 0313 04       		.byte	4
+ 817 0314 5A       		.byte	90
+ 818 0315 04       		.byte	4
+ 819 0316 5C       		.byte	92
+ 820 0317 04       		.byte	4
+ 821 0318 5D       		.byte	93
+ 822 0319 05       		.byte	5
+ 823 031a 5F       		.byte	95
+ 824 031b 01       		.byte	1
+ 825 031c 60       		.byte	96
+ 826 031d 40       		.byte	64
+ 827 031e 62       		.byte	98
+ 828 031f 80       		.byte	-128
+ 829 0320 64       		.byte	100
+ 830 0321 40       		.byte	64
+ 831 0322 65       		.byte	101
+ 832 0323 40       		.byte	64
+ 833 0324 66       		.byte	102
+ 834 0325 80       		.byte	-128
+ 835 0326 68       		.byte	104
+ 836 0327 40       		.byte	64
+ 837 0328 6A       		.byte	106
+ 838 0329 50       		.byte	80
+ 839 032a 6B       		.byte	107
+ 840 032b A8       		.byte	-88
+ 841 032c 6C       		.byte	108
+ 842 032d 40       		.byte	64
+ 843 032e 6D       		.byte	109
+ 844 032f 20       		.byte	32
+ 845 0330 6E       		.byte	110
+ 846 0331 50       		.byte	80
+ 847 0332 6F       		.byte	111
+ 848 0333 A8       		.byte	-88
+ 849 0334 82       		.byte	-126
+ 850 0335 01       		.byte	1
+ 851 0336 83       		.byte	-125
+ 852 0337 01       		.byte	1
+ 853 0338 86       		.byte	-122
+ 854 0339 03       		.byte	3
+ 855 033a 87       		.byte	-121
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 16
+
+
+ 856 033b 08       		.byte	8
+ 857 033c 8C       		.byte	-116
+ 858 033d 08       		.byte	8
+ 859 033e 99       		.byte	-103
+ 860 033f 04       		.byte	4
+ 861 0340 9A       		.byte	-102
+ 862 0341 04       		.byte	4
+ 863 0342 9C       		.byte	-100
+ 864 0343 01       		.byte	1
+ 865 0344 A2       		.byte	-94
+ 866 0345 08       		.byte	8
+ 867 0346 AC       		.byte	-84
+ 868 0347 04       		.byte	4
+ 869 0348 AF       		.byte	-81
+ 870 0349 06       		.byte	6
+ 871 034a B0       		.byte	-80
+ 872 034b 08       		.byte	8
+ 873 034c B1       		.byte	-79
+ 874 034d 08       		.byte	8
+ 875 034e B2       		.byte	-78
+ 876 034f 04       		.byte	4
+ 877 0350 B3       		.byte	-77
+ 878 0351 02       		.byte	2
+ 879 0352 B4       		.byte	-76
+ 880 0353 01       		.byte	1
+ 881 0354 B5       		.byte	-75
+ 882 0355 04       		.byte	4
+ 883 0356 B6       		.byte	-74
+ 884 0357 02       		.byte	2
+ 885 0358 B7       		.byte	-73
+ 886 0359 01       		.byte	1
+ 887 035a B8       		.byte	-72
+ 888 035b 08       		.byte	8
+ 889 035c BB       		.byte	-69
+ 890 035d 02       		.byte	2
+ 891 035e BE       		.byte	-66
+ 892 035f 11       		.byte	17
+ 893 0360 BF       		.byte	-65
+ 894 0361 10       		.byte	16
+ 895 0362 C0       		.byte	-64
+ 896 0363 25       		.byte	37
+ 897 0364 C1       		.byte	-63
+ 898 0365 06       		.byte	6
+ 899 0366 C5       		.byte	-59
+ 900 0367 5C       		.byte	92
+ 901 0368 C6       		.byte	-58
+ 902 0369 20       		.byte	32
+ 903 036a C7       		.byte	-57
+ 904 036b 0E       		.byte	14
+ 905 036c C8       		.byte	-56
+ 906 036d 3B       		.byte	59
+ 907 036e C9       		.byte	-55
+ 908 036f FF       		.byte	-1
+ 909 0370 CA       		.byte	-54
+ 910 0371 FF       		.byte	-1
+ 911 0372 CB       		.byte	-53
+ 912 0373 FF       		.byte	-1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 17
+
+
+ 913 0374 CD       		.byte	-51
+ 914 0375 AF       		.byte	-81
+ 915 0376 CE       		.byte	-50
+ 916 0377 07       		.byte	7
+ 917 0378 CF       		.byte	-49
+ 918 0379 01       		.byte	1
+ 919 037a D0       		.byte	-48
+ 920 037b 18       		.byte	24
+ 921 037c D2       		.byte	-46
+ 922 037d 80       		.byte	-128
+ 923 037e D4       		.byte	-44
+ 924 037f 07       		.byte	7
+ 925 0380 D6       		.byte	-42
+ 926 0381 04       		.byte	4
+ 927 0382 D8       		.byte	-40
+ 928 0383 04       		.byte	4
+ 929 0384 D9       		.byte	-39
+ 930 0385 04       		.byte	4
+ 931 0386 DA       		.byte	-38
+ 932 0387 04       		.byte	4
+ 933 0388 DB       		.byte	-37
+ 934 0389 04       		.byte	4
+ 935 038a DC       		.byte	-36
+ 936 038b 55       		.byte	85
+ 937 038c DD       		.byte	-35
+ 938 038d 55       		.byte	85
+ 939 038e DF       		.byte	-33
+ 940 038f 01       		.byte	1
+ 941 0390 E0       		.byte	-32
+ 942 0391 40       		.byte	64
+ 943 0392 E2       		.byte	-30
+ 944 0393 80       		.byte	-128
+ 945 0394 E4       		.byte	-28
+ 946 0395 40       		.byte	64
+ 947 0396 E5       		.byte	-27
+ 948 0397 40       		.byte	64
+ 949 0398 E6       		.byte	-26
+ 950 0399 80       		.byte	-128
+ 951 039a E8       		.byte	-24
+ 952 039b 40       		.byte	64
+ 953 039c EA       		.byte	-22
+ 954 039d 50       		.byte	80
+ 955 039e EB       		.byte	-21
+ 956 039f A8       		.byte	-88
+ 957 03a0 EC       		.byte	-20
+ 958 03a1 40       		.byte	64
+ 959 03a2 ED       		.byte	-19
+ 960 03a3 20       		.byte	32
+ 961 03a4 EE       		.byte	-18
+ 962 03a5 50       		.byte	80
+ 963 03a6 EF       		.byte	-17
+ 964 03a7 A8       		.byte	-88
+ 965 03a8 03       		.byte	3
+ 966 03a9 08       		.byte	8
+ 967 03aa 05       		.byte	5
+ 968 03ab 05       		.byte	5
+ 969 03ac 07       		.byte	7
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 18
+
+
+ 970 03ad 01       		.byte	1
+ 971 03ae 08       		.byte	8
+ 972 03af 20       		.byte	32
+ 973 03b0 09       		.byte	9
+ 974 03b1 10       		.byte	16
+ 975 03b2 0D       		.byte	13
+ 976 03b3 80       		.byte	-128
+ 977 03b4 0E       		.byte	14
+ 978 03b5 04       		.byte	4
+ 979 03b6 15       		.byte	21
+ 980 03b7 01       		.byte	1
+ 981 03b8 17       		.byte	23
+ 982 03b9 40       		.byte	64
+ 983 03ba 18       		.byte	24
+ 984 03bb 08       		.byte	8
+ 985 03bc 1B       		.byte	27
+ 986 03bd 21       		.byte	33
+ 987 03be 1C       		.byte	28
+ 988 03bf 40       		.byte	64
+ 989 03c0 1D       		.byte	29
+ 990 03c1 A4       		.byte	-92
+ 991 03c2 1F       		.byte	31
+ 992 03c3 10       		.byte	16
+ 993 03c4 27       		.byte	39
+ 994 03c5 69       		.byte	105
+ 995 03c6 2C       		.byte	44
+ 996 03c7 02       		.byte	2
+ 997 03c8 37       		.byte	55
+ 998 03c9 20       		.byte	32
+ 999 03ca 3D       		.byte	61
+ 1000 03cb 01       		.byte	1
+ 1001 03cc 3E       		.byte	62
+ 1002 03cd 04       		.byte	4
+ 1003 03ce 40       		.byte	64
+ 1004 03cf 08       		.byte	8
+ 1005 03d0 43       		.byte	67
+ 1006 03d1 20       		.byte	32
+ 1007 03d2 45       		.byte	69
+ 1008 03d3 20       		.byte	32
+ 1009 03d4 48       		.byte	72
+ 1010 03d5 02       		.byte	2
+ 1011 03d6 4B       		.byte	75
+ 1012 03d7 20       		.byte	32
+ 1013 03d8 4C       		.byte	76
+ 1014 03d9 06       		.byte	6
+ 1015 03da 4D       		.byte	77
+ 1016 03db 01       		.byte	1
+ 1017 03dc 4F       		.byte	79
+ 1018 03dd 04       		.byte	4
+ 1019 03de 54       		.byte	84
+ 1020 03df 02       		.byte	2
+ 1021 03e0 55       		.byte	85
+ 1022 03e1 10       		.byte	16
+ 1023 03e2 56       		.byte	86
+ 1024 03e3 08       		.byte	8
+ 1025 03e4 5C       		.byte	92
+ 1026 03e5 60       		.byte	96
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 19
+
+
+ 1027 03e6 5F       		.byte	95
+ 1028 03e7 08       		.byte	8
+ 1029 03e8 64       		.byte	100
+ 1030 03e9 80       		.byte	-128
+ 1031 03ea 66       		.byte	102
+ 1032 03eb 08       		.byte	8
+ 1033 03ec 67       		.byte	103
+ 1034 03ed 04       		.byte	4
+ 1035 03ee 75       		.byte	117
+ 1036 03ef 01       		.byte	1
+ 1037 03f0 8C       		.byte	-116
+ 1038 03f1 04       		.byte	4
+ 1039 03f2 8F       		.byte	-113
+ 1040 03f3 20       		.byte	32
+ 1041 03f4 90       		.byte	-112
+ 1042 03f5 04       		.byte	4
+ 1043 03f6 92       		.byte	-110
+ 1044 03f7 04       		.byte	4
+ 1045 03f8 9C       		.byte	-100
+ 1046 03f9 88       		.byte	-120
+ 1047 03fa A3       		.byte	-93
+ 1048 03fb 08       		.byte	8
+ 1049 03fc A7       		.byte	-89
+ 1050 03fd 01       		.byte	1
+ 1051 03fe C0       		.byte	-64
+ 1052 03ff B2       		.byte	-78
+ 1053 0400 C2       		.byte	-62
+ 1054 0401 C0       		.byte	-64
+ 1055 0402 C4       		.byte	-60
+ 1056 0403 90       		.byte	-112
+ 1057 0404 CA       		.byte	-54
+ 1058 0405 10       		.byte	16
+ 1059 0406 CC       		.byte	-52
+ 1060 0407 20       		.byte	32
+ 1061 0408 CE       		.byte	-50
+ 1062 0409 C0       		.byte	-64
+ 1063 040a D0       		.byte	-48
+ 1064 040b 24       		.byte	36
+ 1065 040c D2       		.byte	-46
+ 1066 040d 3C       		.byte	60
+ 1067 040e D6       		.byte	-42
+ 1068 040f 70       		.byte	112
+ 1069 0410 D8       		.byte	-40
+ 1070 0411 E0       		.byte	-32
+ 1071 0412 E2       		.byte	-30
+ 1072 0413 40       		.byte	64
+ 1073 0414 E4       		.byte	-28
+ 1074 0415 01       		.byte	1
+ 1075 0416 E6       		.byte	-26
+ 1076 0417 40       		.byte	64
+ 1077 0418 EC       		.byte	-20
+ 1078 0419 20       		.byte	32
+ 1079 041a 38       		.byte	56
+ 1080 041b 20       		.byte	32
+ 1081 041c 40       		.byte	64
+ 1082 041d 64       		.byte	100
+ 1083 041e 41       		.byte	65
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 20
+
+
+ 1084 041f 02       		.byte	2
+ 1085 0420 49       		.byte	73
+ 1086 0421 FF       		.byte	-1
+ 1087 0422 4A       		.byte	74
+ 1088 0423 FF       		.byte	-1
+ 1089 0424 4B       		.byte	75
+ 1090 0425 FF       		.byte	-1
+ 1091 0426 4D       		.byte	77
+ 1092 0427 A0       		.byte	-96
+ 1093 0428 4F       		.byte	79
+ 1094 0429 01       		.byte	1
+ 1095 042a 50       		.byte	80
+ 1096 042b 18       		.byte	24
+ 1097 042c 58       		.byte	88
+ 1098 042d 04       		.byte	4
+ 1099 042e 5A       		.byte	90
+ 1100 042f 04       		.byte	4
+ 1101 0430 5C       		.byte	92
+ 1102 0431 05       		.byte	5
+ 1103 0432 5D       		.byte	93
+ 1104 0433 04       		.byte	4
+ 1105 0434 5F       		.byte	95
+ 1106 0435 01       		.byte	1
+ 1107 0436 60       		.byte	96
+ 1108 0437 40       		.byte	64
+ 1109 0438 62       		.byte	98
+ 1110 0439 80       		.byte	-128
+ 1111 043a 64       		.byte	100
+ 1112 043b 40       		.byte	64
+ 1113 043c 65       		.byte	101
+ 1114 043d 40       		.byte	64
+ 1115 043e 66       		.byte	102
+ 1116 043f 80       		.byte	-128
+ 1117 0440 68       		.byte	104
+ 1118 0441 40       		.byte	64
+ 1119 0442 6A       		.byte	106
+ 1120 0443 50       		.byte	80
+ 1121 0444 6B       		.byte	107
+ 1122 0445 A8       		.byte	-88
+ 1123 0446 6C       		.byte	108
+ 1124 0447 40       		.byte	64
+ 1125 0448 6D       		.byte	109
+ 1126 0449 20       		.byte	32
+ 1127 044a 6E       		.byte	110
+ 1128 044b 50       		.byte	80
+ 1129 044c 6F       		.byte	111
+ 1130 044d A8       		.byte	-88
+ 1131 044e 82       		.byte	-126
+ 1132 044f 01       		.byte	1
+ 1133 0450 8F       		.byte	-113
+ 1134 0451 06       		.byte	6
+ 1135 0452 90       		.byte	-112
+ 1136 0453 01       		.byte	1
+ 1137 0454 91       		.byte	-111
+ 1138 0455 04       		.byte	4
+ 1139 0456 97       		.byte	-105
+ 1140 0457 01       		.byte	1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 21
+
+
+ 1141 0458 9D       		.byte	-99
+ 1142 0459 08       		.byte	8
+ 1143 045a 9E       		.byte	-98
+ 1144 045b 04       		.byte	4
+ 1145 045c A3       		.byte	-93
+ 1146 045d 08       		.byte	8
+ 1147 045e A6       		.byte	-90
+ 1148 045f 03       		.byte	3
+ 1149 0460 AD       		.byte	-83
+ 1150 0461 01       		.byte	1
+ 1151 0462 B0       		.byte	-80
+ 1152 0463 02       		.byte	2
+ 1153 0464 B1       		.byte	-79
+ 1154 0465 02       		.byte	2
+ 1155 0466 B3       		.byte	-77
+ 1156 0467 04       		.byte	4
+ 1157 0468 B4       		.byte	-76
+ 1158 0469 01       		.byte	1
+ 1159 046a B5       		.byte	-75
+ 1160 046b 01       		.byte	1
+ 1161 046c B6       		.byte	-74
+ 1162 046d 04       		.byte	4
+ 1163 046e B7       		.byte	-73
+ 1164 046f 08       		.byte	8
+ 1165 0470 B8       		.byte	-72
+ 1166 0471 08       		.byte	8
+ 1167 0472 B9       		.byte	-71
+ 1168 0473 20       		.byte	32
+ 1169 0474 BE       		.byte	-66
+ 1170 0475 10       		.byte	16
+ 1171 0476 BF       		.byte	-65
+ 1172 0477 44       		.byte	68
+ 1173 0478 C0       		.byte	-64
+ 1174 0479 65       		.byte	101
+ 1175 047a C1       		.byte	-63
+ 1176 047b 02       		.byte	2
+ 1177 047c C5       		.byte	-59
+ 1178 047d 52       		.byte	82
+ 1179 047e C6       		.byte	-58
+ 1180 047f C0       		.byte	-64
+ 1181 0480 C7       		.byte	-57
+ 1182 0481 0E       		.byte	14
+ 1183 0482 C8       		.byte	-56
+ 1184 0483 1F       		.byte	31
+ 1185 0484 C9       		.byte	-55
+ 1186 0485 FF       		.byte	-1
+ 1187 0486 CA       		.byte	-54
+ 1188 0487 FF       		.byte	-1
+ 1189 0488 CB       		.byte	-53
+ 1190 0489 FF       		.byte	-1
+ 1191 048a CD       		.byte	-51
+ 1192 048b AF       		.byte	-81
+ 1193 048c CE       		.byte	-50
+ 1194 048d 07       		.byte	7
+ 1195 048e CF       		.byte	-49
+ 1196 048f 01       		.byte	1
+ 1197 0490 D0       		.byte	-48
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 22
+
+
+ 1198 0491 18       		.byte	24
+ 1199 0492 D2       		.byte	-46
+ 1200 0493 80       		.byte	-128
+ 1201 0494 D4       		.byte	-44
+ 1202 0495 07       		.byte	7
+ 1203 0496 D6       		.byte	-42
+ 1204 0497 04       		.byte	4
+ 1205 0498 D8       		.byte	-40
+ 1206 0499 04       		.byte	4
+ 1207 049a D9       		.byte	-39
+ 1208 049b 04       		.byte	4
+ 1209 049c DA       		.byte	-38
+ 1210 049d 04       		.byte	4
+ 1211 049e DB       		.byte	-37
+ 1212 049f 04       		.byte	4
+ 1213 04a0 DC       		.byte	-36
+ 1214 04a1 44       		.byte	68
+ 1215 04a2 DD       		.byte	-35
+ 1216 04a3 44       		.byte	68
+ 1217 04a4 DF       		.byte	-33
+ 1218 04a5 01       		.byte	1
+ 1219 04a6 E0       		.byte	-32
+ 1220 04a7 40       		.byte	64
+ 1221 04a8 E2       		.byte	-30
+ 1222 04a9 80       		.byte	-128
+ 1223 04aa E4       		.byte	-28
+ 1224 04ab 40       		.byte	64
+ 1225 04ac E5       		.byte	-27
+ 1226 04ad 40       		.byte	64
+ 1227 04ae E6       		.byte	-26
+ 1228 04af 80       		.byte	-128
+ 1229 04b0 E8       		.byte	-24
+ 1230 04b1 40       		.byte	64
+ 1231 04b2 EA       		.byte	-22
+ 1232 04b3 50       		.byte	80
+ 1233 04b4 EB       		.byte	-21
+ 1234 04b5 A8       		.byte	-88
+ 1235 04b6 EC       		.byte	-20
+ 1236 04b7 40       		.byte	64
+ 1237 04b8 ED       		.byte	-19
+ 1238 04b9 20       		.byte	32
+ 1239 04ba EE       		.byte	-18
+ 1240 04bb 50       		.byte	80
+ 1241 04bc EF       		.byte	-17
+ 1242 04bd A8       		.byte	-88
+ 1243 04be 01       		.byte	1
+ 1244 04bf 02       		.byte	2
+ 1245 04c0 05       		.byte	5
+ 1246 04c1 02       		.byte	2
+ 1247 04c2 07       		.byte	7
+ 1248 04c3 80       		.byte	-128
+ 1249 04c4 0A       		.byte	10
+ 1250 04c5 40       		.byte	64
+ 1251 04c6 0B       		.byte	11
+ 1252 04c7 01       		.byte	1
+ 1253 04c8 13       		.byte	19
+ 1254 04c9 08       		.byte	8
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 23
+
+
+ 1255 04ca 19       		.byte	25
+ 1256 04cb 20       		.byte	32
+ 1257 04cc 1A       		.byte	26
+ 1258 04cd 40       		.byte	64
+ 1259 04ce 1B       		.byte	27
+ 1260 04cf 88       		.byte	-120
+ 1261 04d0 1E       		.byte	30
+ 1262 04d1 04       		.byte	4
+ 1263 04d2 21       		.byte	33
+ 1264 04d3 02       		.byte	2
+ 1265 04d4 22       		.byte	34
+ 1266 04d5 44       		.byte	68
+ 1267 04d6 23       		.byte	35
+ 1268 04d7 08       		.byte	8
+ 1269 04d8 29       		.byte	41
+ 1270 04d9 01       		.byte	1
+ 1271 04da 2B       		.byte	43
+ 1272 04db 01       		.byte	1
+ 1273 04dc 31       		.byte	49
+ 1274 04dd 02       		.byte	2
+ 1275 04de 33       		.byte	51
+ 1276 04df 88       		.byte	-120
+ 1277 04e0 3A       		.byte	58
+ 1278 04e1 40       		.byte	64
+ 1279 04e2 40       		.byte	64
+ 1280 04e3 08       		.byte	8
+ 1281 04e4 44       		.byte	68
+ 1282 04e5 08       		.byte	8
+ 1283 04e6 46       		.byte	70
+ 1284 04e7 40       		.byte	64
+ 1285 04e8 49       		.byte	73
+ 1286 04e9 21       		.byte	33
+ 1287 04ea 4A       		.byte	74
+ 1288 04eb 20       		.byte	32
+ 1289 04ec 4B       		.byte	75
+ 1290 04ed 81       		.byte	-127
+ 1291 04ee 4D       		.byte	77
+ 1292 04ef 20       		.byte	32
+ 1293 04f0 51       		.byte	81
+ 1294 04f1 08       		.byte	8
+ 1295 04f2 52       		.byte	82
+ 1296 04f3 50       		.byte	80
+ 1297 04f4 53       		.byte	83
+ 1298 04f5 40       		.byte	64
+ 1299 04f6 5A       		.byte	90
+ 1300 04f7 A8       		.byte	-88
+ 1301 04f8 61       		.byte	97
+ 1302 04f9 08       		.byte	8
+ 1303 04fa 62       		.byte	98
+ 1304 04fb 10       		.byte	16
+ 1305 04fc 63       		.byte	99
+ 1306 04fd 40       		.byte	64
+ 1307 04fe 73       		.byte	115
+ 1308 04ff 80       		.byte	-128
+ 1309 0500 7E       		.byte	126
+ 1310 0501 30       		.byte	48
+ 1311 0502 87       		.byte	-121
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 24
+
+
+ 1312 0503 40       		.byte	64
+ 1313 0504 90       		.byte	-112
+ 1314 0505 04       		.byte	4
+ 1315 0506 9C       		.byte	-100
+ 1316 0507 80       		.byte	-128
+ 1317 0508 A9       		.byte	-87
+ 1318 0509 02       		.byte	2
+ 1319 050a C0       		.byte	-64
+ 1320 050b 08       		.byte	8
+ 1321 050c C2       		.byte	-62
+ 1322 050d 09       		.byte	9
+ 1323 050e C4       		.byte	-60
+ 1324 050f 04       		.byte	4
+ 1325 0510 CA       		.byte	-54
+ 1326 0511 09       		.byte	9
+ 1327 0512 CC       		.byte	-52
+ 1328 0513 0B       		.byte	11
+ 1329 0514 CE       		.byte	-50
+ 1330 0515 08       		.byte	8
+ 1331 0516 D0       		.byte	-48
+ 1332 0517 A4       		.byte	-92
+ 1333 0518 D2       		.byte	-46
+ 1334 0519 2C       		.byte	44
+ 1335 051a D6       		.byte	-42
+ 1336 051b 0E       		.byte	14
+ 1337 051c D8       		.byte	-40
+ 1338 051d 07       		.byte	7
+ 1339 051e EA       		.byte	-22
+ 1340 051f 02       		.byte	2
+ 1341 0520 EA       		.byte	-22
+ 1342 0521 02       		.byte	2
+ 1343 0522 40       		.byte	64
+ 1344 0523 30       		.byte	48
+ 1345 0524 41       		.byte	65
+ 1346 0525 02       		.byte	2
+ 1347 0526 49       		.byte	73
+ 1348 0527 FF       		.byte	-1
+ 1349 0528 4A       		.byte	74
+ 1350 0529 FF       		.byte	-1
+ 1351 052a 4B       		.byte	75
+ 1352 052b FF       		.byte	-1
+ 1353 052c 4D       		.byte	77
+ 1354 052d A0       		.byte	-96
+ 1355 052e 4F       		.byte	79
+ 1356 052f 04       		.byte	4
+ 1357 0530 50       		.byte	80
+ 1358 0531 18       		.byte	24
+ 1359 0532 5A       		.byte	90
+ 1360 0533 04       		.byte	4
+ 1361 0534 5D       		.byte	93
+ 1362 0535 03       		.byte	3
+ 1363 0536 5F       		.byte	95
+ 1364 0537 01       		.byte	1
+ 1365 0538 60       		.byte	96
+ 1366 0539 40       		.byte	64
+ 1367 053a 62       		.byte	98
+ 1368 053b C0       		.byte	-64
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 25
+
+
+ 1369 053c 64       		.byte	100
+ 1370 053d 40       		.byte	64
+ 1371 053e 65       		.byte	101
+ 1372 053f 40       		.byte	64
+ 1373 0540 66       		.byte	102
+ 1374 0541 C0       		.byte	-64
+ 1375 0542 68       		.byte	104
+ 1376 0543 C0       		.byte	-64
+ 1377 0544 6A       		.byte	106
+ 1378 0545 C0       		.byte	-64
+ 1379 0546 6C       		.byte	108
+ 1380 0547 C0       		.byte	-64
+ 1381 0548 6E       		.byte	110
+ 1382 0549 C0       		.byte	-64
+ 1383 054a 87       		.byte	-121
+ 1384 054b 03       		.byte	3
+ 1385 054c 8A       		.byte	-118
+ 1386 054d 02       		.byte	2
+ 1387 054e 8B       		.byte	-117
+ 1388 054f 02       		.byte	2
+ 1389 0550 96       		.byte	-106
+ 1390 0551 02       		.byte	2
+ 1391 0552 A2       		.byte	-94
+ 1392 0553 01       		.byte	1
+ 1393 0554 AA       		.byte	-86
+ 1394 0555 04       		.byte	4
+ 1395 0556 AD       		.byte	-83
+ 1396 0557 01       		.byte	1
+ 1397 0558 B0       		.byte	-80
+ 1398 0559 04       		.byte	4
+ 1399 055a B2       		.byte	-78
+ 1400 055b 01       		.byte	1
+ 1401 055c B3       		.byte	-77
+ 1402 055d 02       		.byte	2
+ 1403 055e B4       		.byte	-76
+ 1404 055f 02       		.byte	2
+ 1405 0560 B7       		.byte	-73
+ 1406 0561 01       		.byte	1
+ 1407 0562 BE       		.byte	-66
+ 1408 0563 10       		.byte	16
+ 1409 0564 C0       		.byte	-64
+ 1410 0565 30       		.byte	48
+ 1411 0566 C1       		.byte	-63
+ 1412 0567 02       		.byte	2
+ 1413 0568 C5       		.byte	-59
+ 1414 0569 D0       		.byte	-48
+ 1415 056a C6       		.byte	-58
+ 1416 056b 20       		.byte	32
+ 1417 056c C7       		.byte	-57
+ 1418 056d 01       		.byte	1
+ 1419 056e C8       		.byte	-56
+ 1420 056f 1A       		.byte	26
+ 1421 0570 C9       		.byte	-55
+ 1422 0571 FF       		.byte	-1
+ 1423 0572 CA       		.byte	-54
+ 1424 0573 FF       		.byte	-1
+ 1425 0574 CB       		.byte	-53
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 26
+
+
+ 1426 0575 FF       		.byte	-1
+ 1427 0576 CD       		.byte	-51
+ 1428 0577 AF       		.byte	-81
+ 1429 0578 CE       		.byte	-50
+ 1430 0579 0F       		.byte	15
+ 1431 057a CF       		.byte	-49
+ 1432 057b 04       		.byte	4
+ 1433 057c D0       		.byte	-48
+ 1434 057d 18       		.byte	24
+ 1435 057e D2       		.byte	-46
+ 1436 057f 80       		.byte	-128
+ 1437 0580 D4       		.byte	-44
+ 1438 0581 05       		.byte	5
+ 1439 0582 D8       		.byte	-40
+ 1440 0583 04       		.byte	4
+ 1441 0584 D9       		.byte	-39
+ 1442 0585 04       		.byte	4
+ 1443 0586 DA       		.byte	-38
+ 1444 0587 04       		.byte	4
+ 1445 0588 DB       		.byte	-37
+ 1446 0589 04       		.byte	4
+ 1447 058a DC       		.byte	-36
+ 1448 058b 33       		.byte	51
+ 1449 058c DD       		.byte	-35
+ 1450 058d 33       		.byte	51
+ 1451 058e DF       		.byte	-33
+ 1452 058f 01       		.byte	1
+ 1453 0590 E0       		.byte	-32
+ 1454 0591 40       		.byte	64
+ 1455 0592 E2       		.byte	-30
+ 1456 0593 C0       		.byte	-64
+ 1457 0594 E4       		.byte	-28
+ 1458 0595 40       		.byte	64
+ 1459 0596 E5       		.byte	-27
+ 1460 0597 40       		.byte	64
+ 1461 0598 E6       		.byte	-26
+ 1462 0599 C0       		.byte	-64
+ 1463 059a E8       		.byte	-24
+ 1464 059b C0       		.byte	-64
+ 1465 059c EA       		.byte	-22
+ 1466 059d C0       		.byte	-64
+ 1467 059e EC       		.byte	-20
+ 1468 059f C0       		.byte	-64
+ 1469 05a0 EE       		.byte	-18
+ 1470 05a1 C0       		.byte	-64
+ 1471 05a2 04       		.byte	4
+ 1472 05a3 10       		.byte	16
+ 1473 05a4 0F       		.byte	15
+ 1474 05a5 20       		.byte	32
+ 1475 05a6 16       		.byte	22
+ 1476 05a7 44       		.byte	68
+ 1477 05a8 1C       		.byte	28
+ 1478 05a9 10       		.byte	16
+ 1479 05aa 1D       		.byte	29
+ 1480 05ab 08       		.byte	8
+ 1481 05ac 1E       		.byte	30
+ 1482 05ad 48       		.byte	72
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 27
+
+
+ 1483 05ae 26       		.byte	38
+ 1484 05af 48       		.byte	72
+ 1485 05b0 2E       		.byte	46
+ 1486 05b1 40       		.byte	64
+ 1487 05b2 3C       		.byte	60
+ 1488 05b3 10       		.byte	16
+ 1489 05b4 3D       		.byte	61
+ 1490 05b5 08       		.byte	8
+ 1491 05b6 40       		.byte	64
+ 1492 05b7 10       		.byte	16
+ 1493 05b8 41       		.byte	65
+ 1494 05b9 20       		.byte	32
+ 1495 05ba 45       		.byte	69
+ 1496 05bb 28       		.byte	40
+ 1497 05bc 4F       		.byte	79
+ 1498 05bd 01       		.byte	1
+ 1499 05be 55       		.byte	85
+ 1500 05bf 24       		.byte	36
+ 1501 05c0 56       		.byte	86
+ 1502 05c1 04       		.byte	4
+ 1503 05c2 57       		.byte	87
+ 1504 05c3 10       		.byte	16
+ 1505 05c4 5E       		.byte	94
+ 1506 05c5 88       		.byte	-120
+ 1507 05c6 5F       		.byte	95
+ 1508 05c7 01       		.byte	1
+ 1509 05c8 76       		.byte	118
+ 1510 05c9 40       		.byte	64
+ 1511 05ca 86       		.byte	-122
+ 1512 05cb 08       		.byte	8
+ 1513 05cc C0       		.byte	-64
+ 1514 05cd 40       		.byte	64
+ 1515 05ce C2       		.byte	-62
+ 1516 05cf 20       		.byte	32
+ 1517 05d0 C4       		.byte	-60
+ 1518 05d1 50       		.byte	80
+ 1519 05d2 CA       		.byte	-54
+ 1520 05d3 10       		.byte	16
+ 1521 05d4 CE       		.byte	-50
+ 1522 05d5 60       		.byte	96
+ 1523 05d6 D0       		.byte	-48
+ 1524 05d7 66       		.byte	102
+ 1525 05d8 D6       		.byte	-42
+ 1526 05d9 D0       		.byte	-48
+ 1527 05da E0       		.byte	-32
+ 1528 05db 08       		.byte	8
+ 1529 05dc E4       		.byte	-28
+ 1530 05dd 01       		.byte	1
+ 1531 05de EC       		.byte	-20
+ 1532 05df 20       		.byte	32
+ 1533 05e0 30       		.byte	48
+ 1534 05e1 40       		.byte	64
+ 1535 05e2 32       		.byte	50
+ 1536 05e3 01       		.byte	1
+ 1537 05e4 34       		.byte	52
+ 1538 05e5 80       		.byte	-128
+ 1539 05e6 37       		.byte	55
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 28
+
+
+ 1540 05e7 04       		.byte	4
+ 1541 05e8 38       		.byte	56
+ 1542 05e9 40       		.byte	64
+ 1543 05ea 3D       		.byte	61
+ 1544 05eb 80       		.byte	-128
+ 1545 05ec CC       		.byte	-52
+ 1546 05ed F0       		.byte	-16
+ 1547 05ee CE       		.byte	-50
+ 1548 05ef 30       		.byte	48
+ 1549 05f0 32       		.byte	50
+ 1550 05f1 20       		.byte	32
+ 1551 05f2 33       		.byte	51
+ 1552 05f3 01       		.byte	1
+ 1553 05f4 35       		.byte	53
+ 1554 05f5 80       		.byte	-128
+ 1555 05f6 84       		.byte	-124
+ 1556 05f7 40       		.byte	64
+ 1557 05f8 86       		.byte	-122
+ 1558 05f9 20       		.byte	32
+ 1559 05fa 94       		.byte	-108
+ 1560 05fb 40       		.byte	64
+ 1561 05fc 96       		.byte	-106
+ 1562 05fd 02       		.byte	2
+ 1563 05fe 9C       		.byte	-100
+ 1564 05ff C0       		.byte	-64
+ 1565 0600 9F       		.byte	-97
+ 1566 0601 04       		.byte	4
+ 1567 0602 A5       		.byte	-91
+ 1568 0603 40       		.byte	64
+ 1569 0604 CC       		.byte	-52
+ 1570 0605 70       		.byte	112
+ 1571 0606 E6       		.byte	-26
+ 1572 0607 50       		.byte	80
+ 1573 0608 85       		.byte	-123
+ 1574 0609 80       		.byte	-128
+ 1575 060a 8F       		.byte	-113
+ 1576 060b 04       		.byte	4
+ 1577 060c 94       		.byte	-108
+ 1578 060d 40       		.byte	64
+ 1579 060e 96       		.byte	-106
+ 1580 060f 02       		.byte	2
+ 1581 0610 9C       		.byte	-100
+ 1582 0611 80       		.byte	-128
+ 1583 0612 9D       		.byte	-99
+ 1584 0613 80       		.byte	-128
+ 1585 0614 9F       		.byte	-97
+ 1586 0615 05       		.byte	5
+ 1587 0616 A5       		.byte	-91
+ 1588 0617 40       		.byte	64
+ 1589 0618 E2       		.byte	-30
+ 1590 0619 10       		.byte	16
+ 1591 061a 1B       		.byte	27
+ 1592 061b 04       		.byte	4
+ 1593 061c 1E       		.byte	30
+ 1594 061d 20       		.byte	32
+ 1595 061e 60       		.byte	96
+ 1596 061f 20       		.byte	32
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 29
+
+
+ 1597 0620 66       		.byte	102
+ 1598 0621 02       		.byte	2
+ 1599 0622 86       		.byte	-122
+ 1600 0623 01       		.byte	1
+ 1601 0624 8A       		.byte	-118
+ 1602 0625 10       		.byte	16
+ 1603 0626 8C       		.byte	-116
+ 1604 0627 20       		.byte	32
+ 1605 0628 96       		.byte	-106
+ 1606 0629 02       		.byte	2
+ 1607 062a 9C       		.byte	-100
+ 1608 062b 80       		.byte	-128
+ 1609 062c 9F       		.byte	-97
+ 1610 062d 01       		.byte	1
+ 1611 062e A5       		.byte	-91
+ 1612 062f 40       		.byte	64
+ 1613 0630 A8       		.byte	-88
+ 1614 0631 40       		.byte	64
+ 1615 0632 C6       		.byte	-58
+ 1616 0633 30       		.byte	48
+ 1617 0634 D8       		.byte	-40
+ 1618 0635 C0       		.byte	-64
+ 1619 0636 E6       		.byte	-26
+ 1620 0637 40       		.byte	64
+ 1621 0638 EE       		.byte	-18
+ 1622 0639 20       		.byte	32
+ 1623 063a 2B       		.byte	43
+ 1624 063b 04       		.byte	4
+ 1625 063c CA       		.byte	-54
+ 1626 063d 08       		.byte	8
+ 1627 063e 3B       		.byte	59
+ 1628 063f 40       		.byte	64
+ 1629 0640 87       		.byte	-121
+ 1630 0641 10       		.byte	16
+ 1631 0642 A3       		.byte	-93
+ 1632 0643 04       		.byte	4
+ 1633 0644 CE       		.byte	-50
+ 1634 0645 08       		.byte	8
+ 1635 0646 00       		.byte	0
+ 1636 0647 40       		.byte	64
+ 1637 0648 1B       		.byte	27
+ 1638 0649 04       		.byte	4
+ 1639 064a 32       		.byte	50
+ 1640 064b 40       		.byte	64
+ 1641 064c 87       		.byte	-121
+ 1642 064d 10       		.byte	16
+ 1643 064e 97       		.byte	-105
+ 1644 064f 60       		.byte	96
+ 1645 0650 B7       		.byte	-73
+ 1646 0651 04       		.byte	4
+ 1647 0652 C0       		.byte	-64
+ 1648 0653 02       		.byte	2
+ 1649 0654 C6       		.byte	-58
+ 1650 0655 08       		.byte	8
+ 1651 0656 CC       		.byte	-52
+ 1652 0657 08       		.byte	8
+ 1653 0658 EA       		.byte	-22
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 30
+
+
+ 1654 0659 02       		.byte	2
+ 1655 065a 0B       		.byte	11
+ 1656 065b 24       		.byte	36
+ 1657 065c 0F       		.byte	15
+ 1658 065d 10       		.byte	16
+ 1659 065e 44       		.byte	68
+ 1660 065f 01       		.byte	1
+ 1661 0660 8B       		.byte	-117
+ 1662 0661 01       		.byte	1
+ 1663 0662 96       		.byte	-106
+ 1664 0663 80       		.byte	-128
+ 1665 0664 97       		.byte	-105
+ 1666 0665 30       		.byte	48
+ 1667 0666 AB       		.byte	-85
+ 1668 0667 04       		.byte	4
+ 1669 0668 B3       		.byte	-77
+ 1670 0669 40       		.byte	64
+ 1671 066a B4       		.byte	-76
+ 1672 066b 40       		.byte	64
+ 1673 066c C2       		.byte	-62
+ 1674 066d 0E       		.byte	14
+ 1675 066e D0       		.byte	-48
+ 1676 066f 04       		.byte	4
+ 1677 0670 E0       		.byte	-32
+ 1678 0671 01       		.byte	1
+ 1679 0672 E8       		.byte	-24
+ 1680 0673 04       		.byte	4
+ 1681 0674 EA       		.byte	-22
+ 1682 0675 02       		.byte	2
+ 1683 0676 20       		.byte	32
+ 1684 0677 80       		.byte	-128
+ 1685 0678 66       		.byte	102
+ 1686 0679 02       		.byte	2
+ 1687 067a 84       		.byte	-124
+ 1688 067b 80       		.byte	-128
+ 1689 067c 9C       		.byte	-100
+ 1690 067d 80       		.byte	-128
+ 1691 067e 9E       		.byte	-98
+ 1692 067f 02       		.byte	2
+ 1693 0680 A5       		.byte	-91
+ 1694 0681 40       		.byte	64
+ 1695 0682 AB       		.byte	-85
+ 1696 0683 04       		.byte	4
+ 1697 0684 AF       		.byte	-81
+ 1698 0685 01       		.byte	1
+ 1699 0686 C8       		.byte	-56
+ 1700 0687 40       		.byte	64
+ 1701 0688 D8       		.byte	-40
+ 1702 0689 80       		.byte	-128
+ 1703 068a E6       		.byte	-26
+ 1704 068b 40       		.byte	64
+ 1705 068c EA       		.byte	-22
+ 1706 068d 40       		.byte	64
+ 1707 068e EC       		.byte	-20
+ 1708 068f 20       		.byte	32
+ 1709 0690 25       		.byte	37
+ 1710 0691 40       		.byte	64
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 31
+
+
+ 1711 0692 26       		.byte	38
+ 1712 0693 20       		.byte	32
+ 1713 0694 7B       		.byte	123
+ 1714 0695 40       		.byte	64
+ 1715 0696 82       		.byte	-126
+ 1716 0697 20       		.byte	32
+ 1717 0698 8E       		.byte	-114
+ 1718 0699 02       		.byte	2
+ 1719 069a 8F       		.byte	-113
+ 1720 069b 40       		.byte	64
+ 1721 069c 9E       		.byte	-98
+ 1722 069d 02       		.byte	2
+ 1723 069e A5       		.byte	-91
+ 1724 069f 40       		.byte	64
+ 1725 06a0 B0       		.byte	-80
+ 1726 06a1 40       		.byte	64
+ 1727 06a2 C8       		.byte	-56
+ 1728 06a3 20       		.byte	32
+ 1729 06a4 DE       		.byte	-34
+ 1730 06a5 40       		.byte	64
+ 1731 06a6 E4       		.byte	-28
+ 1732 06a7 80       		.byte	-128
+ 1733 06a8 96       		.byte	-106
+ 1734 06a9 80       		.byte	-128
+ 1735 06aa 9C       		.byte	-100
+ 1736 06ab 01       		.byte	1
+ 1737 06ac A3       		.byte	-93
+ 1738 06ad 01       		.byte	1
+ 1739 06ae AF       		.byte	-81
+ 1740 06af 04       		.byte	4
+ 1741 06b0 76       		.byte	118
+ 1742 06b1 20       		.byte	32
+ 1743 06b2 7B       		.byte	123
+ 1744 06b3 01       		.byte	1
+ 1745 06b4 82       		.byte	-126
+ 1746 06b5 40       		.byte	64
+ 1747 06b6 86       		.byte	-122
+ 1748 06b7 20       		.byte	32
+ 1749 06b8 96       		.byte	-106
+ 1750 06b9 80       		.byte	-128
+ 1751 06ba A3       		.byte	-93
+ 1752 06bb 01       		.byte	1
+ 1753 06bc B0       		.byte	-80
+ 1754 06bd 01       		.byte	1
+ 1755 06be DC       		.byte	-36
+ 1756 06bf 01       		.byte	1
+ 1757 06c0 DE       		.byte	-34
+ 1758 06c1 04       		.byte	4
+ 1759 06c2 EC       		.byte	-20
+ 1760 06c3 04       		.byte	4
+ 1761 06c4 00       		.byte	0
+ 1762 06c5 81       		.byte	-127
+ 1763 06c6 0A       		.byte	10
+ 1764 06c7 81       		.byte	-127
+ 1765 06c8 10       		.byte	16
+ 1766 06c9 38       		.byte	56
+ 1767 06ca 1A       		.byte	26
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 32
+
+
+ 1768 06cb 30       		.byte	48
+ 1769 06cc 1C       		.byte	28
+ 1770 06cd 08       		.byte	8
+ 1771 06ce 00       		.byte	0
+ 1772 06cf FF       		.byte	-1
+ 1773 06d0 01       		.byte	1
+ 1774 06d1 AB       		.byte	-85
+ 1775 06d2 10       		.byte	16
+ 1776 06d3 02       		.byte	2
+ 1777 06d4 00       		.byte	0
+ 1778 06d5 00       		.byte	0
+ 1779 06d6 00       		.byte	0
+ 1780 06d7 00       		.byte	0
+ 1781 06d8 00       		.byte	0
+ 1782 06d9 00       		.byte	0
+ 1783 06da 10       		.byte	16
+ 1784 06db 00       		.byte	0
+ 1785 06dc 00       		.byte	0
+ 1786 06dd 30       		.byte	48
+ 1787 06de 30       		.byte	48
+ 1788 06df 00       		.byte	0
+ 1789 06e0 30       		.byte	48
+ 1790 06e1 00       		.byte	0
+ 1791 06e2 00       		.byte	0
+ 1792 06e3 00       		.byte	0
+ 1793 06e4 40       		.byte	64
+ 1794 06e5 00       		.byte	0
+ 1795 06e6 00       		.byte	0
+ 1796 06e7 00       		.byte	0
+ 1797 06e8 00       		.byte	0
+ 1798 06e9 00       		.byte	0
+ 1799 06ea 00       		.byte	0
+ 1800 06eb 00       		.byte	0
+ 1801 06ec C0       		.byte	-64
+ 1802 06ed 00       		.byte	0
+ 1803 06ee 00       		.byte	0
+ 1804 06ef 00       		.byte	0
+ 1805 06f0 00       		.byte	0
+ 1806 06f1 0B       		.byte	11
+ 1807 06f2 0B       		.byte	11
+ 1808 06f3 00       		.byte	0
+ 1809 06f4 00       		.byte	0
+ 1810 06f5 00       		.byte	0
+ 1811 06f6 00       		.byte	0
+ 1812 06f7 00       		.byte	0
+ 1813 06f8 00       		.byte	0
+ 1814 06f9 7F       		.byte	127
+ 1815 06fa 7F       		.byte	127
+ 1816 06fb 00       		.byte	0
+ 1817 06fc 00       		.byte	0
+ 1818 06fd 00       		.byte	0
+ 1819 06fe 00       		.byte	0
+ 1820 06ff 00       		.byte	0
+ 1821 0700 00       		.byte	0
+ 1822 0701 00       		.byte	0
+ 1823 0702 00       		.byte	0
+ 1824 0703 00       		.byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 33
+
+
+ 1825 0704 00       		.byte	0
+ 1826 0705 00       		.byte	0
+ 1827 0706 40       		.byte	64
+ 1828 0707 00       		.byte	0
+ 1829 0708 00       		.byte	0
+ 1830 0709 00       		.byte	0
+ 1831 070a 7F       		.byte	127
+ 1832 070b 00       		.byte	0
+ 1833 070c 00       		.byte	0
+ 1834 070d 00       		.byte	0
+ 1835 070e 00       		.byte	0
+ 1836 070f 00       		.byte	0
+ 1837 0710 00       		.byte	0
+ 1838 0711 08       		.byte	8
+ 1839 0712 08       		.byte	8
+ 1840 0713 00       		.byte	0
+ 1841 0714 00       		.byte	0
+ 1842 0715 00       		.byte	0
+ 1843 0716 10       		.byte	16
+ 1844 0717 00       		.byte	0
+ 1845 0718 01       		.byte	1
+ 1846 0719 00       		.byte	0
+ 1847 071a 18       		.byte	24
+ 1848 071b 01       		.byte	1
+ 1849              		.section	.cywolatch,"a",%progbits
+ 1850              		.align	2
+ 1851              		.type	cy_meta_wonvl, %object
+ 1852              		.size	cy_meta_wonvl, 4
+ 1853              	cy_meta_wonvl:
+ 1854 0000 BC       		.byte	-68
+ 1855 0001 90       		.byte	-112
+ 1856 0002 AC       		.byte	-84
+ 1857 0003 AF       		.byte	-81
+ 1858              		.section	.cycustnvl,"a",%progbits
+ 1859              		.align	2
+ 1860              		.type	cy_meta_custnvl, %object
+ 1861              		.size	cy_meta_custnvl, 4
+ 1862              	cy_meta_custnvl:
+ 1863 0000 00       		.byte	0
+ 1864 0001 00       		.byte	0
+ 1865 0002 40       		.byte	64
+ 1866 0003 05       		.byte	5
+ 1867              		.section	.cymeta,"a",%progbits
+ 1868              		.align	2
+ 1869              		.type	cy_metadata, %object
+ 1870              		.size	cy_metadata, 12
+ 1871              	cy_metadata:
+ 1872 0000 00       		.byte	0
+ 1873 0001 01       		.byte	1
+ 1874 0002 2E       		.byte	46
+ 1875 0003 12       		.byte	18
+ 1876 0004 30       		.byte	48
+ 1877 0005 69       		.byte	105
+ 1878 0006 00       		.byte	0
+ 1879 0007 01       		.byte	1
+ 1880 0008 00       		.byte	0
+ 1881 0009 00       		.byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 34
+
+
+ 1882 000a 00       		.byte	0
+ 1883 000b 00       		.byte	0
+ 1884              		.section	.cyflashprotect,"a",%progbits
+ 1885              		.align	2
+ 1886              		.type	cy_meta_flashprotect, %object
+ 1887              		.size	cy_meta_flashprotect, 256
+ 1888              	cy_meta_flashprotect:
+ 1889 0000 00000000 		.space	256
+ 1889      00000000 
+ 1889      00000000 
+ 1889      00000000 
+ 1889      00000000 
+ 1890              		.text
+ 1891              	.Letext0:
+ 1892              		.file 1 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 1893              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 1894              		.file 3 "Generated_Source\\PSoC5\\cymetadata.c"
+ 1895              		.section	.debug_info,"",%progbits
+ 1896              	.Ldebug_info0:
+ 1897 0000 35010000 		.4byte	0x135
+ 1898 0004 0400     		.2byte	0x4
+ 1899 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 1900 000a 04       		.byte	0x4
+ 1901 000b 01       		.uleb128 0x1
+ 1902 000c 24000000 		.4byte	.LASF17
+ 1903 0010 0C       		.byte	0xc
+ 1904 0011 CE010000 		.4byte	.LASF18
+ 1905 0015 06010000 		.4byte	.LASF19
+ 1906 0019 00000000 		.4byte	.Ldebug_line0
+ 1907 001d 02       		.uleb128 0x2
+ 1908 001e 01       		.byte	0x1
+ 1909 001f 06       		.byte	0x6
+ 1910 0020 C2010000 		.4byte	.LASF0
+ 1911 0024 03       		.uleb128 0x3
+ 1912 0025 00000000 		.4byte	.LASF9
+ 1913 0029 01       		.byte	0x1
+ 1914 002a 1D       		.byte	0x1d
+ 1915 002b 2F000000 		.4byte	0x2f
+ 1916 002f 02       		.uleb128 0x2
+ 1917 0030 01       		.byte	0x1
+ 1918 0031 08       		.byte	0x8
+ 1919 0032 16000000 		.4byte	.LASF1
+ 1920 0036 02       		.uleb128 0x2
+ 1921 0037 02       		.byte	0x2
+ 1922 0038 05       		.byte	0x5
+ 1923 0039 AF010000 		.4byte	.LASF2
+ 1924 003d 02       		.uleb128 0x2
+ 1925 003e 02       		.byte	0x2
+ 1926 003f 07       		.byte	0x7
+ 1927 0040 C4000000 		.4byte	.LASF3
+ 1928 0044 02       		.uleb128 0x2
+ 1929 0045 04       		.byte	0x4
+ 1930 0046 05       		.byte	0x5
+ 1931 0047 B9010000 		.4byte	.LASF4
+ 1932 004b 02       		.uleb128 0x2
+ 1933 004c 04       		.byte	0x4
+ 1934 004d 07       		.byte	0x7
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 35
+
+
+ 1935 004e B2000000 		.4byte	.LASF5
+ 1936 0052 02       		.uleb128 0x2
+ 1937 0053 08       		.byte	0x8
+ 1938 0054 05       		.byte	0x5
+ 1939 0055 A1010000 		.4byte	.LASF6
+ 1940 0059 02       		.uleb128 0x2
+ 1941 005a 08       		.byte	0x8
+ 1942 005b 07       		.byte	0x7
+ 1943 005c 56010000 		.4byte	.LASF7
+ 1944 0060 04       		.uleb128 0x4
+ 1945 0061 04       		.byte	0x4
+ 1946 0062 05       		.byte	0x5
+ 1947 0063 696E7400 		.ascii	"int\000"
+ 1948 0067 02       		.uleb128 0x2
+ 1949 0068 04       		.byte	0x4
+ 1950 0069 07       		.byte	0x7
+ 1951 006a F9000000 		.4byte	.LASF8
+ 1952 006e 03       		.uleb128 0x3
+ 1953 006f 6D010000 		.4byte	.LASF10
+ 1954 0073 02       		.byte	0x2
+ 1955 0074 18       		.byte	0x18
+ 1956 0075 24000000 		.4byte	0x24
+ 1957 0079 05       		.uleb128 0x5
+ 1958 007a 91000000 		.4byte	0x91
+ 1959 007e 8A000000 		.4byte	0x8a
+ 1960 0082 06       		.uleb128 0x6
+ 1961 0083 8A000000 		.4byte	0x8a
+ 1962 0087 1B07     		.2byte	0x71b
+ 1963 0089 00       		.byte	0
+ 1964 008a 02       		.uleb128 0x2
+ 1965 008b 04       		.byte	0x4
+ 1966 008c 07       		.byte	0x7
+ 1967 008d 98010000 		.4byte	.LASF11
+ 1968 0091 07       		.uleb128 0x7
+ 1969 0092 6E000000 		.4byte	0x6e
+ 1970 0096 08       		.uleb128 0x8
+ 1971 0097 E7000000 		.4byte	.LASF12
+ 1972 009b 03       		.byte	0x3
+ 1973 009c 1F       		.byte	0x1f
+ 1974 009d A7000000 		.4byte	0xa7
+ 1975 00a1 05       		.uleb128 0x5
+ 1976 00a2 03       		.byte	0x3
+ 1977 00a3 00000000 		.4byte	cy_meta_configecc
+ 1978 00a7 07       		.uleb128 0x7
+ 1979 00a8 79000000 		.4byte	0x79
+ 1980 00ac 05       		.uleb128 0x5
+ 1981 00ad 91000000 		.4byte	0x91
+ 1982 00b1 BC000000 		.4byte	0xbc
+ 1983 00b5 09       		.uleb128 0x9
+ 1984 00b6 8A000000 		.4byte	0x8a
+ 1985 00ba 03       		.byte	0x3
+ 1986 00bb 00       		.byte	0
+ 1987 00bc 0A       		.uleb128 0xa
+ 1988 00bd D7000000 		.4byte	.LASF13
+ 1989 00c1 03       		.byte	0x3
+ 1990 00c2 1001     		.2byte	0x110
+ 1991 00c4 CE000000 		.4byte	0xce
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 36
+
+
+ 1992 00c8 05       		.uleb128 0x5
+ 1993 00c9 03       		.byte	0x3
+ 1994 00ca 00000000 		.4byte	cy_meta_custnvl
+ 1995 00ce 07       		.uleb128 0x7
+ 1996 00cf AC000000 		.4byte	0xac
+ 1997 00d3 0A       		.uleb128 0xa
+ 1998 00d4 8A010000 		.4byte	.LASF14
+ 1999 00d8 03       		.byte	0x3
+ 2000 00d9 1E01     		.2byte	0x11e
+ 2001 00db E5000000 		.4byte	0xe5
+ 2002 00df 05       		.uleb128 0x5
+ 2003 00e0 03       		.byte	0x3
+ 2004 00e1 00000000 		.4byte	cy_meta_wonvl
+ 2005 00e5 07       		.uleb128 0x7
+ 2006 00e6 AC000000 		.4byte	0xac
+ 2007 00ea 05       		.uleb128 0x5
+ 2008 00eb 91000000 		.4byte	0x91
+ 2009 00ef FA000000 		.4byte	0xfa
+ 2010 00f3 09       		.uleb128 0x9
+ 2011 00f4 8A000000 		.4byte	0x8a
+ 2012 00f8 FF       		.byte	0xff
+ 2013 00f9 00       		.byte	0
+ 2014 00fa 0A       		.uleb128 0xa
+ 2015 00fb 75010000 		.4byte	.LASF15
+ 2016 00ff 03       		.byte	0x3
+ 2017 0100 2C01     		.2byte	0x12c
+ 2018 0102 0C010000 		.4byte	0x10c
+ 2019 0106 05       		.uleb128 0x5
+ 2020 0107 03       		.byte	0x3
+ 2021 0108 00000000 		.4byte	cy_meta_flashprotect
+ 2022 010c 07       		.uleb128 0x7
+ 2023 010d EA000000 		.4byte	0xea
+ 2024 0111 05       		.uleb128 0x5
+ 2025 0112 91000000 		.4byte	0x91
+ 2026 0116 21010000 		.4byte	0x121
+ 2027 011a 09       		.uleb128 0x9
+ 2028 011b 8A000000 		.4byte	0x8a
+ 2029 011f 0B       		.byte	0xb
+ 2030 0120 00       		.byte	0
+ 2031 0121 0A       		.uleb128 0xa
+ 2032 0122 0A000000 		.4byte	.LASF16
+ 2033 0126 03       		.byte	0x3
+ 2034 0127 5901     		.2byte	0x159
+ 2035 0129 33010000 		.4byte	0x133
+ 2036 012d 05       		.uleb128 0x5
+ 2037 012e 03       		.byte	0x3
+ 2038 012f 00000000 		.4byte	cy_metadata
+ 2039 0133 07       		.uleb128 0x7
+ 2040 0134 11010000 		.4byte	0x111
+ 2041 0138 00       		.byte	0
+ 2042              		.section	.debug_abbrev,"",%progbits
+ 2043              	.Ldebug_abbrev0:
+ 2044 0000 01       		.uleb128 0x1
+ 2045 0001 11       		.uleb128 0x11
+ 2046 0002 01       		.byte	0x1
+ 2047 0003 25       		.uleb128 0x25
+ 2048 0004 0E       		.uleb128 0xe
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 37
+
+
+ 2049 0005 13       		.uleb128 0x13
+ 2050 0006 0B       		.uleb128 0xb
+ 2051 0007 03       		.uleb128 0x3
+ 2052 0008 0E       		.uleb128 0xe
+ 2053 0009 1B       		.uleb128 0x1b
+ 2054 000a 0E       		.uleb128 0xe
+ 2055 000b 10       		.uleb128 0x10
+ 2056 000c 17       		.uleb128 0x17
+ 2057 000d 00       		.byte	0
+ 2058 000e 00       		.byte	0
+ 2059 000f 02       		.uleb128 0x2
+ 2060 0010 24       		.uleb128 0x24
+ 2061 0011 00       		.byte	0
+ 2062 0012 0B       		.uleb128 0xb
+ 2063 0013 0B       		.uleb128 0xb
+ 2064 0014 3E       		.uleb128 0x3e
+ 2065 0015 0B       		.uleb128 0xb
+ 2066 0016 03       		.uleb128 0x3
+ 2067 0017 0E       		.uleb128 0xe
+ 2068 0018 00       		.byte	0
+ 2069 0019 00       		.byte	0
+ 2070 001a 03       		.uleb128 0x3
+ 2071 001b 16       		.uleb128 0x16
+ 2072 001c 00       		.byte	0
+ 2073 001d 03       		.uleb128 0x3
+ 2074 001e 0E       		.uleb128 0xe
+ 2075 001f 3A       		.uleb128 0x3a
+ 2076 0020 0B       		.uleb128 0xb
+ 2077 0021 3B       		.uleb128 0x3b
+ 2078 0022 0B       		.uleb128 0xb
+ 2079 0023 49       		.uleb128 0x49
+ 2080 0024 13       		.uleb128 0x13
+ 2081 0025 00       		.byte	0
+ 2082 0026 00       		.byte	0
+ 2083 0027 04       		.uleb128 0x4
+ 2084 0028 24       		.uleb128 0x24
+ 2085 0029 00       		.byte	0
+ 2086 002a 0B       		.uleb128 0xb
+ 2087 002b 0B       		.uleb128 0xb
+ 2088 002c 3E       		.uleb128 0x3e
+ 2089 002d 0B       		.uleb128 0xb
+ 2090 002e 03       		.uleb128 0x3
+ 2091 002f 08       		.uleb128 0x8
+ 2092 0030 00       		.byte	0
+ 2093 0031 00       		.byte	0
+ 2094 0032 05       		.uleb128 0x5
+ 2095 0033 01       		.uleb128 0x1
+ 2096 0034 01       		.byte	0x1
+ 2097 0035 49       		.uleb128 0x49
+ 2098 0036 13       		.uleb128 0x13
+ 2099 0037 01       		.uleb128 0x1
+ 2100 0038 13       		.uleb128 0x13
+ 2101 0039 00       		.byte	0
+ 2102 003a 00       		.byte	0
+ 2103 003b 06       		.uleb128 0x6
+ 2104 003c 21       		.uleb128 0x21
+ 2105 003d 00       		.byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 38
+
+
+ 2106 003e 49       		.uleb128 0x49
+ 2107 003f 13       		.uleb128 0x13
+ 2108 0040 2F       		.uleb128 0x2f
+ 2109 0041 05       		.uleb128 0x5
+ 2110 0042 00       		.byte	0
+ 2111 0043 00       		.byte	0
+ 2112 0044 07       		.uleb128 0x7
+ 2113 0045 26       		.uleb128 0x26
+ 2114 0046 00       		.byte	0
+ 2115 0047 49       		.uleb128 0x49
+ 2116 0048 13       		.uleb128 0x13
+ 2117 0049 00       		.byte	0
+ 2118 004a 00       		.byte	0
+ 2119 004b 08       		.uleb128 0x8
+ 2120 004c 34       		.uleb128 0x34
+ 2121 004d 00       		.byte	0
+ 2122 004e 03       		.uleb128 0x3
+ 2123 004f 0E       		.uleb128 0xe
+ 2124 0050 3A       		.uleb128 0x3a
+ 2125 0051 0B       		.uleb128 0xb
+ 2126 0052 3B       		.uleb128 0x3b
+ 2127 0053 0B       		.uleb128 0xb
+ 2128 0054 49       		.uleb128 0x49
+ 2129 0055 13       		.uleb128 0x13
+ 2130 0056 3F       		.uleb128 0x3f
+ 2131 0057 19       		.uleb128 0x19
+ 2132 0058 02       		.uleb128 0x2
+ 2133 0059 18       		.uleb128 0x18
+ 2134 005a 00       		.byte	0
+ 2135 005b 00       		.byte	0
+ 2136 005c 09       		.uleb128 0x9
+ 2137 005d 21       		.uleb128 0x21
+ 2138 005e 00       		.byte	0
+ 2139 005f 49       		.uleb128 0x49
+ 2140 0060 13       		.uleb128 0x13
+ 2141 0061 2F       		.uleb128 0x2f
+ 2142 0062 0B       		.uleb128 0xb
+ 2143 0063 00       		.byte	0
+ 2144 0064 00       		.byte	0
+ 2145 0065 0A       		.uleb128 0xa
+ 2146 0066 34       		.uleb128 0x34
+ 2147 0067 00       		.byte	0
+ 2148 0068 03       		.uleb128 0x3
+ 2149 0069 0E       		.uleb128 0xe
+ 2150 006a 3A       		.uleb128 0x3a
+ 2151 006b 0B       		.uleb128 0xb
+ 2152 006c 3B       		.uleb128 0x3b
+ 2153 006d 05       		.uleb128 0x5
+ 2154 006e 49       		.uleb128 0x49
+ 2155 006f 13       		.uleb128 0x13
+ 2156 0070 3F       		.uleb128 0x3f
+ 2157 0071 19       		.uleb128 0x19
+ 2158 0072 02       		.uleb128 0x2
+ 2159 0073 18       		.uleb128 0x18
+ 2160 0074 00       		.byte	0
+ 2161 0075 00       		.byte	0
+ 2162 0076 00       		.byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 39
+
+
+ 2163              		.section	.debug_aranges,"",%progbits
+ 2164 0000 14000000 		.4byte	0x14
+ 2165 0004 0200     		.2byte	0x2
+ 2166 0006 00000000 		.4byte	.Ldebug_info0
+ 2167 000a 04       		.byte	0x4
+ 2168 000b 00       		.byte	0
+ 2169 000c 0000     		.2byte	0
+ 2170 000e 0000     		.2byte	0
+ 2171 0010 00000000 		.4byte	0
+ 2172 0014 00000000 		.4byte	0
+ 2173              		.section	.debug_line,"",%progbits
+ 2174              	.Ldebug_line0:
+ 2175 0000 3D010000 		.section	.debug_str,"MS",%progbits,1
+ 2175      02003701 
+ 2175      00000201 
+ 2175      FB0E0D00 
+ 2175      01010101 
+ 2176              	.LASF9:
+ 2177 0000 5F5F7569 		.ascii	"__uint8_t\000"
+ 2177      6E74385F 
+ 2177      7400
+ 2178              	.LASF16:
+ 2179 000a 63795F6D 		.ascii	"cy_metadata\000"
+ 2179      65746164 
+ 2179      61746100 
+ 2180              	.LASF1:
+ 2181 0016 756E7369 		.ascii	"unsigned char\000"
+ 2181      676E6564 
+ 2181      20636861 
+ 2181      7200
+ 2182              	.LASF17:
+ 2183 0024 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 2183      43313120 
+ 2183      352E342E 
+ 2183      31203230 
+ 2183      31363036 
+ 2184 0057 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m3 -mthumb -g -O"
+ 2184      20726576 
+ 2184      6973696F 
+ 2184      6E203233 
+ 2184      37373135 
+ 2185 008a 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 2185      66756E63 
+ 2185      74696F6E 
+ 2185      2D736563 
+ 2185      74696F6E 
+ 2186              	.LASF5:
+ 2187 00b2 6C6F6E67 		.ascii	"long unsigned int\000"
+ 2187      20756E73 
+ 2187      69676E65 
+ 2187      6420696E 
+ 2187      7400
+ 2188              	.LASF3:
+ 2189 00c4 73686F72 		.ascii	"short unsigned int\000"
+ 2189      7420756E 
+ 2189      7369676E 
+ 2189      65642069 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 40
+
+
+ 2189      6E7400
+ 2190              	.LASF13:
+ 2191 00d7 63795F6D 		.ascii	"cy_meta_custnvl\000"
+ 2191      6574615F 
+ 2191      63757374 
+ 2191      6E766C00 
+ 2192              	.LASF12:
+ 2193 00e7 63795F6D 		.ascii	"cy_meta_configecc\000"
+ 2193      6574615F 
+ 2193      636F6E66 
+ 2193      69676563 
+ 2193      6300
+ 2194              	.LASF8:
+ 2195 00f9 756E7369 		.ascii	"unsigned int\000"
+ 2195      676E6564 
+ 2195      20696E74 
+ 2195      00
+ 2196              	.LASF19:
+ 2197 0106 433A5C55 		.ascii	"C:\\Users\\henrichsc\\Desktop\\School\\Senior_year\\"
+ 2197      73657273 
+ 2197      5C68656E 
+ 2197      72696368 
+ 2197      73635C44 
+ 2198 0134 66616C6C 		.ascii	"fall\\CE4920\\lab\\Milestone_2.cydsn\000"
+ 2198      5C434534 
+ 2198      3932305C 
+ 2198      6C61625C 
+ 2198      4D696C65 
+ 2199              	.LASF7:
+ 2200 0156 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 2200      206C6F6E 
+ 2200      6720756E 
+ 2200      7369676E 
+ 2200      65642069 
+ 2201              	.LASF10:
+ 2202 016d 75696E74 		.ascii	"uint8_t\000"
+ 2202      385F7400 
+ 2203              	.LASF15:
+ 2204 0175 63795F6D 		.ascii	"cy_meta_flashprotect\000"
+ 2204      6574615F 
+ 2204      666C6173 
+ 2204      6870726F 
+ 2204      74656374 
+ 2205              	.LASF14:
+ 2206 018a 63795F6D 		.ascii	"cy_meta_wonvl\000"
+ 2206      6574615F 
+ 2206      776F6E76 
+ 2206      6C00
+ 2207              	.LASF11:
+ 2208 0198 73697A65 		.ascii	"sizetype\000"
+ 2208      74797065 
+ 2208      00
+ 2209              	.LASF6:
+ 2210 01a1 6C6F6E67 		.ascii	"long long int\000"
+ 2210      206C6F6E 
+ 2210      6720696E 
+ 2210      7400
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccftNrq3.s 			page 41
+
+
+ 2211              	.LASF2:
+ 2212 01af 73686F72 		.ascii	"short int\000"
+ 2212      7420696E 
+ 2212      7400
+ 2213              	.LASF4:
+ 2214 01b9 6C6F6E67 		.ascii	"long int\000"
+ 2214      20696E74 
+ 2214      00
+ 2215              	.LASF0:
+ 2216 01c2 7369676E 		.ascii	"signed char\000"
+ 2216      65642063 
+ 2216      68617200 
+ 2217              	.LASF18:
+ 2218 01ce 47656E65 		.ascii	"Generated_Source\\PSoC5\\cymetadata.c\000"
+ 2218      72617465 
+ 2218      645F536F 
+ 2218      75726365 
+ 2218      5C50536F 
+ 2219              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

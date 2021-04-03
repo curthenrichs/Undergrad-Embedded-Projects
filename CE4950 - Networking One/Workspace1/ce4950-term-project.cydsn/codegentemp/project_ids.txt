@@ -1,0 +1,6 @@
+C:\Users\henrichsc\Desktop\School\Senior_year\winter\ce4950\ce4950-term-project\Workspace1\ce4950-term-project.cydsn\ce4950-term-project.cyprj|8e8a86f5-fe21-485b-b5b1-90b470136c79
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\default\CyAnnotationLibrary\CyAnnotationLibrary.cylib\CyAnnotationLibrary.cyprj|6c7e6161-ce34-4a6e-8668-ed429200302c
+C:\Users\henrichsc\Documents\PSoC Creator\4.1\Downloads ( 4.1).cylib\Downloads ( 4.1).cyprj|385ffebc-91c5-4809-b10c-4ebe5ec4cd33
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cycomponentlibraryupdates\CyComponentLibraryUpdates.cylib\CyComponentLibraryUpdates.cyprj|59861150-9ff5-49a9-b6d8-4b434e79ef89
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cycomponentlibrary\CyComponentLibrary.cylib\CyComponentLibrary.cyprj|62b4a3ee-f1ed-4bb4-929a-a1d48c60ffc0
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\CyPrimitives.cyprj|0596df35-1ca5-443f-a55a-0d0326384796

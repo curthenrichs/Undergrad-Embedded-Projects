@@ -1,0 +1,6 @@
+C:\Users\henrichsc\Desktop\School\Senior_year\fall\CE4920\lab\Milestone_1.cydsn\Milestone_1.cyprj|61d4e3f6-71d3-4988-8ed6-d9cf2072335b
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\default\CyAnnotationLibrary\CyAnnotationLibrary.cylib\CyAnnotationLibrary.cyprj|3189f5b6-92fd-4607-9f52-5c2d88cd6b80
+C:\Users\henrichsc\Documents\PSoC Creator\4.1\Downloads ( 4.1).cylib\Downloads ( 4.1).cyprj|4cc7f4af-903e-48c4-8a0d-3b4db3b537e0
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cycomponentlibraryupdates\CyComponentLibraryUpdates.cylib\CyComponentLibraryUpdates.cyprj|6ce0510a-67a0-4560-9867-bdd4972392fc
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cycomponentlibrary\CyComponentLibrary.cylib\CyComponentLibrary.cyprj|7fec43f3-c6ba-4e2f-a60a-cc3b1eba83ed
+C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\CyPrimitives.cyprj|ed2b5a94-ccde-4ef0-b7dc-63e6c2996458

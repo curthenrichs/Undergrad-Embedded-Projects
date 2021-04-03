@@ -1,0 +1,1639 @@
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"Music.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.music_isr,"ax",%progbits
+  20              		.align	2
+  21              		.global	music_isr
+  22              		.thumb
+  23              		.thumb_func
+  24              		.type	music_isr, %function
+  25              	music_isr:
+  26              	.LFB67:
+  27              		.file 1 "Music.c"
+   1:Music.c       **** /**
+   2:Music.c       ****  * Music
+   3:Music.c       ****  * @author Curt Henrichs
+   4:Music.c       ****  * @date 9-10-17
+   5:Music.c       ****  * 
+   6:Music.c       ****  * Music module provides interface to the Piezo buzzer hardware to produce
+   7:Music.c       ****  * frequency modulated, variable duration waveforms. An object is developed
+   8:Music.c       ****  * to interface with the hardware and create music arrays. Finally all 
+   9:Music.c       ****  * operations return control quickly to the caller as the hardware uses
+  10:Music.c       ****  * interruts to handle note clockout.
+  11:Music.c       ****  */
+  12:Music.c       **** 
+  13:Music.c       **** //=============================================================================
+  14:Music.c       **** //                                  Libraries
+  15:Music.c       **** //=============================================================================
+  16:Music.c       **** 
+  17:Music.c       **** #include "Music.h"
+  18:Music.c       **** #include <project.h>
+  19:Music.c       **** 
+  20:Music.c       **** //=============================================================================
+  21:Music.c       **** //                        Constant and Macro Defintions
+  22:Music.c       **** //=============================================================================
+  23:Music.c       **** 
+  24:Music.c       **** #define TONE_F_CLK_FREQ_IN 40000    //! Clock frequency that is divided for out
+  25:Music.c       **** 
+  26:Music.c       **** //=============================================================================
+  27:Music.c       **** //                             Private Attributes
+  28:Music.c       **** //=============================================================================
+  29:Music.c       **** 
+  30:Music.c       **** static const Note_t* _current_buffer = NULL; //! Music buffer association
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 2
+
+
+  31:Music.c       **** static uint32_t _current_buffer_length = 0;  //! Size of buffer
+  32:Music.c       **** static uint32_t _current_buffer_index = 0;   //! Index into buffer clockout
+  33:Music.c       **** 
+  34:Music.c       **** //=============================================================================
+  35:Music.c       **** //                         Interrupt Handler Prototypes
+  36:Music.c       **** //=============================================================================
+  37:Music.c       **** 
+  38:Music.c       **** /**
+  39:Music.c       ****  * Music note clock out ISR is linked to the duration counter. Only active
+  40:Music.c       ****  * when music is actively being played
+  41:Music.c       ****  */
+  42:Music.c       **** CY_ISR_PROTO(music_isr);
+  43:Music.c       **** 
+  44:Music.c       **** //=============================================================================
+  45:Music.c       **** //                        Public Function Implementation
+  46:Music.c       **** //=============================================================================
+  47:Music.c       **** 
+  48:Music.c       **** /**
+  49:Music.c       ****  * Initalization function will start hardware, set ISRs for hardware, and
+  50:Music.c       ****  * set internal data structures for playback.
+  51:Music.c       ****  */
+  52:Music.c       **** void music_init(void){
+  53:Music.c       ****     Tone_F_Start();
+  54:Music.c       ****     Tone_F_WriteCompare(0);
+  55:Music.c       ****     Tone_D_Start();
+  56:Music.c       ****     Tone_D_Stop(); //sets up hardware but then disables timer
+  57:Music.c       ****     Tone_Int_StartEx(music_isr);
+  58:Music.c       **** }
+  59:Music.c       **** 
+  60:Music.c       **** /**
+  61:Music.c       ****  * Sets a tune to play. This is a non-blocking function so that other things
+  62:Music.c       ****  * may happen. Most of the music generation is in hardware but a periodic 
+  63:Music.c       ****  * interrupt is needed to update notes.
+  64:Music.c       ****  * @param buffer is array of notes to play on the buzzer
+  65:Music.c       ****  * @param length is the number of Notes in the buffer to play
+  66:Music.c       ****  */
+  67:Music.c       **** void music_set_tune(const Note_t* buffer, uint32_t length){
+  68:Music.c       ****     Tone_Int_Disable();
+  69:Music.c       ****     
+  70:Music.c       ****     //copy buffer location for playback
+  71:Music.c       ****     _current_buffer = buffer;
+  72:Music.c       ****     _current_buffer_length = length;
+  73:Music.c       ****     _current_buffer_index = 0;
+  74:Music.c       ****     
+  75:Music.c       ****     //set up timer counter
+  76:Music.c       ****     Tone_D_WritePeriod(1);
+  77:Music.c       ****     Tone_D_WriteCounter(0);
+  78:Music.c       ****     Tone_Int_Enable();
+  79:Music.c       ****     Tone_D_Start();
+  80:Music.c       **** }
+  81:Music.c       **** 
+  82:Music.c       **** /**
+  83:Music.c       ****  * Checks to see if the music is still playing
+  84:Music.c       ****  * @return 1 if music is playing else 0
+  85:Music.c       ****  */
+  86:Music.c       **** uint8_t music_is_playing(void){
+  87:Music.c       ****     return _current_buffer != NULL;   
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 3
+
+
+  88:Music.c       **** }
+  89:Music.c       **** 
+  90:Music.c       **** /**
+  91:Music.c       ****  * Stops the music from playing then clears the music buffer assoication
+  92:Music.c       ****  */
+  93:Music.c       **** void music_stop_playing(void){
+  94:Music.c       ****     _current_buffer = NULL;
+  95:Music.c       ****     Tone_F_WriteCompare(0);
+  96:Music.c       ****     Tone_D_Stop();
+  97:Music.c       **** }
+  98:Music.c       **** 
+  99:Music.c       **** //=============================================================================
+ 100:Music.c       **** //                       Interrupt Handler Implementation
+ 101:Music.c       **** //=============================================================================
+ 102:Music.c       **** 
+ 103:Music.c       **** /**
+ 104:Music.c       ****  * Music note clock out ISR is linked to the duration counter. Only active
+ 105:Music.c       ****  * when music is actively being played
+ 106:Music.c       ****  */
+ 107:Music.c       **** CY_ISR(music_isr){
+  28              		.loc 1 107 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32 0000 10B5     		push	{r4, lr}
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 4, -8
+  35              		.cfi_offset 14, -4
+ 108:Music.c       ****     static uint16_t freq = 0;
+ 109:Music.c       ****     static uint16_t per = 0;
+ 110:Music.c       ****     static uint16_t cmp = 0;
+ 111:Music.c       ****     static uint16_t dur  = 0;
+ 112:Music.c       ****     
+ 113:Music.c       ****     //play next note
+ 114:Music.c       ****     Tone_D_Stop();
+  36              		.loc 1 114 0
+  37 0002 FFF7FEFF 		bl	Tone_D_Stop
+  38              	.LVL0:
+ 115:Music.c       ****     if(_current_buffer != NULL){
+  39              		.loc 1 115 0
+  40 0006 1B4B     		ldr	r3, .L8
+  41 0008 1A68     		ldr	r2, [r3]
+  42 000a 72B3     		cbz	r2, .L2
+ 116:Music.c       ****         if(_current_buffer_index >= _current_buffer_length){
+  43              		.loc 1 116 0
+  44 000c 1946     		mov	r1, r3
+  45 000e 5B68     		ldr	r3, [r3, #4]
+  46 0010 8968     		ldr	r1, [r1, #8]
+  47 0012 8B42     		cmp	r3, r1
+  48 0014 07D3     		bcc	.L3
+ 117:Music.c       ****             //end of tune
+ 118:Music.c       ****             _current_buffer = NULL;
+  49              		.loc 1 118 0
+  50 0016 0020     		movs	r0, #0
+  51 0018 164B     		ldr	r3, .L8
+  52 001a 1860     		str	r0, [r3]
+ 119:Music.c       ****             Tone_F_WriteCompare(0);
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 4
+
+
+  53              		.loc 1 119 0
+  54 001c FFF7FEFF 		bl	Tone_F_WriteCompare
+  55              	.LVL1:
+ 120:Music.c       ****             Tone_D_Stop();
+  56              		.loc 1 120 0
+  57 0020 FFF7FEFF 		bl	Tone_D_Stop
+  58              	.LVL2:
+  59 0024 21E0     		b	.L2
+  60              	.L3:
+ 121:Music.c       ****         }else{
+ 122:Music.c       ****             //play for current frequency and duration
+ 123:Music.c       ****             freq = _current_buffer[_current_buffer_index].frequency;
+  61              		.loc 1 123 0
+  62 0026 02EB8301 		add	r1, r2, r3, lsl #2
+  63 002a 32F82320 		ldrh	r2, [r2, r3, lsl #2]
+ 124:Music.c       ****             per = TONE_F_CLK_FREQ_IN / ((freq > 0)? freq : 1);
+  64              		.loc 1 124 0
+  65 002e 22B1     		cbz	r2, .L6
+  66              		.loc 1 124 0 is_stmt 0 discriminator 1
+  67 0030 49F64040 		movw	r0, #40000
+  68 0034 90FBF2F0 		sdiv	r0, r0, r2
+  69 0038 01E0     		b	.L4
+  70              	.L6:
+  71              		.loc 1 124 0
+  72 003a 49F64040 		movw	r0, #40000
+  73              	.L4:
+ 125:Music.c       ****             cmp = (freq > 0) ? per / 2 : 0;
+  74              		.loc 1 125 0 is_stmt 1 discriminator 4
+  75 003e 0AB1     		cbz	r2, .L5
+  76              		.loc 1 125 0 is_stmt 0 discriminator 1
+  77 0040 C0F34F02 		ubfx	r2, r0, #1, #16
+  78              	.L5:
+  79              		.loc 1 125 0 discriminator 4
+  80 0044 0B4C     		ldr	r4, .L8
+  81 0046 A281     		strh	r2, [r4, #12]	@ movhi
+ 126:Music.c       ****             dur = _current_buffer[_current_buffer_index].duration;
+  82              		.loc 1 126 0 is_stmt 1 discriminator 4
+  83 0048 4A88     		ldrh	r2, [r1, #2]
+  84 004a E281     		strh	r2, [r4, #14]	@ movhi
+ 127:Music.c       ****             _current_buffer_index++;
+  85              		.loc 1 127 0 discriminator 4
+  86 004c 0133     		adds	r3, r3, #1
+  87 004e 6360     		str	r3, [r4, #4]
+ 128:Music.c       ****             
+ 129:Music.c       ****             Tone_F_WritePeriod(per);
+  88              		.loc 1 129 0 discriminator 4
+  89 0050 FFF7FEFF 		bl	Tone_F_WritePeriod
+  90              	.LVL3:
+ 130:Music.c       ****             Tone_F_WriteCompare(cmp);
+  91              		.loc 1 130 0 discriminator 4
+  92 0054 A089     		ldrh	r0, [r4, #12]
+  93 0056 FFF7FEFF 		bl	Tone_F_WriteCompare
+  94              	.LVL4:
+ 131:Music.c       ****             Tone_D_WritePeriod(dur);
+  95              		.loc 1 131 0 discriminator 4
+  96 005a E089     		ldrh	r0, [r4, #14]
+  97 005c FFF7FEFF 		bl	Tone_D_WritePeriod
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 5
+
+
+  98              	.LVL5:
+ 132:Music.c       ****             Tone_D_WriteCounter(0);
+  99              		.loc 1 132 0 discriminator 4
+ 100 0060 0020     		movs	r0, #0
+ 101 0062 FFF7FEFF 		bl	Tone_D_WriteCounter
+ 102              	.LVL6:
+ 133:Music.c       ****             Tone_D_Start();
+ 103              		.loc 1 133 0 discriminator 4
+ 104 0066 FFF7FEFF 		bl	Tone_D_Start
+ 105              	.LVL7:
+ 106              	.L2:
+ 134:Music.c       ****         }
+ 135:Music.c       ****     }
+ 136:Music.c       ****     Tone_D_ReadStatusRegister();
+ 107              		.loc 1 136 0
+ 108 006a FFF7FEFF 		bl	Tone_D_ReadStatusRegister
+ 109              	.LVL8:
+ 137:Music.c       ****     Tone_Int_ClearPending();
+ 110              		.loc 1 137 0
+ 111 006e FFF7FEFF 		bl	Tone_Int_ClearPending
+ 112              	.LVL9:
+ 113 0072 10BD     		pop	{r4, pc}
+ 114              	.L9:
+ 115              		.align	2
+ 116              	.L8:
+ 117 0074 00000000 		.word	.LANCHOR0
+ 118              		.cfi_endproc
+ 119              	.LFE67:
+ 120              		.size	music_isr, .-music_isr
+ 121              		.section	.text.music_init,"ax",%progbits
+ 122              		.align	2
+ 123              		.global	music_init
+ 124              		.thumb
+ 125              		.thumb_func
+ 126              		.type	music_init, %function
+ 127              	music_init:
+ 128              	.LFB63:
+  52:Music.c       ****     Tone_F_Start();
+ 129              		.loc 1 52 0
+ 130              		.cfi_startproc
+ 131              		@ args = 0, pretend = 0, frame = 0
+ 132              		@ frame_needed = 0, uses_anonymous_args = 0
+ 133 0000 08B5     		push	{r3, lr}
+ 134              		.cfi_def_cfa_offset 8
+ 135              		.cfi_offset 3, -8
+ 136              		.cfi_offset 14, -4
+  53:Music.c       ****     Tone_F_WriteCompare(0);
+ 137              		.loc 1 53 0
+ 138 0002 FFF7FEFF 		bl	Tone_F_Start
+ 139              	.LVL10:
+  54:Music.c       ****     Tone_D_Start();
+ 140              		.loc 1 54 0
+ 141 0006 0020     		movs	r0, #0
+ 142 0008 FFF7FEFF 		bl	Tone_F_WriteCompare
+ 143              	.LVL11:
+  55:Music.c       ****     Tone_D_Stop(); //sets up hardware but then disables timer
+ 144              		.loc 1 55 0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 6
+
+
+ 145 000c FFF7FEFF 		bl	Tone_D_Start
+ 146              	.LVL12:
+  56:Music.c       ****     Tone_Int_StartEx(music_isr);
+ 147              		.loc 1 56 0
+ 148 0010 FFF7FEFF 		bl	Tone_D_Stop
+ 149              	.LVL13:
+  57:Music.c       **** }
+ 150              		.loc 1 57 0
+ 151 0014 0148     		ldr	r0, .L12
+ 152 0016 FFF7FEFF 		bl	Tone_Int_StartEx
+ 153              	.LVL14:
+ 154 001a 08BD     		pop	{r3, pc}
+ 155              	.L13:
+ 156              		.align	2
+ 157              	.L12:
+ 158 001c 00000000 		.word	music_isr
+ 159              		.cfi_endproc
+ 160              	.LFE63:
+ 161              		.size	music_init, .-music_init
+ 162              		.section	.text.music_set_tune,"ax",%progbits
+ 163              		.align	2
+ 164              		.global	music_set_tune
+ 165              		.thumb
+ 166              		.thumb_func
+ 167              		.type	music_set_tune, %function
+ 168              	music_set_tune:
+ 169              	.LFB64:
+  67:Music.c       ****     Tone_Int_Disable();
+ 170              		.loc 1 67 0
+ 171              		.cfi_startproc
+ 172              		@ args = 0, pretend = 0, frame = 0
+ 173              		@ frame_needed = 0, uses_anonymous_args = 0
+ 174              	.LVL15:
+ 175 0000 38B5     		push	{r3, r4, r5, lr}
+ 176              		.cfi_def_cfa_offset 16
+ 177              		.cfi_offset 3, -16
+ 178              		.cfi_offset 4, -12
+ 179              		.cfi_offset 5, -8
+ 180              		.cfi_offset 14, -4
+ 181 0002 0546     		mov	r5, r0
+ 182 0004 0C46     		mov	r4, r1
+  68:Music.c       ****     
+ 183              		.loc 1 68 0
+ 184 0006 FFF7FEFF 		bl	Tone_Int_Disable
+ 185              	.LVL16:
+  71:Music.c       ****     _current_buffer_length = length;
+ 186              		.loc 1 71 0
+ 187 000a 084B     		ldr	r3, .L16
+ 188 000c 1D60     		str	r5, [r3]
+  72:Music.c       ****     _current_buffer_index = 0;
+ 189              		.loc 1 72 0
+ 190 000e 9C60     		str	r4, [r3, #8]
+  73:Music.c       ****     
+ 191              		.loc 1 73 0
+ 192 0010 0024     		movs	r4, #0
+ 193              	.LVL17:
+ 194 0012 5C60     		str	r4, [r3, #4]
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 7
+
+
+  76:Music.c       ****     Tone_D_WriteCounter(0);
+ 195              		.loc 1 76 0
+ 196 0014 0120     		movs	r0, #1
+ 197 0016 FFF7FEFF 		bl	Tone_D_WritePeriod
+ 198              	.LVL18:
+  77:Music.c       ****     Tone_Int_Enable();
+ 199              		.loc 1 77 0
+ 200 001a 2046     		mov	r0, r4
+ 201 001c FFF7FEFF 		bl	Tone_D_WriteCounter
+ 202              	.LVL19:
+  78:Music.c       ****     Tone_D_Start();
+ 203              		.loc 1 78 0
+ 204 0020 FFF7FEFF 		bl	Tone_Int_Enable
+ 205              	.LVL20:
+  79:Music.c       **** }
+ 206              		.loc 1 79 0
+ 207 0024 FFF7FEFF 		bl	Tone_D_Start
+ 208              	.LVL21:
+ 209 0028 38BD     		pop	{r3, r4, r5, pc}
+ 210              	.LVL22:
+ 211              	.L17:
+ 212 002a 00BF     		.align	2
+ 213              	.L16:
+ 214 002c 00000000 		.word	.LANCHOR0
+ 215              		.cfi_endproc
+ 216              	.LFE64:
+ 217              		.size	music_set_tune, .-music_set_tune
+ 218              		.section	.text.music_is_playing,"ax",%progbits
+ 219              		.align	2
+ 220              		.global	music_is_playing
+ 221              		.thumb
+ 222              		.thumb_func
+ 223              		.type	music_is_playing, %function
+ 224              	music_is_playing:
+ 225              	.LFB65:
+  86:Music.c       ****     return _current_buffer != NULL;   
+ 226              		.loc 1 86 0
+ 227              		.cfi_startproc
+ 228              		@ args = 0, pretend = 0, frame = 0
+ 229              		@ frame_needed = 0, uses_anonymous_args = 0
+ 230              		@ link register save eliminated.
+  87:Music.c       **** }
+ 231              		.loc 1 87 0
+ 232 0000 024B     		ldr	r3, .L19
+ 233 0002 1868     		ldr	r0, [r3]
+  88:Music.c       **** 
+ 234              		.loc 1 88 0
+ 235 0004 0030     		adds	r0, r0, #0
+ 236 0006 18BF     		it	ne
+ 237 0008 0120     		movne	r0, #1
+ 238 000a 7047     		bx	lr
+ 239              	.L20:
+ 240              		.align	2
+ 241              	.L19:
+ 242 000c 00000000 		.word	.LANCHOR0
+ 243              		.cfi_endproc
+ 244              	.LFE65:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 8
+
+
+ 245              		.size	music_is_playing, .-music_is_playing
+ 246              		.section	.text.music_stop_playing,"ax",%progbits
+ 247              		.align	2
+ 248              		.global	music_stop_playing
+ 249              		.thumb
+ 250              		.thumb_func
+ 251              		.type	music_stop_playing, %function
+ 252              	music_stop_playing:
+ 253              	.LFB66:
+  93:Music.c       ****     _current_buffer = NULL;
+ 254              		.loc 1 93 0
+ 255              		.cfi_startproc
+ 256              		@ args = 0, pretend = 0, frame = 0
+ 257              		@ frame_needed = 0, uses_anonymous_args = 0
+ 258 0000 08B5     		push	{r3, lr}
+ 259              		.cfi_def_cfa_offset 8
+ 260              		.cfi_offset 3, -8
+ 261              		.cfi_offset 14, -4
+  94:Music.c       ****     Tone_F_WriteCompare(0);
+ 262              		.loc 1 94 0
+ 263 0002 0020     		movs	r0, #0
+ 264 0004 034B     		ldr	r3, .L23
+ 265 0006 1860     		str	r0, [r3]
+  95:Music.c       ****     Tone_D_Stop();
+ 266              		.loc 1 95 0
+ 267 0008 FFF7FEFF 		bl	Tone_F_WriteCompare
+ 268              	.LVL23:
+  96:Music.c       **** }
+ 269              		.loc 1 96 0
+ 270 000c FFF7FEFF 		bl	Tone_D_Stop
+ 271              	.LVL24:
+ 272 0010 08BD     		pop	{r3, pc}
+ 273              	.L24:
+ 274 0012 00BF     		.align	2
+ 275              	.L23:
+ 276 0014 00000000 		.word	.LANCHOR0
+ 277              		.cfi_endproc
+ 278              	.LFE66:
+ 279              		.size	music_stop_playing, .-music_stop_playing
+ 280              		.bss
+ 281              		.align	2
+ 282              		.set	.LANCHOR0,. + 0
+ 283              		.type	_current_buffer, %object
+ 284              		.size	_current_buffer, 4
+ 285              	_current_buffer:
+ 286 0000 00000000 		.space	4
+ 287              		.type	_current_buffer_index, %object
+ 288              		.size	_current_buffer_index, 4
+ 289              	_current_buffer_index:
+ 290 0004 00000000 		.space	4
+ 291              		.type	_current_buffer_length, %object
+ 292              		.size	_current_buffer_length, 4
+ 293              	_current_buffer_length:
+ 294 0008 00000000 		.space	4
+ 295              		.type	cmp.7054, %object
+ 296              		.size	cmp.7054, 2
+ 297              	cmp.7054:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 9
+
+
+ 298 000c 0000     		.space	2
+ 299              		.type	dur.7055, %object
+ 300              		.size	dur.7055, 2
+ 301              	dur.7055:
+ 302 000e 0000     		.space	2
+ 303              		.text
+ 304              	.Letext0:
+ 305              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 306              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 307              		.file 4 "Music.h"
+ 308              		.file 5 "Generated_Source\\PSoC5/Tone_D.h"
+ 309              		.file 6 "Generated_Source\\PSoC5/Tone_F.h"
+ 310              		.file 7 "Generated_Source\\PSoC5/Tone_Int.h"
+ 311              		.file 8 "Generated_Source\\PSoC5/core_cm3.h"
+ 312              		.section	.debug_info,"",%progbits
+ 313              	.Ldebug_info0:
+ 314 0000 B6030000 		.4byte	0x3b6
+ 315 0004 0400     		.2byte	0x4
+ 316 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 317 000a 04       		.byte	0x4
+ 318 000b 01       		.uleb128 0x1
+ 319 000c B0000000 		.4byte	.LASF47
+ 320 0010 0C       		.byte	0xc
+ 321 0011 42020000 		.4byte	.LASF48
+ 322 0015 27030000 		.4byte	.LASF49
+ 323 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 324 001d 00000000 		.4byte	0
+ 325 0021 00000000 		.4byte	.Ldebug_line0
+ 326 0025 02       		.uleb128 0x2
+ 327 0026 01       		.byte	0x1
+ 328 0027 06       		.byte	0x6
+ 329 0028 96000000 		.4byte	.LASF0
+ 330 002c 03       		.uleb128 0x3
+ 331 002d 0D000000 		.4byte	.LASF3
+ 332 0031 02       		.byte	0x2
+ 333 0032 1D       		.byte	0x1d
+ 334 0033 37000000 		.4byte	0x37
+ 335 0037 02       		.uleb128 0x2
+ 336 0038 01       		.byte	0x1
+ 337 0039 08       		.byte	0x8
+ 338 003a A2000000 		.4byte	.LASF1
+ 339 003e 02       		.uleb128 0x2
+ 340 003f 02       		.byte	0x2
+ 341 0040 05       		.byte	0x5
+ 342 0041 74000000 		.4byte	.LASF2
+ 343 0045 03       		.uleb128 0x3
+ 344 0046 AA010000 		.4byte	.LASF4
+ 345 004a 02       		.byte	0x2
+ 346 004b 2B       		.byte	0x2b
+ 347 004c 50000000 		.4byte	0x50
+ 348 0050 02       		.uleb128 0x2
+ 349 0051 02       		.byte	0x2
+ 350 0052 07       		.byte	0x7
+ 351 0053 61000000 		.4byte	.LASF5
+ 352 0057 03       		.uleb128 0x3
+ 353 0058 4E000000 		.4byte	.LASF6
+ 354 005c 02       		.byte	0x2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 10
+
+
+ 355 005d 3F       		.byte	0x3f
+ 356 005e 62000000 		.4byte	0x62
+ 357 0062 02       		.uleb128 0x2
+ 358 0063 04       		.byte	0x4
+ 359 0064 05       		.byte	0x5
+ 360 0065 E2020000 		.4byte	.LASF7
+ 361 0069 03       		.uleb128 0x3
+ 362 006a 85000000 		.4byte	.LASF8
+ 363 006e 02       		.byte	0x2
+ 364 006f 41       		.byte	0x41
+ 365 0070 74000000 		.4byte	0x74
+ 366 0074 02       		.uleb128 0x2
+ 367 0075 04       		.byte	0x4
+ 368 0076 07       		.byte	0x7
+ 369 0077 66010000 		.4byte	.LASF9
+ 370 007b 02       		.uleb128 0x2
+ 371 007c 08       		.byte	0x8
+ 372 007d 05       		.byte	0x5
+ 373 007e A3020000 		.4byte	.LASF10
+ 374 0082 02       		.uleb128 0x2
+ 375 0083 08       		.byte	0x8
+ 376 0084 07       		.byte	0x7
+ 377 0085 23020000 		.4byte	.LASF11
+ 378 0089 04       		.uleb128 0x4
+ 379 008a 04       		.byte	0x4
+ 380 008b 05       		.byte	0x5
+ 381 008c 696E7400 		.ascii	"int\000"
+ 382 0090 02       		.uleb128 0x2
+ 383 0091 04       		.byte	0x4
+ 384 0092 07       		.byte	0x7
+ 385 0093 16020000 		.4byte	.LASF12
+ 386 0097 03       		.uleb128 0x3
+ 387 0098 3A020000 		.4byte	.LASF13
+ 388 009c 03       		.byte	0x3
+ 389 009d 18       		.byte	0x18
+ 390 009e 2C000000 		.4byte	0x2c
+ 391 00a2 03       		.uleb128 0x3
+ 392 00a3 D0020000 		.4byte	.LASF14
+ 393 00a7 03       		.byte	0x3
+ 394 00a8 24       		.byte	0x24
+ 395 00a9 45000000 		.4byte	0x45
+ 396 00ad 03       		.uleb128 0x3
+ 397 00ae 7C020000 		.4byte	.LASF15
+ 398 00b2 03       		.byte	0x3
+ 399 00b3 2C       		.byte	0x2c
+ 400 00b4 57000000 		.4byte	0x57
+ 401 00b8 03       		.uleb128 0x3
+ 402 00b9 D9020000 		.4byte	.LASF16
+ 403 00bd 03       		.byte	0x3
+ 404 00be 30       		.byte	0x30
+ 405 00bf 69000000 		.4byte	0x69
+ 406 00c3 05       		.uleb128 0x5
+ 407 00c4 B5010000 		.4byte	.LASF50
+ 408 00c8 04       		.byte	0x4
+ 409 00c9 04       		.byte	0x4
+ 410 00ca 30       		.byte	0x30
+ 411 00cb E8000000 		.4byte	0xe8
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 11
+
+
+ 412 00cf 06       		.uleb128 0x6
+ 413 00d0 51020000 		.4byte	.LASF17
+ 414 00d4 04       		.byte	0x4
+ 415 00d5 31       		.byte	0x31
+ 416 00d6 A2000000 		.4byte	0xa2
+ 417 00da 00       		.byte	0
+ 418 00db 06       		.uleb128 0x6
+ 419 00dc 58000000 		.4byte	.LASF18
+ 420 00e0 04       		.byte	0x4
+ 421 00e1 32       		.byte	0x32
+ 422 00e2 A2000000 		.4byte	0xa2
+ 423 00e6 02       		.byte	0x2
+ 424 00e7 00       		.byte	0
+ 425 00e8 03       		.uleb128 0x3
+ 426 00e9 4A020000 		.4byte	.LASF19
+ 427 00ed 04       		.byte	0x4
+ 428 00ee 33       		.byte	0x33
+ 429 00ef C3000000 		.4byte	0xc3
+ 430 00f3 02       		.uleb128 0x2
+ 431 00f4 04       		.byte	0x4
+ 432 00f5 04       		.byte	0x4
+ 433 00f6 90000000 		.4byte	.LASF20
+ 434 00fa 02       		.uleb128 0x2
+ 435 00fb 08       		.byte	0x8
+ 436 00fc 04       		.byte	0x4
+ 437 00fd 7E000000 		.4byte	.LASF21
+ 438 0101 02       		.uleb128 0x2
+ 439 0102 01       		.byte	0x1
+ 440 0103 08       		.byte	0x8
+ 441 0104 EB020000 		.4byte	.LASF22
+ 442 0108 02       		.uleb128 0x2
+ 443 0109 08       		.byte	0x8
+ 444 010a 04       		.byte	0x4
+ 445 010b 03030000 		.4byte	.LASF23
+ 446 010f 02       		.uleb128 0x2
+ 447 0110 04       		.byte	0x4
+ 448 0111 07       		.byte	0x7
+ 449 0112 84020000 		.4byte	.LASF24
+ 450 0116 07       		.uleb128 0x7
+ 451 0117 A0010000 		.4byte	.LASF26
+ 452 011b 01       		.byte	0x1
+ 453 011c 6B       		.byte	0x6b
+ 454 011d 00000000 		.4byte	.LFB67
+ 455 0121 78000000 		.4byte	.LFE67-.LFB67
+ 456 0125 01       		.uleb128 0x1
+ 457 0126 9C       		.byte	0x9c
+ 458 0127 D2010000 		.4byte	0x1d2
+ 459 012b 08       		.uleb128 0x8
+ 460 012c B1020000 		.4byte	.LASF25
+ 461 0130 01       		.byte	0x1
+ 462 0131 6C       		.byte	0x6c
+ 463 0132 A2000000 		.4byte	0xa2
+ 464 0136 09       		.uleb128 0x9
+ 465 0137 70657200 		.ascii	"per\000"
+ 466 013b 01       		.byte	0x1
+ 467 013c 6D       		.byte	0x6d
+ 468 013d A2000000 		.4byte	0xa2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 12
+
+
+ 469 0141 0A       		.uleb128 0xa
+ 470 0142 636D7000 		.ascii	"cmp\000"
+ 471 0146 01       		.byte	0x1
+ 472 0147 6E       		.byte	0x6e
+ 473 0148 A2000000 		.4byte	0xa2
+ 474 014c 05       		.uleb128 0x5
+ 475 014d 03       		.byte	0x3
+ 476 014e 0C000000 		.4byte	cmp.7054
+ 477 0152 0A       		.uleb128 0xa
+ 478 0153 64757200 		.ascii	"dur\000"
+ 479 0157 01       		.byte	0x1
+ 480 0158 6F       		.byte	0x6f
+ 481 0159 A2000000 		.4byte	0xa2
+ 482 015d 05       		.uleb128 0x5
+ 483 015e 03       		.byte	0x3
+ 484 015f 0E000000 		.4byte	dur.7055
+ 485 0163 0B       		.uleb128 0xb
+ 486 0164 06000000 		.4byte	.LVL0
+ 487 0168 35030000 		.4byte	0x335
+ 488 016c 0C       		.uleb128 0xc
+ 489 016d 20000000 		.4byte	.LVL1
+ 490 0171 40030000 		.4byte	0x340
+ 491 0175 7F010000 		.4byte	0x17f
+ 492 0179 0D       		.uleb128 0xd
+ 493 017a 01       		.uleb128 0x1
+ 494 017b 50       		.byte	0x50
+ 495 017c 01       		.uleb128 0x1
+ 496 017d 30       		.byte	0x30
+ 497 017e 00       		.byte	0
+ 498 017f 0B       		.uleb128 0xb
+ 499 0180 24000000 		.4byte	.LVL2
+ 500 0184 35030000 		.4byte	0x335
+ 501 0188 0B       		.uleb128 0xb
+ 502 0189 54000000 		.4byte	.LVL3
+ 503 018d 4B030000 		.4byte	0x34b
+ 504 0191 0B       		.uleb128 0xb
+ 505 0192 5A000000 		.4byte	.LVL4
+ 506 0196 40030000 		.4byte	0x340
+ 507 019a 0B       		.uleb128 0xb
+ 508 019b 60000000 		.4byte	.LVL5
+ 509 019f 56030000 		.4byte	0x356
+ 510 01a3 0C       		.uleb128 0xc
+ 511 01a4 66000000 		.4byte	.LVL6
+ 512 01a8 61030000 		.4byte	0x361
+ 513 01ac B6010000 		.4byte	0x1b6
+ 514 01b0 0D       		.uleb128 0xd
+ 515 01b1 01       		.uleb128 0x1
+ 516 01b2 50       		.byte	0x50
+ 517 01b3 01       		.uleb128 0x1
+ 518 01b4 30       		.byte	0x30
+ 519 01b5 00       		.byte	0
+ 520 01b6 0B       		.uleb128 0xb
+ 521 01b7 6A000000 		.4byte	.LVL7
+ 522 01bb 6C030000 		.4byte	0x36c
+ 523 01bf 0B       		.uleb128 0xb
+ 524 01c0 6E000000 		.4byte	.LVL8
+ 525 01c4 77030000 		.4byte	0x377
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 13
+
+
+ 526 01c8 0B       		.uleb128 0xb
+ 527 01c9 72000000 		.4byte	.LVL9
+ 528 01cd 82030000 		.4byte	0x382
+ 529 01d1 00       		.byte	0
+ 530 01d2 07       		.uleb128 0x7
+ 531 01d3 88010000 		.4byte	.LASF27
+ 532 01d7 01       		.byte	0x1
+ 533 01d8 34       		.byte	0x34
+ 534 01d9 00000000 		.4byte	.LFB63
+ 535 01dd 20000000 		.4byte	.LFE63-.LFB63
+ 536 01e1 01       		.uleb128 0x1
+ 537 01e2 9C       		.byte	0x9c
+ 538 01e3 29020000 		.4byte	0x229
+ 539 01e7 0B       		.uleb128 0xb
+ 540 01e8 06000000 		.4byte	.LVL10
+ 541 01ec 8D030000 		.4byte	0x38d
+ 542 01f0 0C       		.uleb128 0xc
+ 543 01f1 0C000000 		.4byte	.LVL11
+ 544 01f5 40030000 		.4byte	0x340
+ 545 01f9 03020000 		.4byte	0x203
+ 546 01fd 0D       		.uleb128 0xd
+ 547 01fe 01       		.uleb128 0x1
+ 548 01ff 50       		.byte	0x50
+ 549 0200 01       		.uleb128 0x1
+ 550 0201 30       		.byte	0x30
+ 551 0202 00       		.byte	0
+ 552 0203 0B       		.uleb128 0xb
+ 553 0204 10000000 		.4byte	.LVL12
+ 554 0208 6C030000 		.4byte	0x36c
+ 555 020c 0B       		.uleb128 0xb
+ 556 020d 14000000 		.4byte	.LVL13
+ 557 0211 35030000 		.4byte	0x335
+ 558 0215 0E       		.uleb128 0xe
+ 559 0216 1A000000 		.4byte	.LVL14
+ 560 021a 98030000 		.4byte	0x398
+ 561 021e 0D       		.uleb128 0xd
+ 562 021f 01       		.uleb128 0x1
+ 563 0220 50       		.byte	0x50
+ 564 0221 05       		.uleb128 0x5
+ 565 0222 03       		.byte	0x3
+ 566 0223 00000000 		.4byte	music_isr
+ 567 0227 00       		.byte	0
+ 568 0228 00       		.byte	0
+ 569 0229 07       		.uleb128 0x7
+ 570 022a DD010000 		.4byte	.LASF28
+ 571 022e 01       		.byte	0x1
+ 572 022f 43       		.byte	0x43
+ 573 0230 00000000 		.4byte	.LFB64
+ 574 0234 30000000 		.4byte	.LFE64-.LFB64
+ 575 0238 01       		.uleb128 0x1
+ 576 0239 9C       		.byte	0x9c
+ 577 023a 9F020000 		.4byte	0x29f
+ 578 023e 0F       		.uleb128 0xf
+ 579 023f C9020000 		.4byte	.LASF29
+ 580 0243 01       		.byte	0x1
+ 581 0244 43       		.byte	0x43
+ 582 0245 9F020000 		.4byte	0x29f
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 14
+
+
+ 583 0249 00000000 		.4byte	.LLST0
+ 584 024d 0F       		.uleb128 0xf
+ 585 024e 20030000 		.4byte	.LASF30
+ 586 0252 01       		.byte	0x1
+ 587 0253 43       		.byte	0x43
+ 588 0254 B8000000 		.4byte	0xb8
+ 589 0258 2C000000 		.4byte	.LLST1
+ 590 025c 0B       		.uleb128 0xb
+ 591 025d 0A000000 		.4byte	.LVL16
+ 592 0261 A3030000 		.4byte	0x3a3
+ 593 0265 0C       		.uleb128 0xc
+ 594 0266 1A000000 		.4byte	.LVL18
+ 595 026a 56030000 		.4byte	0x356
+ 596 026e 78020000 		.4byte	0x278
+ 597 0272 0D       		.uleb128 0xd
+ 598 0273 01       		.uleb128 0x1
+ 599 0274 50       		.byte	0x50
+ 600 0275 01       		.uleb128 0x1
+ 601 0276 31       		.byte	0x31
+ 602 0277 00       		.byte	0
+ 603 0278 0C       		.uleb128 0xc
+ 604 0279 20000000 		.4byte	.LVL19
+ 605 027d 61030000 		.4byte	0x361
+ 606 0281 8C020000 		.4byte	0x28c
+ 607 0285 0D       		.uleb128 0xd
+ 608 0286 01       		.uleb128 0x1
+ 609 0287 50       		.byte	0x50
+ 610 0288 02       		.uleb128 0x2
+ 611 0289 74       		.byte	0x74
+ 612 028a 00       		.sleb128 0
+ 613 028b 00       		.byte	0
+ 614 028c 0B       		.uleb128 0xb
+ 615 028d 24000000 		.4byte	.LVL20
+ 616 0291 AE030000 		.4byte	0x3ae
+ 617 0295 0B       		.uleb128 0xb
+ 618 0296 28000000 		.4byte	.LVL21
+ 619 029a 6C030000 		.4byte	0x36c
+ 620 029e 00       		.byte	0
+ 621 029f 10       		.uleb128 0x10
+ 622 02a0 04       		.byte	0x4
+ 623 02a1 A5020000 		.4byte	0x2a5
+ 624 02a5 11       		.uleb128 0x11
+ 625 02a6 E8000000 		.4byte	0xe8
+ 626 02aa 12       		.uleb128 0x12
+ 627 02ab 3D000000 		.4byte	.LASF51
+ 628 02af 01       		.byte	0x1
+ 629 02b0 56       		.byte	0x56
+ 630 02b1 97000000 		.4byte	0x97
+ 631 02b5 00000000 		.4byte	.LFB65
+ 632 02b9 10000000 		.4byte	.LFE65-.LFB65
+ 633 02bd 01       		.uleb128 0x1
+ 634 02be 9C       		.byte	0x9c
+ 635 02bf 07       		.uleb128 0x7
+ 636 02c0 F0020000 		.4byte	.LASF31
+ 637 02c4 01       		.byte	0x1
+ 638 02c5 5D       		.byte	0x5d
+ 639 02c6 00000000 		.4byte	.LFB66
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 15
+
+
+ 640 02ca 18000000 		.4byte	.LFE66-.LFB66
+ 641 02ce 01       		.uleb128 0x1
+ 642 02cf 9C       		.byte	0x9c
+ 643 02d0 F1020000 		.4byte	0x2f1
+ 644 02d4 0C       		.uleb128 0xc
+ 645 02d5 0C000000 		.4byte	.LVL23
+ 646 02d9 40030000 		.4byte	0x340
+ 647 02dd E7020000 		.4byte	0x2e7
+ 648 02e1 0D       		.uleb128 0xd
+ 649 02e2 01       		.uleb128 0x1
+ 650 02e3 50       		.byte	0x50
+ 651 02e4 01       		.uleb128 0x1
+ 652 02e5 30       		.byte	0x30
+ 653 02e6 00       		.byte	0
+ 654 02e7 0B       		.uleb128 0xb
+ 655 02e8 10000000 		.4byte	.LVL24
+ 656 02ec 35030000 		.4byte	0x335
+ 657 02f0 00       		.byte	0
+ 658 02f1 13       		.uleb128 0x13
+ 659 02f2 CD010000 		.4byte	.LASF32
+ 660 02f6 01       		.byte	0x1
+ 661 02f7 1E       		.byte	0x1e
+ 662 02f8 9F020000 		.4byte	0x29f
+ 663 02fc 05       		.uleb128 0x5
+ 664 02fd 03       		.byte	0x3
+ 665 02fe 00000000 		.4byte	_current_buffer
+ 666 0302 13       		.uleb128 0x13
+ 667 0303 4F010000 		.4byte	.LASF33
+ 668 0307 01       		.byte	0x1
+ 669 0308 1F       		.byte	0x1f
+ 670 0309 B8000000 		.4byte	0xb8
+ 671 030d 05       		.uleb128 0x5
+ 672 030e 03       		.byte	0x3
+ 673 030f 08000000 		.4byte	_current_buffer_length
+ 674 0313 13       		.uleb128 0x13
+ 675 0314 EC010000 		.4byte	.LASF34
+ 676 0318 01       		.byte	0x1
+ 677 0319 20       		.byte	0x20
+ 678 031a B8000000 		.4byte	0xb8
+ 679 031e 05       		.uleb128 0x5
+ 680 031f 03       		.byte	0x3
+ 681 0320 04000000 		.4byte	_current_buffer_index
+ 682 0324 14       		.uleb128 0x14
+ 683 0325 93010000 		.4byte	.LASF52
+ 684 0329 08       		.byte	0x8
+ 685 032a 1207     		.2byte	0x712
+ 686 032c 30030000 		.4byte	0x330
+ 687 0330 15       		.uleb128 0x15
+ 688 0331 AD000000 		.4byte	0xad
+ 689 0335 16       		.uleb128 0x16
+ 690 0336 31000000 		.4byte	.LASF35
+ 691 033a 31000000 		.4byte	.LASF35
+ 692 033e 05       		.byte	0x5
+ 693 033f 50       		.byte	0x50
+ 694 0340 16       		.uleb128 0x16
+ 695 0341 02020000 		.4byte	.LASF36
+ 696 0345 02020000 		.4byte	.LASF36
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 16
+
+
+ 697 0349 06       		.byte	0x6
+ 698 034a C3       		.byte	0xc3
+ 699 034b 16       		.uleb128 0x16
+ 700 034c B6020000 		.4byte	.LASF37
+ 701 0350 B6020000 		.4byte	.LASF37
+ 702 0354 06       		.byte	0x6
+ 703 0355 BE       		.byte	0xbe
+ 704 0356 16       		.uleb128 0x16
+ 705 0357 BA010000 		.4byte	.LASF38
+ 706 035b BA010000 		.4byte	.LASF38
+ 707 035f 05       		.byte	0x5
+ 708 0360 5F       		.byte	0x5f
+ 709 0361 16       		.uleb128 0x16
+ 710 0362 68020000 		.4byte	.LASF39
+ 711 0366 68020000 		.4byte	.LASF39
+ 712 036a 05       		.byte	0x5
+ 713 036b 5A       		.byte	0x5a
+ 714 036c 16       		.uleb128 0x16
+ 715 036d 5B020000 		.4byte	.LASF40
+ 716 0371 5B020000 		.4byte	.LASF40
+ 717 0375 05       		.byte	0x5
+ 718 0376 4F       		.byte	0x4f
+ 719 0377 16       		.uleb128 0x16
+ 720 0378 17000000 		.4byte	.LASF41
+ 721 037c 17000000 		.4byte	.LASF41
+ 722 0380 05       		.byte	0x5
+ 723 0381 52       		.byte	0x52
+ 724 0382 16       		.uleb128 0x16
+ 725 0383 8D020000 		.4byte	.LASF42
+ 726 0387 8D020000 		.4byte	.LASF42
+ 727 038b 07       		.byte	0x7
+ 728 038c 28       		.byte	0x28
+ 729 038d 16       		.uleb128 0x16
+ 730 038e 00000000 		.4byte	.LASF43
+ 731 0392 00000000 		.4byte	.LASF43
+ 732 0396 06       		.byte	0x6
+ 733 0397 92       		.byte	0x92
+ 734 0398 16       		.uleb128 0x16
+ 735 0399 3E010000 		.4byte	.LASF44
+ 736 039d 3E010000 		.4byte	.LASF44
+ 737 03a1 07       		.byte	0x7
+ 738 03a2 18       		.byte	0x18
+ 739 03a3 16       		.uleb128 0x16
+ 740 03a4 0F030000 		.4byte	.LASF45
+ 741 03a8 0F030000 		.4byte	.LASF45
+ 742 03ac 07       		.byte	0x7
+ 743 03ad 25       		.byte	0x25
+ 744 03ae 16       		.uleb128 0x16
+ 745 03af 78010000 		.4byte	.LASF46
+ 746 03b3 78010000 		.4byte	.LASF46
+ 747 03b7 07       		.byte	0x7
+ 748 03b8 23       		.byte	0x23
+ 749 03b9 00       		.byte	0
+ 750              		.section	.debug_abbrev,"",%progbits
+ 751              	.Ldebug_abbrev0:
+ 752 0000 01       		.uleb128 0x1
+ 753 0001 11       		.uleb128 0x11
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 17
+
+
+ 754 0002 01       		.byte	0x1
+ 755 0003 25       		.uleb128 0x25
+ 756 0004 0E       		.uleb128 0xe
+ 757 0005 13       		.uleb128 0x13
+ 758 0006 0B       		.uleb128 0xb
+ 759 0007 03       		.uleb128 0x3
+ 760 0008 0E       		.uleb128 0xe
+ 761 0009 1B       		.uleb128 0x1b
+ 762 000a 0E       		.uleb128 0xe
+ 763 000b 55       		.uleb128 0x55
+ 764 000c 17       		.uleb128 0x17
+ 765 000d 11       		.uleb128 0x11
+ 766 000e 01       		.uleb128 0x1
+ 767 000f 10       		.uleb128 0x10
+ 768 0010 17       		.uleb128 0x17
+ 769 0011 00       		.byte	0
+ 770 0012 00       		.byte	0
+ 771 0013 02       		.uleb128 0x2
+ 772 0014 24       		.uleb128 0x24
+ 773 0015 00       		.byte	0
+ 774 0016 0B       		.uleb128 0xb
+ 775 0017 0B       		.uleb128 0xb
+ 776 0018 3E       		.uleb128 0x3e
+ 777 0019 0B       		.uleb128 0xb
+ 778 001a 03       		.uleb128 0x3
+ 779 001b 0E       		.uleb128 0xe
+ 780 001c 00       		.byte	0
+ 781 001d 00       		.byte	0
+ 782 001e 03       		.uleb128 0x3
+ 783 001f 16       		.uleb128 0x16
+ 784 0020 00       		.byte	0
+ 785 0021 03       		.uleb128 0x3
+ 786 0022 0E       		.uleb128 0xe
+ 787 0023 3A       		.uleb128 0x3a
+ 788 0024 0B       		.uleb128 0xb
+ 789 0025 3B       		.uleb128 0x3b
+ 790 0026 0B       		.uleb128 0xb
+ 791 0027 49       		.uleb128 0x49
+ 792 0028 13       		.uleb128 0x13
+ 793 0029 00       		.byte	0
+ 794 002a 00       		.byte	0
+ 795 002b 04       		.uleb128 0x4
+ 796 002c 24       		.uleb128 0x24
+ 797 002d 00       		.byte	0
+ 798 002e 0B       		.uleb128 0xb
+ 799 002f 0B       		.uleb128 0xb
+ 800 0030 3E       		.uleb128 0x3e
+ 801 0031 0B       		.uleb128 0xb
+ 802 0032 03       		.uleb128 0x3
+ 803 0033 08       		.uleb128 0x8
+ 804 0034 00       		.byte	0
+ 805 0035 00       		.byte	0
+ 806 0036 05       		.uleb128 0x5
+ 807 0037 13       		.uleb128 0x13
+ 808 0038 01       		.byte	0x1
+ 809 0039 03       		.uleb128 0x3
+ 810 003a 0E       		.uleb128 0xe
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 18
+
+
+ 811 003b 0B       		.uleb128 0xb
+ 812 003c 0B       		.uleb128 0xb
+ 813 003d 3A       		.uleb128 0x3a
+ 814 003e 0B       		.uleb128 0xb
+ 815 003f 3B       		.uleb128 0x3b
+ 816 0040 0B       		.uleb128 0xb
+ 817 0041 01       		.uleb128 0x1
+ 818 0042 13       		.uleb128 0x13
+ 819 0043 00       		.byte	0
+ 820 0044 00       		.byte	0
+ 821 0045 06       		.uleb128 0x6
+ 822 0046 0D       		.uleb128 0xd
+ 823 0047 00       		.byte	0
+ 824 0048 03       		.uleb128 0x3
+ 825 0049 0E       		.uleb128 0xe
+ 826 004a 3A       		.uleb128 0x3a
+ 827 004b 0B       		.uleb128 0xb
+ 828 004c 3B       		.uleb128 0x3b
+ 829 004d 0B       		.uleb128 0xb
+ 830 004e 49       		.uleb128 0x49
+ 831 004f 13       		.uleb128 0x13
+ 832 0050 38       		.uleb128 0x38
+ 833 0051 0B       		.uleb128 0xb
+ 834 0052 00       		.byte	0
+ 835 0053 00       		.byte	0
+ 836 0054 07       		.uleb128 0x7
+ 837 0055 2E       		.uleb128 0x2e
+ 838 0056 01       		.byte	0x1
+ 839 0057 3F       		.uleb128 0x3f
+ 840 0058 19       		.uleb128 0x19
+ 841 0059 03       		.uleb128 0x3
+ 842 005a 0E       		.uleb128 0xe
+ 843 005b 3A       		.uleb128 0x3a
+ 844 005c 0B       		.uleb128 0xb
+ 845 005d 3B       		.uleb128 0x3b
+ 846 005e 0B       		.uleb128 0xb
+ 847 005f 27       		.uleb128 0x27
+ 848 0060 19       		.uleb128 0x19
+ 849 0061 11       		.uleb128 0x11
+ 850 0062 01       		.uleb128 0x1
+ 851 0063 12       		.uleb128 0x12
+ 852 0064 06       		.uleb128 0x6
+ 853 0065 40       		.uleb128 0x40
+ 854 0066 18       		.uleb128 0x18
+ 855 0067 9742     		.uleb128 0x2117
+ 856 0069 19       		.uleb128 0x19
+ 857 006a 01       		.uleb128 0x1
+ 858 006b 13       		.uleb128 0x13
+ 859 006c 00       		.byte	0
+ 860 006d 00       		.byte	0
+ 861 006e 08       		.uleb128 0x8
+ 862 006f 34       		.uleb128 0x34
+ 863 0070 00       		.byte	0
+ 864 0071 03       		.uleb128 0x3
+ 865 0072 0E       		.uleb128 0xe
+ 866 0073 3A       		.uleb128 0x3a
+ 867 0074 0B       		.uleb128 0xb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 19
+
+
+ 868 0075 3B       		.uleb128 0x3b
+ 869 0076 0B       		.uleb128 0xb
+ 870 0077 49       		.uleb128 0x49
+ 871 0078 13       		.uleb128 0x13
+ 872 0079 00       		.byte	0
+ 873 007a 00       		.byte	0
+ 874 007b 09       		.uleb128 0x9
+ 875 007c 34       		.uleb128 0x34
+ 876 007d 00       		.byte	0
+ 877 007e 03       		.uleb128 0x3
+ 878 007f 08       		.uleb128 0x8
+ 879 0080 3A       		.uleb128 0x3a
+ 880 0081 0B       		.uleb128 0xb
+ 881 0082 3B       		.uleb128 0x3b
+ 882 0083 0B       		.uleb128 0xb
+ 883 0084 49       		.uleb128 0x49
+ 884 0085 13       		.uleb128 0x13
+ 885 0086 00       		.byte	0
+ 886 0087 00       		.byte	0
+ 887 0088 0A       		.uleb128 0xa
+ 888 0089 34       		.uleb128 0x34
+ 889 008a 00       		.byte	0
+ 890 008b 03       		.uleb128 0x3
+ 891 008c 08       		.uleb128 0x8
+ 892 008d 3A       		.uleb128 0x3a
+ 893 008e 0B       		.uleb128 0xb
+ 894 008f 3B       		.uleb128 0x3b
+ 895 0090 0B       		.uleb128 0xb
+ 896 0091 49       		.uleb128 0x49
+ 897 0092 13       		.uleb128 0x13
+ 898 0093 02       		.uleb128 0x2
+ 899 0094 18       		.uleb128 0x18
+ 900 0095 00       		.byte	0
+ 901 0096 00       		.byte	0
+ 902 0097 0B       		.uleb128 0xb
+ 903 0098 898201   		.uleb128 0x4109
+ 904 009b 00       		.byte	0
+ 905 009c 11       		.uleb128 0x11
+ 906 009d 01       		.uleb128 0x1
+ 907 009e 31       		.uleb128 0x31
+ 908 009f 13       		.uleb128 0x13
+ 909 00a0 00       		.byte	0
+ 910 00a1 00       		.byte	0
+ 911 00a2 0C       		.uleb128 0xc
+ 912 00a3 898201   		.uleb128 0x4109
+ 913 00a6 01       		.byte	0x1
+ 914 00a7 11       		.uleb128 0x11
+ 915 00a8 01       		.uleb128 0x1
+ 916 00a9 31       		.uleb128 0x31
+ 917 00aa 13       		.uleb128 0x13
+ 918 00ab 01       		.uleb128 0x1
+ 919 00ac 13       		.uleb128 0x13
+ 920 00ad 00       		.byte	0
+ 921 00ae 00       		.byte	0
+ 922 00af 0D       		.uleb128 0xd
+ 923 00b0 8A8201   		.uleb128 0x410a
+ 924 00b3 00       		.byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 20
+
+
+ 925 00b4 02       		.uleb128 0x2
+ 926 00b5 18       		.uleb128 0x18
+ 927 00b6 9142     		.uleb128 0x2111
+ 928 00b8 18       		.uleb128 0x18
+ 929 00b9 00       		.byte	0
+ 930 00ba 00       		.byte	0
+ 931 00bb 0E       		.uleb128 0xe
+ 932 00bc 898201   		.uleb128 0x4109
+ 933 00bf 01       		.byte	0x1
+ 934 00c0 11       		.uleb128 0x11
+ 935 00c1 01       		.uleb128 0x1
+ 936 00c2 31       		.uleb128 0x31
+ 937 00c3 13       		.uleb128 0x13
+ 938 00c4 00       		.byte	0
+ 939 00c5 00       		.byte	0
+ 940 00c6 0F       		.uleb128 0xf
+ 941 00c7 05       		.uleb128 0x5
+ 942 00c8 00       		.byte	0
+ 943 00c9 03       		.uleb128 0x3
+ 944 00ca 0E       		.uleb128 0xe
+ 945 00cb 3A       		.uleb128 0x3a
+ 946 00cc 0B       		.uleb128 0xb
+ 947 00cd 3B       		.uleb128 0x3b
+ 948 00ce 0B       		.uleb128 0xb
+ 949 00cf 49       		.uleb128 0x49
+ 950 00d0 13       		.uleb128 0x13
+ 951 00d1 02       		.uleb128 0x2
+ 952 00d2 17       		.uleb128 0x17
+ 953 00d3 00       		.byte	0
+ 954 00d4 00       		.byte	0
+ 955 00d5 10       		.uleb128 0x10
+ 956 00d6 0F       		.uleb128 0xf
+ 957 00d7 00       		.byte	0
+ 958 00d8 0B       		.uleb128 0xb
+ 959 00d9 0B       		.uleb128 0xb
+ 960 00da 49       		.uleb128 0x49
+ 961 00db 13       		.uleb128 0x13
+ 962 00dc 00       		.byte	0
+ 963 00dd 00       		.byte	0
+ 964 00de 11       		.uleb128 0x11
+ 965 00df 26       		.uleb128 0x26
+ 966 00e0 00       		.byte	0
+ 967 00e1 49       		.uleb128 0x49
+ 968 00e2 13       		.uleb128 0x13
+ 969 00e3 00       		.byte	0
+ 970 00e4 00       		.byte	0
+ 971 00e5 12       		.uleb128 0x12
+ 972 00e6 2E       		.uleb128 0x2e
+ 973 00e7 00       		.byte	0
+ 974 00e8 3F       		.uleb128 0x3f
+ 975 00e9 19       		.uleb128 0x19
+ 976 00ea 03       		.uleb128 0x3
+ 977 00eb 0E       		.uleb128 0xe
+ 978 00ec 3A       		.uleb128 0x3a
+ 979 00ed 0B       		.uleb128 0xb
+ 980 00ee 3B       		.uleb128 0x3b
+ 981 00ef 0B       		.uleb128 0xb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 21
+
+
+ 982 00f0 27       		.uleb128 0x27
+ 983 00f1 19       		.uleb128 0x19
+ 984 00f2 49       		.uleb128 0x49
+ 985 00f3 13       		.uleb128 0x13
+ 986 00f4 11       		.uleb128 0x11
+ 987 00f5 01       		.uleb128 0x1
+ 988 00f6 12       		.uleb128 0x12
+ 989 00f7 06       		.uleb128 0x6
+ 990 00f8 40       		.uleb128 0x40
+ 991 00f9 18       		.uleb128 0x18
+ 992 00fa 9742     		.uleb128 0x2117
+ 993 00fc 19       		.uleb128 0x19
+ 994 00fd 00       		.byte	0
+ 995 00fe 00       		.byte	0
+ 996 00ff 13       		.uleb128 0x13
+ 997 0100 34       		.uleb128 0x34
+ 998 0101 00       		.byte	0
+ 999 0102 03       		.uleb128 0x3
+ 1000 0103 0E       		.uleb128 0xe
+ 1001 0104 3A       		.uleb128 0x3a
+ 1002 0105 0B       		.uleb128 0xb
+ 1003 0106 3B       		.uleb128 0x3b
+ 1004 0107 0B       		.uleb128 0xb
+ 1005 0108 49       		.uleb128 0x49
+ 1006 0109 13       		.uleb128 0x13
+ 1007 010a 02       		.uleb128 0x2
+ 1008 010b 18       		.uleb128 0x18
+ 1009 010c 00       		.byte	0
+ 1010 010d 00       		.byte	0
+ 1011 010e 14       		.uleb128 0x14
+ 1012 010f 34       		.uleb128 0x34
+ 1013 0110 00       		.byte	0
+ 1014 0111 03       		.uleb128 0x3
+ 1015 0112 0E       		.uleb128 0xe
+ 1016 0113 3A       		.uleb128 0x3a
+ 1017 0114 0B       		.uleb128 0xb
+ 1018 0115 3B       		.uleb128 0x3b
+ 1019 0116 05       		.uleb128 0x5
+ 1020 0117 49       		.uleb128 0x49
+ 1021 0118 13       		.uleb128 0x13
+ 1022 0119 3F       		.uleb128 0x3f
+ 1023 011a 19       		.uleb128 0x19
+ 1024 011b 3C       		.uleb128 0x3c
+ 1025 011c 19       		.uleb128 0x19
+ 1026 011d 00       		.byte	0
+ 1027 011e 00       		.byte	0
+ 1028 011f 15       		.uleb128 0x15
+ 1029 0120 35       		.uleb128 0x35
+ 1030 0121 00       		.byte	0
+ 1031 0122 49       		.uleb128 0x49
+ 1032 0123 13       		.uleb128 0x13
+ 1033 0124 00       		.byte	0
+ 1034 0125 00       		.byte	0
+ 1035 0126 16       		.uleb128 0x16
+ 1036 0127 2E       		.uleb128 0x2e
+ 1037 0128 00       		.byte	0
+ 1038 0129 3F       		.uleb128 0x3f
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 22
+
+
+ 1039 012a 19       		.uleb128 0x19
+ 1040 012b 3C       		.uleb128 0x3c
+ 1041 012c 19       		.uleb128 0x19
+ 1042 012d 6E       		.uleb128 0x6e
+ 1043 012e 0E       		.uleb128 0xe
+ 1044 012f 03       		.uleb128 0x3
+ 1045 0130 0E       		.uleb128 0xe
+ 1046 0131 3A       		.uleb128 0x3a
+ 1047 0132 0B       		.uleb128 0xb
+ 1048 0133 3B       		.uleb128 0x3b
+ 1049 0134 0B       		.uleb128 0xb
+ 1050 0135 00       		.byte	0
+ 1051 0136 00       		.byte	0
+ 1052 0137 00       		.byte	0
+ 1053              		.section	.debug_loc,"",%progbits
+ 1054              	.Ldebug_loc0:
+ 1055              	.LLST0:
+ 1056 0000 00000000 		.4byte	.LVL15
+ 1057 0004 09000000 		.4byte	.LVL16-1
+ 1058 0008 0100     		.2byte	0x1
+ 1059 000a 50       		.byte	0x50
+ 1060 000b 09000000 		.4byte	.LVL16-1
+ 1061 000f 2A000000 		.4byte	.LVL22
+ 1062 0013 0100     		.2byte	0x1
+ 1063 0015 55       		.byte	0x55
+ 1064 0016 2A000000 		.4byte	.LVL22
+ 1065 001a 30000000 		.4byte	.LFE64
+ 1066 001e 0400     		.2byte	0x4
+ 1067 0020 F3       		.byte	0xf3
+ 1068 0021 01       		.uleb128 0x1
+ 1069 0022 50       		.byte	0x50
+ 1070 0023 9F       		.byte	0x9f
+ 1071 0024 00000000 		.4byte	0
+ 1072 0028 00000000 		.4byte	0
+ 1073              	.LLST1:
+ 1074 002c 00000000 		.4byte	.LVL15
+ 1075 0030 09000000 		.4byte	.LVL16-1
+ 1076 0034 0100     		.2byte	0x1
+ 1077 0036 51       		.byte	0x51
+ 1078 0037 09000000 		.4byte	.LVL16-1
+ 1079 003b 12000000 		.4byte	.LVL17
+ 1080 003f 0100     		.2byte	0x1
+ 1081 0041 54       		.byte	0x54
+ 1082 0042 12000000 		.4byte	.LVL17
+ 1083 0046 19000000 		.4byte	.LVL18-1
+ 1084 004a 0500     		.2byte	0x5
+ 1085 004c 03       		.byte	0x3
+ 1086 004d 08000000 		.4byte	_current_buffer_length
+ 1087 0051 19000000 		.4byte	.LVL18-1
+ 1088 0055 30000000 		.4byte	.LFE64
+ 1089 0059 0400     		.2byte	0x4
+ 1090 005b F3       		.byte	0xf3
+ 1091 005c 01       		.uleb128 0x1
+ 1092 005d 51       		.byte	0x51
+ 1093 005e 9F       		.byte	0x9f
+ 1094 005f 00000000 		.4byte	0
+ 1095 0063 00000000 		.4byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 23
+
+
+ 1096              		.section	.debug_aranges,"",%progbits
+ 1097 0000 3C000000 		.4byte	0x3c
+ 1098 0004 0200     		.2byte	0x2
+ 1099 0006 00000000 		.4byte	.Ldebug_info0
+ 1100 000a 04       		.byte	0x4
+ 1101 000b 00       		.byte	0
+ 1102 000c 0000     		.2byte	0
+ 1103 000e 0000     		.2byte	0
+ 1104 0010 00000000 		.4byte	.LFB67
+ 1105 0014 78000000 		.4byte	.LFE67-.LFB67
+ 1106 0018 00000000 		.4byte	.LFB63
+ 1107 001c 20000000 		.4byte	.LFE63-.LFB63
+ 1108 0020 00000000 		.4byte	.LFB64
+ 1109 0024 30000000 		.4byte	.LFE64-.LFB64
+ 1110 0028 00000000 		.4byte	.LFB65
+ 1111 002c 10000000 		.4byte	.LFE65-.LFB65
+ 1112 0030 00000000 		.4byte	.LFB66
+ 1113 0034 18000000 		.4byte	.LFE66-.LFB66
+ 1114 0038 00000000 		.4byte	0
+ 1115 003c 00000000 		.4byte	0
+ 1116              		.section	.debug_ranges,"",%progbits
+ 1117              	.Ldebug_ranges0:
+ 1118 0000 00000000 		.4byte	.LFB67
+ 1119 0004 78000000 		.4byte	.LFE67
+ 1120 0008 00000000 		.4byte	.LFB63
+ 1121 000c 20000000 		.4byte	.LFE63
+ 1122 0010 00000000 		.4byte	.LFB64
+ 1123 0014 30000000 		.4byte	.LFE64
+ 1124 0018 00000000 		.4byte	.LFB65
+ 1125 001c 10000000 		.4byte	.LFE65
+ 1126 0020 00000000 		.4byte	.LFB66
+ 1127 0024 18000000 		.4byte	.LFE66
+ 1128 0028 00000000 		.4byte	0
+ 1129 002c 00000000 		.4byte	0
+ 1130              		.section	.debug_line,"",%progbits
+ 1131              	.Ldebug_line0:
+ 1132 0000 1E020000 		.section	.debug_str,"MS",%progbits,1
+ 1132      02007101 
+ 1132      00000201 
+ 1132      FB0E0D00 
+ 1132      01010101 
+ 1133              	.LASF43:
+ 1134 0000 546F6E65 		.ascii	"Tone_F_Start\000"
+ 1134      5F465F53 
+ 1134      74617274 
+ 1134      00
+ 1135              	.LASF3:
+ 1136 000d 5F5F7569 		.ascii	"__uint8_t\000"
+ 1136      6E74385F 
+ 1136      7400
+ 1137              	.LASF41:
+ 1138 0017 546F6E65 		.ascii	"Tone_D_ReadStatusRegister\000"
+ 1138      5F445F52 
+ 1138      65616453 
+ 1138      74617475 
+ 1138      73526567 
+ 1139              	.LASF35:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 24
+
+
+ 1140 0031 546F6E65 		.ascii	"Tone_D_Stop\000"
+ 1140      5F445F53 
+ 1140      746F7000 
+ 1141              	.LASF51:
+ 1142 003d 6D757369 		.ascii	"music_is_playing\000"
+ 1142      635F6973 
+ 1142      5F706C61 
+ 1142      79696E67 
+ 1142      00
+ 1143              	.LASF6:
+ 1144 004e 5F5F696E 		.ascii	"__int32_t\000"
+ 1144      7433325F 
+ 1144      7400
+ 1145              	.LASF18:
+ 1146 0058 64757261 		.ascii	"duration\000"
+ 1146      74696F6E 
+ 1146      00
+ 1147              	.LASF5:
+ 1148 0061 73686F72 		.ascii	"short unsigned int\000"
+ 1148      7420756E 
+ 1148      7369676E 
+ 1148      65642069 
+ 1148      6E7400
+ 1149              	.LASF2:
+ 1150 0074 73686F72 		.ascii	"short int\000"
+ 1150      7420696E 
+ 1150      7400
+ 1151              	.LASF21:
+ 1152 007e 646F7562 		.ascii	"double\000"
+ 1152      6C6500
+ 1153              	.LASF8:
+ 1154 0085 5F5F7569 		.ascii	"__uint32_t\000"
+ 1154      6E743332 
+ 1154      5F7400
+ 1155              	.LASF20:
+ 1156 0090 666C6F61 		.ascii	"float\000"
+ 1156      7400
+ 1157              	.LASF0:
+ 1158 0096 7369676E 		.ascii	"signed char\000"
+ 1158      65642063 
+ 1158      68617200 
+ 1159              	.LASF1:
+ 1160 00a2 756E7369 		.ascii	"unsigned char\000"
+ 1160      676E6564 
+ 1160      20636861 
+ 1160      7200
+ 1161              	.LASF47:
+ 1162 00b0 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 1162      43313120 
+ 1162      352E342E 
+ 1162      31203230 
+ 1162      31363036 
+ 1163 00e3 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m3 -mthumb -g -O"
+ 1163      20726576 
+ 1163      6973696F 
+ 1163      6E203233 
+ 1163      37373135 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 25
+
+
+ 1164 0116 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 1164      66756E63 
+ 1164      74696F6E 
+ 1164      2D736563 
+ 1164      74696F6E 
+ 1165              	.LASF44:
+ 1166 013e 546F6E65 		.ascii	"Tone_Int_StartEx\000"
+ 1166      5F496E74 
+ 1166      5F537461 
+ 1166      72744578 
+ 1166      00
+ 1167              	.LASF33:
+ 1168 014f 5F637572 		.ascii	"_current_buffer_length\000"
+ 1168      72656E74 
+ 1168      5F627566 
+ 1168      6665725F 
+ 1168      6C656E67 
+ 1169              	.LASF9:
+ 1170 0166 6C6F6E67 		.ascii	"long unsigned int\000"
+ 1170      20756E73 
+ 1170      69676E65 
+ 1170      6420696E 
+ 1170      7400
+ 1171              	.LASF46:
+ 1172 0178 546F6E65 		.ascii	"Tone_Int_Enable\000"
+ 1172      5F496E74 
+ 1172      5F456E61 
+ 1172      626C6500 
+ 1173              	.LASF27:
+ 1174 0188 6D757369 		.ascii	"music_init\000"
+ 1174      635F696E 
+ 1174      697400
+ 1175              	.LASF52:
+ 1176 0193 49544D5F 		.ascii	"ITM_RxBuffer\000"
+ 1176      52784275 
+ 1176      66666572 
+ 1176      00
+ 1177              	.LASF26:
+ 1178 01a0 6D757369 		.ascii	"music_isr\000"
+ 1178      635F6973 
+ 1178      7200
+ 1179              	.LASF4:
+ 1180 01aa 5F5F7569 		.ascii	"__uint16_t\000"
+ 1180      6E743136 
+ 1180      5F7400
+ 1181              	.LASF50:
+ 1182 01b5 4E6F7465 		.ascii	"Note\000"
+ 1182      00
+ 1183              	.LASF38:
+ 1184 01ba 546F6E65 		.ascii	"Tone_D_WritePeriod\000"
+ 1184      5F445F57 
+ 1184      72697465 
+ 1184      50657269 
+ 1184      6F6400
+ 1185              	.LASF32:
+ 1186 01cd 5F637572 		.ascii	"_current_buffer\000"
+ 1186      72656E74 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 26
+
+
+ 1186      5F627566 
+ 1186      66657200 
+ 1187              	.LASF28:
+ 1188 01dd 6D757369 		.ascii	"music_set_tune\000"
+ 1188      635F7365 
+ 1188      745F7475 
+ 1188      6E6500
+ 1189              	.LASF34:
+ 1190 01ec 5F637572 		.ascii	"_current_buffer_index\000"
+ 1190      72656E74 
+ 1190      5F627566 
+ 1190      6665725F 
+ 1190      696E6465 
+ 1191              	.LASF36:
+ 1192 0202 546F6E65 		.ascii	"Tone_F_WriteCompare\000"
+ 1192      5F465F57 
+ 1192      72697465 
+ 1192      436F6D70 
+ 1192      61726500 
+ 1193              	.LASF12:
+ 1194 0216 756E7369 		.ascii	"unsigned int\000"
+ 1194      676E6564 
+ 1194      20696E74 
+ 1194      00
+ 1195              	.LASF11:
+ 1196 0223 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 1196      206C6F6E 
+ 1196      6720756E 
+ 1196      7369676E 
+ 1196      65642069 
+ 1197              	.LASF13:
+ 1198 023a 75696E74 		.ascii	"uint8_t\000"
+ 1198      385F7400 
+ 1199              	.LASF48:
+ 1200 0242 4D757369 		.ascii	"Music.c\000"
+ 1200      632E6300 
+ 1201              	.LASF19:
+ 1202 024a 4E6F7465 		.ascii	"Note_t\000"
+ 1202      5F7400
+ 1203              	.LASF17:
+ 1204 0251 66726571 		.ascii	"frequency\000"
+ 1204      75656E63 
+ 1204      7900
+ 1205              	.LASF40:
+ 1206 025b 546F6E65 		.ascii	"Tone_D_Start\000"
+ 1206      5F445F53 
+ 1206      74617274 
+ 1206      00
+ 1207              	.LASF39:
+ 1208 0268 546F6E65 		.ascii	"Tone_D_WriteCounter\000"
+ 1208      5F445F57 
+ 1208      72697465 
+ 1208      436F756E 
+ 1208      74657200 
+ 1209              	.LASF15:
+ 1210 027c 696E7433 		.ascii	"int32_t\000"
+ 1210      325F7400 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 27
+
+
+ 1211              	.LASF24:
+ 1212 0284 73697A65 		.ascii	"sizetype\000"
+ 1212      74797065 
+ 1212      00
+ 1213              	.LASF42:
+ 1214 028d 546F6E65 		.ascii	"Tone_Int_ClearPending\000"
+ 1214      5F496E74 
+ 1214      5F436C65 
+ 1214      61725065 
+ 1214      6E64696E 
+ 1215              	.LASF10:
+ 1216 02a3 6C6F6E67 		.ascii	"long long int\000"
+ 1216      206C6F6E 
+ 1216      6720696E 
+ 1216      7400
+ 1217              	.LASF25:
+ 1218 02b1 66726571 		.ascii	"freq\000"
+ 1218      00
+ 1219              	.LASF37:
+ 1220 02b6 546F6E65 		.ascii	"Tone_F_WritePeriod\000"
+ 1220      5F465F57 
+ 1220      72697465 
+ 1220      50657269 
+ 1220      6F6400
+ 1221              	.LASF29:
+ 1222 02c9 62756666 		.ascii	"buffer\000"
+ 1222      657200
+ 1223              	.LASF14:
+ 1224 02d0 75696E74 		.ascii	"uint16_t\000"
+ 1224      31365F74 
+ 1224      00
+ 1225              	.LASF16:
+ 1226 02d9 75696E74 		.ascii	"uint32_t\000"
+ 1226      33325F74 
+ 1226      00
+ 1227              	.LASF7:
+ 1228 02e2 6C6F6E67 		.ascii	"long int\000"
+ 1228      20696E74 
+ 1228      00
+ 1229              	.LASF22:
+ 1230 02eb 63686172 		.ascii	"char\000"
+ 1230      00
+ 1231              	.LASF31:
+ 1232 02f0 6D757369 		.ascii	"music_stop_playing\000"
+ 1232      635F7374 
+ 1232      6F705F70 
+ 1232      6C617969 
+ 1232      6E6700
+ 1233              	.LASF23:
+ 1234 0303 6C6F6E67 		.ascii	"long double\000"
+ 1234      20646F75 
+ 1234      626C6500 
+ 1235              	.LASF45:
+ 1236 030f 546F6E65 		.ascii	"Tone_Int_Disable\000"
+ 1236      5F496E74 
+ 1236      5F446973 
+ 1236      61626C65 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0Xnvti.s 			page 28
+
+
+ 1236      00
+ 1237              	.LASF30:
+ 1238 0320 6C656E67 		.ascii	"length\000"
+ 1238      746800
+ 1239              	.LASF49:
+ 1240 0327 433A5C55 		.ascii	"C:\\Users\\henrichsc\\Desktop\\School\\Senior_year\\"
+ 1240      73657273 
+ 1240      5C68656E 
+ 1240      72696368 
+ 1240      73635C44 
+ 1241 0355 66616C6C 		.ascii	"fall\\CE4920\\lab\\Milestone_6.cydsn\000"
+ 1241      5C434534 
+ 1241      3932305C 
+ 1241      6C61625C 
+ 1241      4D696C65 
+ 1242              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

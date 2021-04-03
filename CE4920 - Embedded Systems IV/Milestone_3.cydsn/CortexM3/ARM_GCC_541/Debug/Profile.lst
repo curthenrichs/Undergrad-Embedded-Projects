@@ -1,0 +1,1509 @@
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"Profile.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.profile_init,"ax",%progbits
+  20              		.align	2
+  21              		.global	profile_init
+  22              		.thumb
+  23              		.thumb_func
+  24              		.type	profile_init, %function
+  25              	profile_init:
+  26              	.LFB63:
+  27              		.file 1 "Profile.c"
+   1:Profile.c     **** /**
+   2:Profile.c     ****  * Profile
+   3:Profile.c     ****  * @author Curt Henrichs
+   4:Profile.c     ****  * @date 9-13-17
+   5:Profile.c     ****  *
+   6:Profile.c     ****  * Profile module defines workout profile singletons as profile objects for
+   7:Profile.c     ****  * the treadmill application. Control of motor is dependent on the profile's
+   8:Profile.c     ****  * calculation, which is based on a heartbeat compensated PWM duty cycle.
+   9:Profile.c     ****  */
+  10:Profile.c     **** 
+  11:Profile.c     **** //=============================================================================
+  12:Profile.c     **** //                                  Libraries
+  13:Profile.c     **** //=============================================================================
+  14:Profile.c     **** 
+  15:Profile.c     **** #include "Profile.h"
+  16:Profile.c     **** #include <project.h>
+  17:Profile.c     **** #include <string.h>
+  18:Profile.c     **** 
+  19:Profile.c     **** //=============================================================================
+  20:Profile.c     **** //                             Private Attributes
+  21:Profile.c     **** //=============================================================================
+  22:Profile.c     **** 
+  23:Profile.c     **** /**
+  24:Profile.c     ****  * Array of singleton profiles that is selectable by the profiles enumeration
+  25:Profile.c     ****  */
+  26:Profile.c     **** static Profile_t profiles[_END_OF_PROFILE_LIST];
+  27:Profile.c     **** 
+  28:Profile.c     **** //=============================================================================
+  29:Profile.c     **** //                        Public Function Implementation
+  30:Profile.c     **** //=============================================================================
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 2
+
+
+  31:Profile.c     **** 
+  32:Profile.c     **** /**
+  33:Profile.c     ****  * Profile singleton intialization function.
+  34:Profile.c     ****  */
+  35:Profile.c     **** void profile_init(void){
+  28              		.loc 1 35 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+  33              		.cfi_def_cfa_offset 20
+  34              		.cfi_offset 4, -20
+  35              		.cfi_offset 5, -16
+  36              		.cfi_offset 6, -12
+  37              		.cfi_offset 7, -8
+  38              		.cfi_offset 14, -4
+  39              	.LVL0:
+  36:Profile.c     ****     //generate off object
+  37:Profile.c     ****     Profile_t* off = &profiles[PROFILE_OFF];
+  38:Profile.c     ****     off->motor_heartbeat_shift_down = 0;
+  40              		.loc 1 38 0
+  41 0002 444C     		ldr	r4, .L3
+  42 0004 0026     		movs	r6, #0
+  43 0006 6670     		strb	r6, [r4, #1]
+  39:Profile.c     ****     off->motor_heartbeat_shift_up = 0;
+  44              		.loc 1 39 0
+  45 0008 2670     		strb	r6, [r4]
+  40:Profile.c     ****     off->warn_heartbeat_val = 0;
+  46              		.loc 1 40 0
+  47 000a A670     		strb	r6, [r4, #2]
+  41:Profile.c     ****     off->pwm_base = 0;
+  48              		.loc 1 41 0
+  49 000c A680     		strh	r6, [r4, #4]	@ movhi
+  42:Profile.c     ****     strcpy(off->name,"Off");
+  50              		.loc 1 42 0
+  51 000e 424B     		ldr	r3, .L3+4
+  52 0010 1868     		ldr	r0, [r3]	@ unaligned
+  53 0012 C4F80600 		str	r0, [r4, #6]	@ unaligned
+  43:Profile.c     ****     strcpy(off->detail,"motor is off");
+  54              		.loc 1 43 0
+  55 0016 414B     		ldr	r3, .L3+8
+  56 0018 07CB     		ldmia	r3!, {r0, r1, r2}
+  57 001a C4F81100 		str	r0, [r4, #17]	@ unaligned
+  58 001e C4F81510 		str	r1, [r4, #21]	@ unaligned
+  59 0022 C4F81920 		str	r2, [r4, #25]	@ unaligned
+  60 0026 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+  61 0028 6377     		strb	r3, [r4, #29]
+  62              	.LVL1:
+  44:Profile.c     ****     
+  45:Profile.c     ****     //generate casual object
+  46:Profile.c     ****     Profile_t* casual = &profiles[PROFILE_CASUAL];
+  47:Profile.c     ****     casual->motor_heartbeat_shift_down = -51;
+  63              		.loc 1 47 0
+  64 002a CD23     		movs	r3, #205
+  65 002c 84F82330 		strb	r3, [r4, #35]
+  48:Profile.c     ****     casual->motor_heartbeat_shift_up = 13;
+  66              		.loc 1 48 0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 3
+
+
+  67 0030 0D23     		movs	r3, #13
+  68 0032 84F82230 		strb	r3, [r4, #34]
+  49:Profile.c     ****     casual->warn_heartbeat_val = 25;
+  69              		.loc 1 49 0
+  70 0036 1927     		movs	r7, #25
+  71 0038 84F82470 		strb	r7, [r4, #36]
+  50:Profile.c     ****     casual->pwm_base = CASUAL_MOTOR_RATE;
+  72              		.loc 1 50 0
+  73 003c 2123     		movs	r3, #33
+  74 003e E384     		strh	r3, [r4, #38]	@ movhi
+  51:Profile.c     ****     strcpy(casual->name,"Casual");
+  75              		.loc 1 51 0
+  76 0040 374B     		ldr	r3, .L3+12
+  77 0042 93E80300 		ldmia	r3, {r0, r1}
+  78 0046 A062     		str	r0, [r4, #40]
+  79 0048 A185     		strh	r1, [r4, #44]	@ movhi
+  80 004a 090C     		lsrs	r1, r1, #16
+  81 004c 84F82E10 		strb	r1, [r4, #46]
+  52:Profile.c     ****     strcpy(casual->detail,"leisurely stroll");
+  82              		.loc 1 52 0
+  83 0050 344D     		ldr	r5, .L3+16
+  84 0052 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
+  85 0054 C4F83300 		str	r0, [r4, #51]	@ unaligned
+  86 0058 C4F83710 		str	r1, [r4, #55]	@ unaligned
+  87 005c C4F83B20 		str	r2, [r4, #59]	@ unaligned
+  88 0060 C4F83F30 		str	r3, [r4, #63]	@ unaligned
+  89 0064 2B78     		ldrb	r3, [r5]	@ zero_extendqisi2
+  90 0066 84F84330 		strb	r3, [r4, #67]
+  91              	.LVL2:
+  53:Profile.c     ****     
+  54:Profile.c     ****     //generate moderate object
+  55:Profile.c     ****     Profile_t* moderate = &profiles[PROFILE_MODERATE];
+  56:Profile.c     ****     moderate->motor_heartbeat_shift_down = -26;
+  92              		.loc 1 56 0
+  93 006a E623     		movs	r3, #230
+  94 006c 84F84530 		strb	r3, [r4, #69]
+  57:Profile.c     ****     moderate->motor_heartbeat_shift_up = 26;
+  95              		.loc 1 57 0
+  96 0070 4FF01A0E 		mov	lr, #26
+  97 0074 84F844E0 		strb	lr, [r4, #68]
+  58:Profile.c     ****     moderate->warn_heartbeat_val = 25;
+  98              		.loc 1 58 0
+  99 0078 84F84670 		strb	r7, [r4, #70]
+  59:Profile.c     ****     moderate->pwm_base = MODERATE_MOTOR_RATE;
+ 100              		.loc 1 59 0
+ 101 007c 4023     		movs	r3, #64
+ 102 007e A4F84830 		strh	r3, [r4, #72]	@ movhi
+  60:Profile.c     ****     strcpy(moderate->name,"Moderate");
+ 103              		.loc 1 60 0
+ 104 0082 294B     		ldr	r3, .L3+20
+ 105 0084 03CB     		ldmia	r3!, {r0, r1}
+ 106 0086 C4F84A00 		str	r0, [r4, #74]	@ unaligned
+ 107 008a C4F84E10 		str	r1, [r4, #78]	@ unaligned
+ 108 008e 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 109 0090 84F85230 		strb	r3, [r4, #82]
+  61:Profile.c     ****     strcpy(moderate->detail,"fit and toned");
+ 110              		.loc 1 61 0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 4
+
+
+ 111 0094 254B     		ldr	r3, .L3+24
+ 112 0096 07CB     		ldmia	r3!, {r0, r1, r2}
+ 113 0098 C4F85500 		str	r0, [r4, #85]	@ unaligned
+ 114 009c C4F85910 		str	r1, [r4, #89]	@ unaligned
+ 115 00a0 C4F85D20 		str	r2, [r4, #93]	@ unaligned
+ 116 00a4 1B88     		ldrh	r3, [r3]	@ unaligned
+ 117 00a6 A4F86130 		strh	r3, [r4, #97]	@ unaligned
+ 118              	.LVL3:
+  62:Profile.c     ****     
+  63:Profile.c     ****     //generate intense object
+  64:Profile.c     ****     Profile_t* intense  = &profiles[PROFILE_INTENSE];
+  65:Profile.c     ****     intense->motor_heartbeat_shift_down = -13;
+ 119              		.loc 1 65 0
+ 120 00aa F323     		movs	r3, #243
+ 121 00ac 84F86730 		strb	r3, [r4, #103]
+  66:Profile.c     ****     intense->motor_heartbeat_shift_up = 26;
+ 122              		.loc 1 66 0
+ 123 00b0 84F866E0 		strb	lr, [r4, #102]
+  67:Profile.c     ****     intense->warn_heartbeat_val = 25;
+ 124              		.loc 1 67 0
+ 125 00b4 84F86870 		strb	r7, [r4, #104]
+  68:Profile.c     ****     intense->pwm_base = INTENSE_MOTOR_RATE;
+ 126              		.loc 1 68 0
+ 127 00b8 8023     		movs	r3, #128
+ 128 00ba A4F86A30 		strh	r3, [r4, #106]	@ movhi
+  69:Profile.c     ****     strcpy(intense->name,"Intense");
+ 129              		.loc 1 69 0
+ 130 00be 04F16C03 		add	r3, r4, #108
+ 131 00c2 1B4A     		ldr	r2, .L3+28
+ 132 00c4 92E80300 		ldmia	r2, {r0, r1}
+ 133 00c8 83E80300 		stmia	r3, {r0, r1}
+  70:Profile.c     ****     strcpy(intense->detail,"feel the burn");
+ 134              		.loc 1 70 0
+ 135 00cc 194B     		ldr	r3, .L3+32
+ 136 00ce 07CB     		ldmia	r3!, {r0, r1, r2}
+ 137 00d0 C4F87700 		str	r0, [r4, #119]	@ unaligned
+ 138 00d4 C4F87B10 		str	r1, [r4, #123]	@ unaligned
+ 139 00d8 C4F87F20 		str	r2, [r4, #127]	@ unaligned
+ 140 00dc 1B88     		ldrh	r3, [r3]	@ unaligned
+ 141 00de A4F88330 		strh	r3, [r4, #131]	@ unaligned
+ 142              	.LVL4:
+  71:Profile.c     ****     
+  72:Profile.c     ****     //generate extreme object
+  73:Profile.c     ****     Profile_t* extreme = &profiles[PROFILE_EXTREME];
+  74:Profile.c     ****     extreme->motor_heartbeat_shift_down = 0;
+ 143              		.loc 1 74 0
+ 144 00e2 84F88960 		strb	r6, [r4, #137]
+  75:Profile.c     ****     extreme->motor_heartbeat_shift_up = 51;
+ 145              		.loc 1 75 0
+ 146 00e6 3323     		movs	r3, #51
+ 147 00e8 84F88830 		strb	r3, [r4, #136]
+  76:Profile.c     ****     extreme->warn_heartbeat_val = 25;
+ 148              		.loc 1 76 0
+ 149 00ec 84F88A70 		strb	r7, [r4, #138]
+  77:Profile.c     ****     extreme->pwm_base = EXTREME_MOTOR_RATE;
+ 150              		.loc 1 77 0
+ 151 00f0 C023     		movs	r3, #192
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 5
+
+
+ 152 00f2 A4F88C30 		strh	r3, [r4, #140]	@ movhi
+  78:Profile.c     ****     strcpy(extreme->name,"Extreme");
+ 153              		.loc 1 78 0
+ 154 00f6 104B     		ldr	r3, .L3+36
+ 155 00f8 03CB     		ldmia	r3!, {r0, r1}
+ 156 00fa C4F88E00 		str	r0, [r4, #142]	@ unaligned
+ 157 00fe C4F89210 		str	r1, [r4, #146]	@ unaligned
+  79:Profile.c     ****     strcpy(extreme->detail,"why?");
+ 158              		.loc 1 79 0
+ 159 0102 0E4B     		ldr	r3, .L3+40
+ 160 0104 1868     		ldr	r0, [r3]	@ unaligned
+ 161 0106 C4F89900 		str	r0, [r4, #153]	@ unaligned
+ 162 010a 1B79     		ldrb	r3, [r3, #4]	@ zero_extendqisi2
+ 163 010c 84F89D30 		strb	r3, [r4, #157]
+ 164 0110 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 165              	.L4:
+ 166 0112 00BF     		.align	2
+ 167              	.L3:
+ 168 0114 00000000 		.word	.LANCHOR0
+ 169 0118 00000000 		.word	.LC0
+ 170 011c 04000000 		.word	.LC1
+ 171 0120 14000000 		.word	.LC2
+ 172 0124 1C000000 		.word	.LC3
+ 173 0128 30000000 		.word	.LC4
+ 174 012c 3C000000 		.word	.LC5
+ 175 0130 4C000000 		.word	.LC6
+ 176 0134 54000000 		.word	.LC7
+ 177 0138 64000000 		.word	.LC8
+ 178 013c 6C000000 		.word	.LC9
+ 179              		.cfi_endproc
+ 180              	.LFE63:
+ 181              		.size	profile_init, .-profile_init
+ 182              		.section	.text.profile_get,"ax",%progbits
+ 183              		.align	2
+ 184              		.global	profile_get
+ 185              		.thumb
+ 186              		.thumb_func
+ 187              		.type	profile_get, %function
+ 188              	profile_get:
+ 189              	.LFB64:
+  80:Profile.c     **** }
+  81:Profile.c     **** 
+  82:Profile.c     **** /**
+  83:Profile.c     ****  * Profile singleton selection function
+  84:Profile.c     ****  * @param profile enumeration of singletons
+  85:Profile.c     ****  * @return pointer to profile singleton given selection parameter. NULL if
+  86:Profile.c     ****  *         invalid.
+  87:Profile.c     ****  */
+  88:Profile.c     **** const Profile_t* profile_get(Profile_e profile){
+ 190              		.loc 1 88 0
+ 191              		.cfi_startproc
+ 192              		@ args = 0, pretend = 0, frame = 0
+ 193              		@ frame_needed = 0, uses_anonymous_args = 0
+ 194              		@ link register save eliminated.
+ 195              	.LVL5:
+  89:Profile.c     ****     const Profile_t* retVal = NULL;
+  90:Profile.c     ****     if(profile < _END_OF_PROFILE_LIST){
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 6
+
+
+ 196              		.loc 1 90 0
+ 197 0000 0428     		cmp	r0, #4
+ 198 0002 05D8     		bhi	.L7
+  91:Profile.c     ****         retVal = &profiles[profile];
+ 199              		.loc 1 91 0
+ 200 0004 00EB0010 		add	r0, r0, r0, lsl #4
+ 201              	.LVL6:
+ 202 0008 4300     		lsls	r3, r0, #1
+ 203 000a 0248     		ldr	r0, .L8
+ 204 000c 1844     		add	r0, r0, r3
+ 205              	.LVL7:
+ 206 000e 7047     		bx	lr
+ 207              	.LVL8:
+ 208              	.L7:
+  89:Profile.c     ****     const Profile_t* retVal = NULL;
+ 209              		.loc 1 89 0
+ 210 0010 0020     		movs	r0, #0
+ 211              	.LVL9:
+  92:Profile.c     ****     }
+  93:Profile.c     ****     return retVal;
+  94:Profile.c     **** }
+ 212              		.loc 1 94 0
+ 213 0012 7047     		bx	lr
+ 214              	.L9:
+ 215              		.align	2
+ 216              	.L8:
+ 217 0014 00000000 		.word	.LANCHOR0
+ 218              		.cfi_endproc
+ 219              	.LFE64:
+ 220              		.size	profile_get, .-profile_get
+ 221              		.section	.text.profile_menu_option,"ax",%progbits
+ 222              		.align	2
+ 223              		.global	profile_menu_option
+ 224              		.thumb
+ 225              		.thumb_func
+ 226              		.type	profile_menu_option, %function
+ 227              	profile_menu_option:
+ 228              	.LFB65:
+  95:Profile.c     **** 
+  96:Profile.c     **** /**
+  97:Profile.c     ****  * Profile menu display function
+  98:Profile.c     ****  * @param profile to display on LCD display
+  99:Profile.c     ****  */
+ 100:Profile.c     **** void profile_menu_option(const Profile_t* profile){
+ 229              		.loc 1 100 0
+ 230              		.cfi_startproc
+ 231              		@ args = 0, pretend = 0, frame = 0
+ 232              		@ frame_needed = 0, uses_anonymous_args = 0
+ 233              	.LVL10:
+ 101:Profile.c     ****     if(profile != NULL){
+ 234              		.loc 1 101 0
+ 235 0000 30B1     		cbz	r0, .L13
+ 100:Profile.c     ****     if(profile != NULL){
+ 236              		.loc 1 100 0
+ 237 0002 08B5     		push	{r3, lr}
+ 238              		.cfi_def_cfa_offset 8
+ 239              		.cfi_offset 3, -8
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 7
+
+
+ 240              		.cfi_offset 14, -4
+ 102:Profile.c     ****         display_profile(profile->name,profile->detail);
+ 241              		.loc 1 102 0
+ 242 0004 00F11101 		add	r1, r0, #17
+ 243 0008 0630     		adds	r0, r0, #6
+ 244              	.LVL11:
+ 245 000a FFF7FEFF 		bl	display_profile
+ 246              	.LVL12:
+ 247 000e 08BD     		pop	{r3, pc}
+ 248              	.LVL13:
+ 249              	.L13:
+ 250              		.cfi_def_cfa_offset 0
+ 251              		.cfi_restore 3
+ 252              		.cfi_restore 14
+ 253 0010 7047     		bx	lr
+ 254              		.cfi_endproc
+ 255              	.LFE65:
+ 256              		.size	profile_menu_option, .-profile_menu_option
+ 257 0012 00BF     		.section	.rodata.str1.4,"aMS",%progbits,1
+ 258              		.align	2
+ 259              	.LC0:
+ 260 0000 4F666600 		.ascii	"Off\000"
+ 261              	.LC1:
+ 262 0004 6D6F746F 		.ascii	"motor is off\000"
+ 262      72206973 
+ 262      206F6666 
+ 262      00
+ 263 0011 000000   		.space	3
+ 264              	.LC2:
+ 265 0014 43617375 		.ascii	"Casual\000"
+ 265      616C00
+ 266 001b 00       		.space	1
+ 267              	.LC3:
+ 268 001c 6C656973 		.ascii	"leisurely stroll\000"
+ 268      7572656C 
+ 268      79207374 
+ 268      726F6C6C 
+ 268      00
+ 269 002d 000000   		.space	3
+ 270              	.LC4:
+ 271 0030 4D6F6465 		.ascii	"Moderate\000"
+ 271      72617465 
+ 271      00
+ 272 0039 000000   		.space	3
+ 273              	.LC5:
+ 274 003c 66697420 		.ascii	"fit and toned\000"
+ 274      616E6420 
+ 274      746F6E65 
+ 274      6400
+ 275 004a 0000     		.space	2
+ 276              	.LC6:
+ 277 004c 496E7465 		.ascii	"Intense\000"
+ 277      6E736500 
+ 278              	.LC7:
+ 279 0054 6665656C 		.ascii	"feel the burn\000"
+ 279      20746865 
+ 279      20627572 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 8
+
+
+ 279      6E00
+ 280 0062 0000     		.space	2
+ 281              	.LC8:
+ 282 0064 45787472 		.ascii	"Extreme\000"
+ 282      656D6500 
+ 283              	.LC9:
+ 284 006c 7768793F 		.ascii	"why?\000"
+ 284      00
+ 285              		.bss
+ 286              		.align	2
+ 287              		.set	.LANCHOR0,. + 0
+ 288              		.type	profiles, %object
+ 289              		.size	profiles, 170
+ 290              	profiles:
+ 291 0000 00000000 		.space	170
+ 291      00000000 
+ 291      00000000 
+ 291      00000000 
+ 291      00000000 
+ 292              		.text
+ 293              	.Letext0:
+ 294              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 295              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 296              		.file 4 "Profile.h"
+ 297              		.file 5 "Generated_Source\\PSoC5/core_cm3.h"
+ 298              		.file 6 "Display.h"
+ 299              		.section	.debug_info,"",%progbits
+ 300              	.Ldebug_info0:
+ 301 0000 C4020000 		.4byte	0x2c4
+ 302 0004 0400     		.2byte	0x4
+ 303 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 304 000a 04       		.byte	0x4
+ 305 000b 01       		.uleb128 0x1
+ 306 000c ED000000 		.4byte	.LASF43
+ 307 0010 0C       		.byte	0xc
+ 308 0011 BD020000 		.4byte	.LASF44
+ 309 0015 74000000 		.4byte	.LASF45
+ 310 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 311 001d 00000000 		.4byte	0
+ 312 0021 00000000 		.4byte	.Ldebug_line0
+ 313 0025 02       		.uleb128 0x2
+ 314 0026 1E000000 		.4byte	.LASF3
+ 315 002a 02       		.byte	0x2
+ 316 002b 1B       		.byte	0x1b
+ 317 002c 30000000 		.4byte	0x30
+ 318 0030 03       		.uleb128 0x3
+ 319 0031 01       		.byte	0x1
+ 320 0032 06       		.byte	0x6
+ 321 0033 EC020000 		.4byte	.LASF0
+ 322 0037 03       		.uleb128 0x3
+ 323 0038 01       		.byte	0x1
+ 324 0039 08       		.byte	0x8
+ 325 003a DF000000 		.4byte	.LASF1
+ 326 003e 03       		.uleb128 0x3
+ 327 003f 02       		.byte	0x2
+ 328 0040 05       		.byte	0x5
+ 329 0041 C8010000 		.4byte	.LASF2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 9
+
+
+ 330 0045 02       		.uleb128 0x2
+ 331 0046 B6010000 		.4byte	.LASF4
+ 332 004a 02       		.byte	0x2
+ 333 004b 2B       		.byte	0x2b
+ 334 004c 50000000 		.4byte	0x50
+ 335 0050 03       		.uleb128 0x3
+ 336 0051 02       		.byte	0x2
+ 337 0052 07       		.byte	0x7
+ 338 0053 9A010000 		.4byte	.LASF5
+ 339 0057 02       		.uleb128 0x2
+ 340 0058 46000000 		.4byte	.LASF6
+ 341 005c 02       		.byte	0x2
+ 342 005d 3F       		.byte	0x3f
+ 343 005e 62000000 		.4byte	0x62
+ 344 0062 03       		.uleb128 0x3
+ 345 0063 04       		.byte	0x4
+ 346 0064 05       		.byte	0x5
+ 347 0065 B4020000 		.4byte	.LASF7
+ 348 0069 03       		.uleb128 0x3
+ 349 006a 04       		.byte	0x4
+ 350 006b 07       		.byte	0x7
+ 351 006c 88010000 		.4byte	.LASF8
+ 352 0070 03       		.uleb128 0x3
+ 353 0071 08       		.byte	0x8
+ 354 0072 05       		.byte	0x5
+ 355 0073 00000000 		.4byte	.LASF9
+ 356 0077 03       		.uleb128 0x3
+ 357 0078 08       		.byte	0x8
+ 358 0079 07       		.byte	0x7
+ 359 007a FB010000 		.4byte	.LASF10
+ 360 007e 04       		.uleb128 0x4
+ 361 007f 04       		.byte	0x4
+ 362 0080 05       		.byte	0x5
+ 363 0081 696E7400 		.ascii	"int\000"
+ 364 0085 03       		.uleb128 0x3
+ 365 0086 04       		.byte	0x4
+ 366 0087 07       		.byte	0x7
+ 367 0088 EE010000 		.4byte	.LASF11
+ 368 008c 02       		.uleb128 0x2
+ 369 008d 64000000 		.4byte	.LASF12
+ 370 0091 03       		.byte	0x3
+ 371 0092 14       		.byte	0x14
+ 372 0093 25000000 		.4byte	0x25
+ 373 0097 02       		.uleb128 0x2
+ 374 0098 9A020000 		.4byte	.LASF13
+ 375 009c 03       		.byte	0x3
+ 376 009d 24       		.byte	0x24
+ 377 009e 45000000 		.4byte	0x45
+ 378 00a2 02       		.uleb128 0x2
+ 379 00a3 3E020000 		.4byte	.LASF14
+ 380 00a7 03       		.byte	0x3
+ 381 00a8 2C       		.byte	0x2c
+ 382 00a9 57000000 		.4byte	0x57
+ 383 00ad 03       		.uleb128 0x3
+ 384 00ae 04       		.byte	0x4
+ 385 00af 04       		.byte	0x4
+ 386 00b0 C4000000 		.4byte	.LASF15
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 10
+
+
+ 387 00b4 03       		.uleb128 0x3
+ 388 00b5 08       		.byte	0x8
+ 389 00b6 04       		.byte	0x4
+ 390 00b7 C1010000 		.4byte	.LASF16
+ 391 00bb 03       		.uleb128 0x3
+ 392 00bc 01       		.byte	0x1
+ 393 00bd 08       		.byte	0x8
+ 394 00be 7A020000 		.4byte	.LASF17
+ 395 00c2 03       		.uleb128 0x3
+ 396 00c3 08       		.byte	0x8
+ 397 00c4 04       		.byte	0x4
+ 398 00c5 C7020000 		.4byte	.LASF18
+ 399 00c9 03       		.uleb128 0x3
+ 400 00ca 04       		.byte	0x4
+ 401 00cb 07       		.byte	0x7
+ 402 00cc 46020000 		.4byte	.LASF19
+ 403 00d0 05       		.uleb128 0x5
+ 404 00d1 7F020000 		.4byte	.LASF26
+ 405 00d5 01       		.byte	0x1
+ 406 00d6 37000000 		.4byte	0x37
+ 407 00da 04       		.byte	0x4
+ 408 00db 21       		.byte	0x21
+ 409 00dc 05010000 		.4byte	0x105
+ 410 00e0 06       		.uleb128 0x6
+ 411 00e1 FF020000 		.4byte	.LASF20
+ 412 00e5 00       		.byte	0
+ 413 00e6 06       		.uleb128 0x6
+ 414 00e7 DF010000 		.4byte	.LASF21
+ 415 00eb 01       		.byte	0x1
+ 416 00ec 06       		.uleb128 0x6
+ 417 00ed 2D020000 		.4byte	.LASF22
+ 418 00f1 02       		.byte	0x2
+ 419 00f2 06       		.uleb128 0x6
+ 420 00f3 27000000 		.4byte	.LASF23
+ 421 00f7 03       		.byte	0x3
+ 422 00f8 06       		.uleb128 0x6
+ 423 00f9 0E000000 		.4byte	.LASF24
+ 424 00fd 04       		.byte	0x4
+ 425 00fe 06       		.uleb128 0x6
+ 426 00ff CA000000 		.4byte	.LASF25
+ 427 0103 05       		.byte	0x5
+ 428 0104 00       		.byte	0
+ 429 0105 02       		.uleb128 0x2
+ 430 0106 7F020000 		.4byte	.LASF26
+ 431 010a 04       		.byte	0x4
+ 432 010b 2A       		.byte	0x2a
+ 433 010c D0000000 		.4byte	0xd0
+ 434 0110 07       		.uleb128 0x7
+ 435 0111 5C000000 		.4byte	.LASF46
+ 436 0115 22       		.byte	0x22
+ 437 0116 04       		.byte	0x4
+ 438 0117 38       		.byte	0x38
+ 439 0118 65010000 		.4byte	0x165
+ 440 011c 08       		.uleb128 0x8
+ 441 011d D3020000 		.4byte	.LASF27
+ 442 0121 04       		.byte	0x4
+ 443 0122 39       		.byte	0x39
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 11
+
+
+ 444 0123 8C000000 		.4byte	0x8c
+ 445 0127 00       		.byte	0
+ 446 0128 08       		.uleb128 0x8
+ 447 0129 4F020000 		.4byte	.LASF28
+ 448 012d 04       		.byte	0x4
+ 449 012e 3A       		.byte	0x3a
+ 450 012f 8C000000 		.4byte	0x8c
+ 451 0133 01       		.byte	0x1
+ 452 0134 08       		.uleb128 0x8
+ 453 0135 12020000 		.4byte	.LASF29
+ 454 0139 04       		.byte	0x4
+ 455 013a 3B       		.byte	0x3b
+ 456 013b 8C000000 		.4byte	0x8c
+ 457 013f 02       		.byte	0x2
+ 458 0140 08       		.uleb128 0x8
+ 459 0141 AD010000 		.4byte	.LASF30
+ 460 0145 04       		.byte	0x4
+ 461 0146 3C       		.byte	0x3c
+ 462 0147 97000000 		.4byte	0x97
+ 463 014b 04       		.byte	0x4
+ 464 014c 08       		.uleb128 0x8
+ 465 014d 0B030000 		.4byte	.LASF31
+ 466 0151 04       		.byte	0x4
+ 467 0152 3D       		.byte	0x3d
+ 468 0153 65010000 		.4byte	0x165
+ 469 0157 06       		.byte	0x6
+ 470 0158 08       		.uleb128 0x8
+ 471 0159 F8020000 		.4byte	.LASF32
+ 472 015d 04       		.byte	0x4
+ 473 015e 3E       		.byte	0x3e
+ 474 015f 75010000 		.4byte	0x175
+ 475 0163 11       		.byte	0x11
+ 476 0164 00       		.byte	0
+ 477 0165 09       		.uleb128 0x9
+ 478 0166 BB000000 		.4byte	0xbb
+ 479 016a 75010000 		.4byte	0x175
+ 480 016e 0A       		.uleb128 0xa
+ 481 016f C9000000 		.4byte	0xc9
+ 482 0173 0A       		.byte	0xa
+ 483 0174 00       		.byte	0
+ 484 0175 09       		.uleb128 0x9
+ 485 0176 BB000000 		.4byte	0xbb
+ 486 017a 85010000 		.4byte	0x185
+ 487 017e 0A       		.uleb128 0xa
+ 488 017f C9000000 		.4byte	0xc9
+ 489 0183 10       		.byte	0x10
+ 490 0184 00       		.byte	0
+ 491 0185 02       		.uleb128 0x2
+ 492 0186 AA020000 		.4byte	.LASF33
+ 493 018a 04       		.byte	0x4
+ 494 018b 3F       		.byte	0x3f
+ 495 018c 10010000 		.4byte	0x110
+ 496 0190 0B       		.uleb128 0xb
+ 497 0191 7B010000 		.4byte	.LASF39
+ 498 0195 01       		.byte	0x1
+ 499 0196 23       		.byte	0x23
+ 500 0197 00000000 		.4byte	.LFB63
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 12
+
+
+ 501 019b 40010000 		.4byte	.LFE63-.LFB63
+ 502 019f 01       		.uleb128 0x1
+ 503 01a0 9C       		.byte	0x9c
+ 504 01a1 00020000 		.4byte	0x200
+ 505 01a5 0C       		.uleb128 0xc
+ 506 01a6 6F666600 		.ascii	"off\000"
+ 507 01aa 01       		.byte	0x1
+ 508 01ab 25       		.byte	0x25
+ 509 01ac 00020000 		.4byte	0x200
+ 510 01b0 06       		.uleb128 0x6
+ 511 01b1 03       		.byte	0x3
+ 512 01b2 00000000 		.4byte	profiles
+ 513 01b6 9F       		.byte	0x9f
+ 514 01b7 0D       		.uleb128 0xd
+ 515 01b8 37000000 		.4byte	.LASF34
+ 516 01bc 01       		.byte	0x1
+ 517 01bd 2E       		.byte	0x2e
+ 518 01be 00020000 		.4byte	0x200
+ 519 01c2 06       		.uleb128 0x6
+ 520 01c3 03       		.byte	0x3
+ 521 01c4 22000000 		.4byte	profiles+34
+ 522 01c8 9F       		.byte	0x9f
+ 523 01c9 0D       		.uleb128 0xd
+ 524 01ca 89020000 		.4byte	.LASF35
+ 525 01ce 01       		.byte	0x1
+ 526 01cf 37       		.byte	0x37
+ 527 01d0 00020000 		.4byte	0x200
+ 528 01d4 06       		.uleb128 0x6
+ 529 01d5 03       		.byte	0x3
+ 530 01d6 44000000 		.4byte	profiles+68
+ 531 01da 9F       		.byte	0x9f
+ 532 01db 0D       		.uleb128 0xd
+ 533 01dc 25020000 		.4byte	.LASF36
+ 534 01e0 01       		.byte	0x1
+ 535 01e1 40       		.byte	0x40
+ 536 01e2 00020000 		.4byte	0x200
+ 537 01e6 06       		.uleb128 0x6
+ 538 01e7 03       		.byte	0x3
+ 539 01e8 66000000 		.4byte	profiles+102
+ 540 01ec 9F       		.byte	0x9f
+ 541 01ed 0D       		.uleb128 0xd
+ 542 01ee 92020000 		.4byte	.LASF37
+ 543 01f2 01       		.byte	0x1
+ 544 01f3 49       		.byte	0x49
+ 545 01f4 00020000 		.4byte	0x200
+ 546 01f8 06       		.uleb128 0x6
+ 547 01f9 03       		.byte	0x3
+ 548 01fa 88000000 		.4byte	profiles+136
+ 549 01fe 9F       		.byte	0x9f
+ 550 01ff 00       		.byte	0
+ 551 0200 0E       		.uleb128 0xe
+ 552 0201 04       		.byte	0x4
+ 553 0202 85010000 		.4byte	0x185
+ 554 0206 0F       		.uleb128 0xf
+ 555 0207 50000000 		.4byte	.LASF47
+ 556 020b 01       		.byte	0x1
+ 557 020c 58       		.byte	0x58
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 13
+
+
+ 558 020d 3E020000 		.4byte	0x23e
+ 559 0211 00000000 		.4byte	.LFB64
+ 560 0215 18000000 		.4byte	.LFE64-.LFB64
+ 561 0219 01       		.uleb128 0x1
+ 562 021a 9C       		.byte	0x9c
+ 563 021b 3E020000 		.4byte	0x23e
+ 564 021f 10       		.uleb128 0x10
+ 565 0220 3E000000 		.4byte	.LASF41
+ 566 0224 01       		.byte	0x1
+ 567 0225 58       		.byte	0x58
+ 568 0226 05010000 		.4byte	0x105
+ 569 022a 00000000 		.4byte	.LLST0
+ 570 022e 11       		.uleb128 0x11
+ 571 022f A3020000 		.4byte	.LASF38
+ 572 0233 01       		.byte	0x1
+ 573 0234 59       		.byte	0x59
+ 574 0235 3E020000 		.4byte	0x23e
+ 575 0239 3A000000 		.4byte	.LLST1
+ 576 023d 00       		.byte	0
+ 577 023e 0E       		.uleb128 0xe
+ 578 023f 04       		.byte	0x4
+ 579 0240 44020000 		.4byte	0x244
+ 580 0244 12       		.uleb128 0x12
+ 581 0245 85010000 		.4byte	0x185
+ 582 0249 0B       		.uleb128 0xb
+ 583 024a 10030000 		.4byte	.LASF40
+ 584 024e 01       		.byte	0x1
+ 585 024f 64       		.byte	0x64
+ 586 0250 00000000 		.4byte	.LFB65
+ 587 0254 12000000 		.4byte	.LFE65-.LFB65
+ 588 0258 01       		.uleb128 0x1
+ 589 0259 9C       		.byte	0x9c
+ 590 025a 8A020000 		.4byte	0x28a
+ 591 025e 10       		.uleb128 0x10
+ 592 025f 3E000000 		.4byte	.LASF41
+ 593 0263 01       		.byte	0x1
+ 594 0264 64       		.byte	0x64
+ 595 0265 3E020000 		.4byte	0x23e
+ 596 0269 70000000 		.4byte	.LLST2
+ 597 026d 13       		.uleb128 0x13
+ 598 026e 0E000000 		.4byte	.LVL12
+ 599 0272 BC020000 		.4byte	0x2bc
+ 600 0276 14       		.uleb128 0x14
+ 601 0277 01       		.uleb128 0x1
+ 602 0278 50       		.byte	0x50
+ 603 0279 05       		.uleb128 0x5
+ 604 027a F3       		.byte	0xf3
+ 605 027b 01       		.uleb128 0x1
+ 606 027c 50       		.byte	0x50
+ 607 027d 23       		.byte	0x23
+ 608 027e 06       		.uleb128 0x6
+ 609 027f 14       		.uleb128 0x14
+ 610 0280 01       		.uleb128 0x1
+ 611 0281 51       		.byte	0x51
+ 612 0282 05       		.uleb128 0x5
+ 613 0283 F3       		.byte	0xf3
+ 614 0284 01       		.uleb128 0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 14
+
+
+ 615 0285 50       		.byte	0x50
+ 616 0286 23       		.byte	0x23
+ 617 0287 11       		.uleb128 0x11
+ 618 0288 00       		.byte	0
+ 619 0289 00       		.byte	0
+ 620 028a 09       		.uleb128 0x9
+ 621 028b 85010000 		.4byte	0x185
+ 622 028f 9A020000 		.4byte	0x29a
+ 623 0293 0A       		.uleb128 0xa
+ 624 0294 C9000000 		.4byte	0xc9
+ 625 0298 04       		.byte	0x4
+ 626 0299 00       		.byte	0
+ 627 029a 0D       		.uleb128 0xd
+ 628 029b 6B000000 		.4byte	.LASF42
+ 629 029f 01       		.byte	0x1
+ 630 02a0 1A       		.byte	0x1a
+ 631 02a1 8A020000 		.4byte	0x28a
+ 632 02a5 05       		.uleb128 0x5
+ 633 02a6 03       		.byte	0x3
+ 634 02a7 00000000 		.4byte	profiles
+ 635 02ab 15       		.uleb128 0x15
+ 636 02ac D2010000 		.4byte	.LASF48
+ 637 02b0 05       		.byte	0x5
+ 638 02b1 1207     		.2byte	0x712
+ 639 02b3 B7020000 		.4byte	0x2b7
+ 640 02b7 16       		.uleb128 0x16
+ 641 02b8 A2000000 		.4byte	0xa2
+ 642 02bc 17       		.uleb128 0x17
+ 643 02bd 6A020000 		.4byte	.LASF49
+ 644 02c1 6A020000 		.4byte	.LASF49
+ 645 02c5 06       		.byte	0x6
+ 646 02c6 35       		.byte	0x35
+ 647 02c7 00       		.byte	0
+ 648              		.section	.debug_abbrev,"",%progbits
+ 649              	.Ldebug_abbrev0:
+ 650 0000 01       		.uleb128 0x1
+ 651 0001 11       		.uleb128 0x11
+ 652 0002 01       		.byte	0x1
+ 653 0003 25       		.uleb128 0x25
+ 654 0004 0E       		.uleb128 0xe
+ 655 0005 13       		.uleb128 0x13
+ 656 0006 0B       		.uleb128 0xb
+ 657 0007 03       		.uleb128 0x3
+ 658 0008 0E       		.uleb128 0xe
+ 659 0009 1B       		.uleb128 0x1b
+ 660 000a 0E       		.uleb128 0xe
+ 661 000b 55       		.uleb128 0x55
+ 662 000c 17       		.uleb128 0x17
+ 663 000d 11       		.uleb128 0x11
+ 664 000e 01       		.uleb128 0x1
+ 665 000f 10       		.uleb128 0x10
+ 666 0010 17       		.uleb128 0x17
+ 667 0011 00       		.byte	0
+ 668 0012 00       		.byte	0
+ 669 0013 02       		.uleb128 0x2
+ 670 0014 16       		.uleb128 0x16
+ 671 0015 00       		.byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 15
+
+
+ 672 0016 03       		.uleb128 0x3
+ 673 0017 0E       		.uleb128 0xe
+ 674 0018 3A       		.uleb128 0x3a
+ 675 0019 0B       		.uleb128 0xb
+ 676 001a 3B       		.uleb128 0x3b
+ 677 001b 0B       		.uleb128 0xb
+ 678 001c 49       		.uleb128 0x49
+ 679 001d 13       		.uleb128 0x13
+ 680 001e 00       		.byte	0
+ 681 001f 00       		.byte	0
+ 682 0020 03       		.uleb128 0x3
+ 683 0021 24       		.uleb128 0x24
+ 684 0022 00       		.byte	0
+ 685 0023 0B       		.uleb128 0xb
+ 686 0024 0B       		.uleb128 0xb
+ 687 0025 3E       		.uleb128 0x3e
+ 688 0026 0B       		.uleb128 0xb
+ 689 0027 03       		.uleb128 0x3
+ 690 0028 0E       		.uleb128 0xe
+ 691 0029 00       		.byte	0
+ 692 002a 00       		.byte	0
+ 693 002b 04       		.uleb128 0x4
+ 694 002c 24       		.uleb128 0x24
+ 695 002d 00       		.byte	0
+ 696 002e 0B       		.uleb128 0xb
+ 697 002f 0B       		.uleb128 0xb
+ 698 0030 3E       		.uleb128 0x3e
+ 699 0031 0B       		.uleb128 0xb
+ 700 0032 03       		.uleb128 0x3
+ 701 0033 08       		.uleb128 0x8
+ 702 0034 00       		.byte	0
+ 703 0035 00       		.byte	0
+ 704 0036 05       		.uleb128 0x5
+ 705 0037 04       		.uleb128 0x4
+ 706 0038 01       		.byte	0x1
+ 707 0039 03       		.uleb128 0x3
+ 708 003a 0E       		.uleb128 0xe
+ 709 003b 0B       		.uleb128 0xb
+ 710 003c 0B       		.uleb128 0xb
+ 711 003d 49       		.uleb128 0x49
+ 712 003e 13       		.uleb128 0x13
+ 713 003f 3A       		.uleb128 0x3a
+ 714 0040 0B       		.uleb128 0xb
+ 715 0041 3B       		.uleb128 0x3b
+ 716 0042 0B       		.uleb128 0xb
+ 717 0043 01       		.uleb128 0x1
+ 718 0044 13       		.uleb128 0x13
+ 719 0045 00       		.byte	0
+ 720 0046 00       		.byte	0
+ 721 0047 06       		.uleb128 0x6
+ 722 0048 28       		.uleb128 0x28
+ 723 0049 00       		.byte	0
+ 724 004a 03       		.uleb128 0x3
+ 725 004b 0E       		.uleb128 0xe
+ 726 004c 1C       		.uleb128 0x1c
+ 727 004d 0B       		.uleb128 0xb
+ 728 004e 00       		.byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 16
+
+
+ 729 004f 00       		.byte	0
+ 730 0050 07       		.uleb128 0x7
+ 731 0051 13       		.uleb128 0x13
+ 732 0052 01       		.byte	0x1
+ 733 0053 03       		.uleb128 0x3
+ 734 0054 0E       		.uleb128 0xe
+ 735 0055 0B       		.uleb128 0xb
+ 736 0056 0B       		.uleb128 0xb
+ 737 0057 3A       		.uleb128 0x3a
+ 738 0058 0B       		.uleb128 0xb
+ 739 0059 3B       		.uleb128 0x3b
+ 740 005a 0B       		.uleb128 0xb
+ 741 005b 01       		.uleb128 0x1
+ 742 005c 13       		.uleb128 0x13
+ 743 005d 00       		.byte	0
+ 744 005e 00       		.byte	0
+ 745 005f 08       		.uleb128 0x8
+ 746 0060 0D       		.uleb128 0xd
+ 747 0061 00       		.byte	0
+ 748 0062 03       		.uleb128 0x3
+ 749 0063 0E       		.uleb128 0xe
+ 750 0064 3A       		.uleb128 0x3a
+ 751 0065 0B       		.uleb128 0xb
+ 752 0066 3B       		.uleb128 0x3b
+ 753 0067 0B       		.uleb128 0xb
+ 754 0068 49       		.uleb128 0x49
+ 755 0069 13       		.uleb128 0x13
+ 756 006a 38       		.uleb128 0x38
+ 757 006b 0B       		.uleb128 0xb
+ 758 006c 00       		.byte	0
+ 759 006d 00       		.byte	0
+ 760 006e 09       		.uleb128 0x9
+ 761 006f 01       		.uleb128 0x1
+ 762 0070 01       		.byte	0x1
+ 763 0071 49       		.uleb128 0x49
+ 764 0072 13       		.uleb128 0x13
+ 765 0073 01       		.uleb128 0x1
+ 766 0074 13       		.uleb128 0x13
+ 767 0075 00       		.byte	0
+ 768 0076 00       		.byte	0
+ 769 0077 0A       		.uleb128 0xa
+ 770 0078 21       		.uleb128 0x21
+ 771 0079 00       		.byte	0
+ 772 007a 49       		.uleb128 0x49
+ 773 007b 13       		.uleb128 0x13
+ 774 007c 2F       		.uleb128 0x2f
+ 775 007d 0B       		.uleb128 0xb
+ 776 007e 00       		.byte	0
+ 777 007f 00       		.byte	0
+ 778 0080 0B       		.uleb128 0xb
+ 779 0081 2E       		.uleb128 0x2e
+ 780 0082 01       		.byte	0x1
+ 781 0083 3F       		.uleb128 0x3f
+ 782 0084 19       		.uleb128 0x19
+ 783 0085 03       		.uleb128 0x3
+ 784 0086 0E       		.uleb128 0xe
+ 785 0087 3A       		.uleb128 0x3a
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 17
+
+
+ 786 0088 0B       		.uleb128 0xb
+ 787 0089 3B       		.uleb128 0x3b
+ 788 008a 0B       		.uleb128 0xb
+ 789 008b 27       		.uleb128 0x27
+ 790 008c 19       		.uleb128 0x19
+ 791 008d 11       		.uleb128 0x11
+ 792 008e 01       		.uleb128 0x1
+ 793 008f 12       		.uleb128 0x12
+ 794 0090 06       		.uleb128 0x6
+ 795 0091 40       		.uleb128 0x40
+ 796 0092 18       		.uleb128 0x18
+ 797 0093 9742     		.uleb128 0x2117
+ 798 0095 19       		.uleb128 0x19
+ 799 0096 01       		.uleb128 0x1
+ 800 0097 13       		.uleb128 0x13
+ 801 0098 00       		.byte	0
+ 802 0099 00       		.byte	0
+ 803 009a 0C       		.uleb128 0xc
+ 804 009b 34       		.uleb128 0x34
+ 805 009c 00       		.byte	0
+ 806 009d 03       		.uleb128 0x3
+ 807 009e 08       		.uleb128 0x8
+ 808 009f 3A       		.uleb128 0x3a
+ 809 00a0 0B       		.uleb128 0xb
+ 810 00a1 3B       		.uleb128 0x3b
+ 811 00a2 0B       		.uleb128 0xb
+ 812 00a3 49       		.uleb128 0x49
+ 813 00a4 13       		.uleb128 0x13
+ 814 00a5 02       		.uleb128 0x2
+ 815 00a6 18       		.uleb128 0x18
+ 816 00a7 00       		.byte	0
+ 817 00a8 00       		.byte	0
+ 818 00a9 0D       		.uleb128 0xd
+ 819 00aa 34       		.uleb128 0x34
+ 820 00ab 00       		.byte	0
+ 821 00ac 03       		.uleb128 0x3
+ 822 00ad 0E       		.uleb128 0xe
+ 823 00ae 3A       		.uleb128 0x3a
+ 824 00af 0B       		.uleb128 0xb
+ 825 00b0 3B       		.uleb128 0x3b
+ 826 00b1 0B       		.uleb128 0xb
+ 827 00b2 49       		.uleb128 0x49
+ 828 00b3 13       		.uleb128 0x13
+ 829 00b4 02       		.uleb128 0x2
+ 830 00b5 18       		.uleb128 0x18
+ 831 00b6 00       		.byte	0
+ 832 00b7 00       		.byte	0
+ 833 00b8 0E       		.uleb128 0xe
+ 834 00b9 0F       		.uleb128 0xf
+ 835 00ba 00       		.byte	0
+ 836 00bb 0B       		.uleb128 0xb
+ 837 00bc 0B       		.uleb128 0xb
+ 838 00bd 49       		.uleb128 0x49
+ 839 00be 13       		.uleb128 0x13
+ 840 00bf 00       		.byte	0
+ 841 00c0 00       		.byte	0
+ 842 00c1 0F       		.uleb128 0xf
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 18
+
+
+ 843 00c2 2E       		.uleb128 0x2e
+ 844 00c3 01       		.byte	0x1
+ 845 00c4 3F       		.uleb128 0x3f
+ 846 00c5 19       		.uleb128 0x19
+ 847 00c6 03       		.uleb128 0x3
+ 848 00c7 0E       		.uleb128 0xe
+ 849 00c8 3A       		.uleb128 0x3a
+ 850 00c9 0B       		.uleb128 0xb
+ 851 00ca 3B       		.uleb128 0x3b
+ 852 00cb 0B       		.uleb128 0xb
+ 853 00cc 27       		.uleb128 0x27
+ 854 00cd 19       		.uleb128 0x19
+ 855 00ce 49       		.uleb128 0x49
+ 856 00cf 13       		.uleb128 0x13
+ 857 00d0 11       		.uleb128 0x11
+ 858 00d1 01       		.uleb128 0x1
+ 859 00d2 12       		.uleb128 0x12
+ 860 00d3 06       		.uleb128 0x6
+ 861 00d4 40       		.uleb128 0x40
+ 862 00d5 18       		.uleb128 0x18
+ 863 00d6 9742     		.uleb128 0x2117
+ 864 00d8 19       		.uleb128 0x19
+ 865 00d9 01       		.uleb128 0x1
+ 866 00da 13       		.uleb128 0x13
+ 867 00db 00       		.byte	0
+ 868 00dc 00       		.byte	0
+ 869 00dd 10       		.uleb128 0x10
+ 870 00de 05       		.uleb128 0x5
+ 871 00df 00       		.byte	0
+ 872 00e0 03       		.uleb128 0x3
+ 873 00e1 0E       		.uleb128 0xe
+ 874 00e2 3A       		.uleb128 0x3a
+ 875 00e3 0B       		.uleb128 0xb
+ 876 00e4 3B       		.uleb128 0x3b
+ 877 00e5 0B       		.uleb128 0xb
+ 878 00e6 49       		.uleb128 0x49
+ 879 00e7 13       		.uleb128 0x13
+ 880 00e8 02       		.uleb128 0x2
+ 881 00e9 17       		.uleb128 0x17
+ 882 00ea 00       		.byte	0
+ 883 00eb 00       		.byte	0
+ 884 00ec 11       		.uleb128 0x11
+ 885 00ed 34       		.uleb128 0x34
+ 886 00ee 00       		.byte	0
+ 887 00ef 03       		.uleb128 0x3
+ 888 00f0 0E       		.uleb128 0xe
+ 889 00f1 3A       		.uleb128 0x3a
+ 890 00f2 0B       		.uleb128 0xb
+ 891 00f3 3B       		.uleb128 0x3b
+ 892 00f4 0B       		.uleb128 0xb
+ 893 00f5 49       		.uleb128 0x49
+ 894 00f6 13       		.uleb128 0x13
+ 895 00f7 02       		.uleb128 0x2
+ 896 00f8 17       		.uleb128 0x17
+ 897 00f9 00       		.byte	0
+ 898 00fa 00       		.byte	0
+ 899 00fb 12       		.uleb128 0x12
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 19
+
+
+ 900 00fc 26       		.uleb128 0x26
+ 901 00fd 00       		.byte	0
+ 902 00fe 49       		.uleb128 0x49
+ 903 00ff 13       		.uleb128 0x13
+ 904 0100 00       		.byte	0
+ 905 0101 00       		.byte	0
+ 906 0102 13       		.uleb128 0x13
+ 907 0103 898201   		.uleb128 0x4109
+ 908 0106 01       		.byte	0x1
+ 909 0107 11       		.uleb128 0x11
+ 910 0108 01       		.uleb128 0x1
+ 911 0109 31       		.uleb128 0x31
+ 912 010a 13       		.uleb128 0x13
+ 913 010b 00       		.byte	0
+ 914 010c 00       		.byte	0
+ 915 010d 14       		.uleb128 0x14
+ 916 010e 8A8201   		.uleb128 0x410a
+ 917 0111 00       		.byte	0
+ 918 0112 02       		.uleb128 0x2
+ 919 0113 18       		.uleb128 0x18
+ 920 0114 9142     		.uleb128 0x2111
+ 921 0116 18       		.uleb128 0x18
+ 922 0117 00       		.byte	0
+ 923 0118 00       		.byte	0
+ 924 0119 15       		.uleb128 0x15
+ 925 011a 34       		.uleb128 0x34
+ 926 011b 00       		.byte	0
+ 927 011c 03       		.uleb128 0x3
+ 928 011d 0E       		.uleb128 0xe
+ 929 011e 3A       		.uleb128 0x3a
+ 930 011f 0B       		.uleb128 0xb
+ 931 0120 3B       		.uleb128 0x3b
+ 932 0121 05       		.uleb128 0x5
+ 933 0122 49       		.uleb128 0x49
+ 934 0123 13       		.uleb128 0x13
+ 935 0124 3F       		.uleb128 0x3f
+ 936 0125 19       		.uleb128 0x19
+ 937 0126 3C       		.uleb128 0x3c
+ 938 0127 19       		.uleb128 0x19
+ 939 0128 00       		.byte	0
+ 940 0129 00       		.byte	0
+ 941 012a 16       		.uleb128 0x16
+ 942 012b 35       		.uleb128 0x35
+ 943 012c 00       		.byte	0
+ 944 012d 49       		.uleb128 0x49
+ 945 012e 13       		.uleb128 0x13
+ 946 012f 00       		.byte	0
+ 947 0130 00       		.byte	0
+ 948 0131 17       		.uleb128 0x17
+ 949 0132 2E       		.uleb128 0x2e
+ 950 0133 00       		.byte	0
+ 951 0134 3F       		.uleb128 0x3f
+ 952 0135 19       		.uleb128 0x19
+ 953 0136 3C       		.uleb128 0x3c
+ 954 0137 19       		.uleb128 0x19
+ 955 0138 6E       		.uleb128 0x6e
+ 956 0139 0E       		.uleb128 0xe
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 20
+
+
+ 957 013a 03       		.uleb128 0x3
+ 958 013b 0E       		.uleb128 0xe
+ 959 013c 3A       		.uleb128 0x3a
+ 960 013d 0B       		.uleb128 0xb
+ 961 013e 3B       		.uleb128 0x3b
+ 962 013f 0B       		.uleb128 0xb
+ 963 0140 00       		.byte	0
+ 964 0141 00       		.byte	0
+ 965 0142 00       		.byte	0
+ 966              		.section	.debug_loc,"",%progbits
+ 967              	.Ldebug_loc0:
+ 968              	.LLST0:
+ 969 0000 00000000 		.4byte	.LVL5
+ 970 0004 08000000 		.4byte	.LVL6
+ 971 0008 0100     		.2byte	0x1
+ 972 000a 50       		.byte	0x50
+ 973 000b 08000000 		.4byte	.LVL6
+ 974 000f 10000000 		.4byte	.LVL8
+ 975 0013 0400     		.2byte	0x4
+ 976 0015 F3       		.byte	0xf3
+ 977 0016 01       		.uleb128 0x1
+ 978 0017 50       		.byte	0x50
+ 979 0018 9F       		.byte	0x9f
+ 980 0019 10000000 		.4byte	.LVL8
+ 981 001d 12000000 		.4byte	.LVL9
+ 982 0021 0100     		.2byte	0x1
+ 983 0023 50       		.byte	0x50
+ 984 0024 12000000 		.4byte	.LVL9
+ 985 0028 18000000 		.4byte	.LFE64
+ 986 002c 0400     		.2byte	0x4
+ 987 002e F3       		.byte	0xf3
+ 988 002f 01       		.uleb128 0x1
+ 989 0030 50       		.byte	0x50
+ 990 0031 9F       		.byte	0x9f
+ 991 0032 00000000 		.4byte	0
+ 992 0036 00000000 		.4byte	0
+ 993              	.LLST1:
+ 994 003a 00000000 		.4byte	.LVL5
+ 995 003e 0E000000 		.4byte	.LVL7
+ 996 0042 0200     		.2byte	0x2
+ 997 0044 30       		.byte	0x30
+ 998 0045 9F       		.byte	0x9f
+ 999 0046 0E000000 		.4byte	.LVL7
+ 1000 004a 10000000 		.4byte	.LVL8
+ 1001 004e 0100     		.2byte	0x1
+ 1002 0050 50       		.byte	0x50
+ 1003 0051 10000000 		.4byte	.LVL8
+ 1004 0055 12000000 		.4byte	.LVL9
+ 1005 0059 0200     		.2byte	0x2
+ 1006 005b 30       		.byte	0x30
+ 1007 005c 9F       		.byte	0x9f
+ 1008 005d 12000000 		.4byte	.LVL9
+ 1009 0061 18000000 		.4byte	.LFE64
+ 1010 0065 0100     		.2byte	0x1
+ 1011 0067 50       		.byte	0x50
+ 1012 0068 00000000 		.4byte	0
+ 1013 006c 00000000 		.4byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 21
+
+
+ 1014              	.LLST2:
+ 1015 0070 00000000 		.4byte	.LVL10
+ 1016 0074 0A000000 		.4byte	.LVL11
+ 1017 0078 0100     		.2byte	0x1
+ 1018 007a 50       		.byte	0x50
+ 1019 007b 0A000000 		.4byte	.LVL11
+ 1020 007f 0D000000 		.4byte	.LVL12-1
+ 1021 0083 0300     		.2byte	0x3
+ 1022 0085 70       		.byte	0x70
+ 1023 0086 7A       		.sleb128 -6
+ 1024 0087 9F       		.byte	0x9f
+ 1025 0088 0D000000 		.4byte	.LVL12-1
+ 1026 008c 10000000 		.4byte	.LVL13
+ 1027 0090 0400     		.2byte	0x4
+ 1028 0092 F3       		.byte	0xf3
+ 1029 0093 01       		.uleb128 0x1
+ 1030 0094 50       		.byte	0x50
+ 1031 0095 9F       		.byte	0x9f
+ 1032 0096 10000000 		.4byte	.LVL13
+ 1033 009a 12000000 		.4byte	.LFE65
+ 1034 009e 0100     		.2byte	0x1
+ 1035 00a0 50       		.byte	0x50
+ 1036 00a1 00000000 		.4byte	0
+ 1037 00a5 00000000 		.4byte	0
+ 1038              		.section	.debug_aranges,"",%progbits
+ 1039 0000 2C000000 		.4byte	0x2c
+ 1040 0004 0200     		.2byte	0x2
+ 1041 0006 00000000 		.4byte	.Ldebug_info0
+ 1042 000a 04       		.byte	0x4
+ 1043 000b 00       		.byte	0
+ 1044 000c 0000     		.2byte	0
+ 1045 000e 0000     		.2byte	0
+ 1046 0010 00000000 		.4byte	.LFB63
+ 1047 0014 40010000 		.4byte	.LFE63-.LFB63
+ 1048 0018 00000000 		.4byte	.LFB64
+ 1049 001c 18000000 		.4byte	.LFE64-.LFB64
+ 1050 0020 00000000 		.4byte	.LFB65
+ 1051 0024 12000000 		.4byte	.LFE65-.LFB65
+ 1052 0028 00000000 		.4byte	0
+ 1053 002c 00000000 		.4byte	0
+ 1054              		.section	.debug_ranges,"",%progbits
+ 1055              	.Ldebug_ranges0:
+ 1056 0000 00000000 		.4byte	.LFB63
+ 1057 0004 40010000 		.4byte	.LFE63
+ 1058 0008 00000000 		.4byte	.LFB64
+ 1059 000c 18000000 		.4byte	.LFE64
+ 1060 0010 00000000 		.4byte	.LFB65
+ 1061 0014 12000000 		.4byte	.LFE65
+ 1062 0018 00000000 		.4byte	0
+ 1063 001c 00000000 		.4byte	0
+ 1064              		.section	.debug_line,"",%progbits
+ 1065              	.Ldebug_line0:
+ 1066 0000 B6010000 		.section	.debug_str,"MS",%progbits,1
+ 1066      02005C01 
+ 1066      00000201 
+ 1066      FB0E0D00 
+ 1066      01010101 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 22
+
+
+ 1067              	.LASF9:
+ 1068 0000 6C6F6E67 		.ascii	"long long int\000"
+ 1068      206C6F6E 
+ 1068      6720696E 
+ 1068      7400
+ 1069              	.LASF24:
+ 1070 000e 50524F46 		.ascii	"PROFILE_EXTREME\000"
+ 1070      494C455F 
+ 1070      45585452 
+ 1070      454D4500 
+ 1071              	.LASF3:
+ 1072 001e 5F5F696E 		.ascii	"__int8_t\000"
+ 1072      74385F74 
+ 1072      00
+ 1073              	.LASF23:
+ 1074 0027 50524F46 		.ascii	"PROFILE_INTENSE\000"
+ 1074      494C455F 
+ 1074      494E5445 
+ 1074      4E534500 
+ 1075              	.LASF34:
+ 1076 0037 63617375 		.ascii	"casual\000"
+ 1076      616C00
+ 1077              	.LASF41:
+ 1078 003e 70726F66 		.ascii	"profile\000"
+ 1078      696C6500 
+ 1079              	.LASF6:
+ 1080 0046 5F5F696E 		.ascii	"__int32_t\000"
+ 1080      7433325F 
+ 1080      7400
+ 1081              	.LASF47:
+ 1082 0050 70726F66 		.ascii	"profile_get\000"
+ 1082      696C655F 
+ 1082      67657400 
+ 1083              	.LASF46:
+ 1084 005c 50726F66 		.ascii	"Profile\000"
+ 1084      696C6500 
+ 1085              	.LASF12:
+ 1086 0064 696E7438 		.ascii	"int8_t\000"
+ 1086      5F7400
+ 1087              	.LASF42:
+ 1088 006b 70726F66 		.ascii	"profiles\000"
+ 1088      696C6573 
+ 1088      00
+ 1089              	.LASF45:
+ 1090 0074 433A5C55 		.ascii	"C:\\Users\\henrichsc\\Desktop\\School\\Senior_year\\"
+ 1090      73657273 
+ 1090      5C68656E 
+ 1090      72696368 
+ 1090      73635C44 
+ 1091 00a2 66616C6C 		.ascii	"fall\\CE4920\\lab\\Milestone_3.cydsn\000"
+ 1091      5C434534 
+ 1091      3932305C 
+ 1091      6C61625C 
+ 1091      4D696C65 
+ 1092              	.LASF15:
+ 1093 00c4 666C6F61 		.ascii	"float\000"
+ 1093      7400
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 23
+
+
+ 1094              	.LASF25:
+ 1095 00ca 5F454E44 		.ascii	"_END_OF_PROFILE_LIST\000"
+ 1095      5F4F465F 
+ 1095      50524F46 
+ 1095      494C455F 
+ 1095      4C495354 
+ 1096              	.LASF1:
+ 1097 00df 756E7369 		.ascii	"unsigned char\000"
+ 1097      676E6564 
+ 1097      20636861 
+ 1097      7200
+ 1098              	.LASF43:
+ 1099 00ed 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 1099      43313120 
+ 1099      352E342E 
+ 1099      31203230 
+ 1099      31363036 
+ 1100 0120 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m3 -mthumb -g -O"
+ 1100      20726576 
+ 1100      6973696F 
+ 1100      6E203233 
+ 1100      37373135 
+ 1101 0153 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 1101      66756E63 
+ 1101      74696F6E 
+ 1101      2D736563 
+ 1101      74696F6E 
+ 1102              	.LASF39:
+ 1103 017b 70726F66 		.ascii	"profile_init\000"
+ 1103      696C655F 
+ 1103      696E6974 
+ 1103      00
+ 1104              	.LASF8:
+ 1105 0188 6C6F6E67 		.ascii	"long unsigned int\000"
+ 1105      20756E73 
+ 1105      69676E65 
+ 1105      6420696E 
+ 1105      7400
+ 1106              	.LASF5:
+ 1107 019a 73686F72 		.ascii	"short unsigned int\000"
+ 1107      7420756E 
+ 1107      7369676E 
+ 1107      65642069 
+ 1107      6E7400
+ 1108              	.LASF30:
+ 1109 01ad 70776D5F 		.ascii	"pwm_base\000"
+ 1109      62617365 
+ 1109      00
+ 1110              	.LASF4:
+ 1111 01b6 5F5F7569 		.ascii	"__uint16_t\000"
+ 1111      6E743136 
+ 1111      5F7400
+ 1112              	.LASF16:
+ 1113 01c1 646F7562 		.ascii	"double\000"
+ 1113      6C6500
+ 1114              	.LASF2:
+ 1115 01c8 73686F72 		.ascii	"short int\000"
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 24
+
+
+ 1115      7420696E 
+ 1115      7400
+ 1116              	.LASF48:
+ 1117 01d2 49544D5F 		.ascii	"ITM_RxBuffer\000"
+ 1117      52784275 
+ 1117      66666572 
+ 1117      00
+ 1118              	.LASF21:
+ 1119 01df 50524F46 		.ascii	"PROFILE_CASUAL\000"
+ 1119      494C455F 
+ 1119      43415355 
+ 1119      414C00
+ 1120              	.LASF11:
+ 1121 01ee 756E7369 		.ascii	"unsigned int\000"
+ 1121      676E6564 
+ 1121      20696E74 
+ 1121      00
+ 1122              	.LASF10:
+ 1123 01fb 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 1123      206C6F6E 
+ 1123      6720756E 
+ 1123      7369676E 
+ 1123      65642069 
+ 1124              	.LASF29:
+ 1125 0212 7761726E 		.ascii	"warn_heartbeat_val\000"
+ 1125      5F686561 
+ 1125      72746265 
+ 1125      61745F76 
+ 1125      616C00
+ 1126              	.LASF36:
+ 1127 0225 696E7465 		.ascii	"intense\000"
+ 1127      6E736500 
+ 1128              	.LASF22:
+ 1129 022d 50524F46 		.ascii	"PROFILE_MODERATE\000"
+ 1129      494C455F 
+ 1129      4D4F4445 
+ 1129      52415445 
+ 1129      00
+ 1130              	.LASF14:
+ 1131 023e 696E7433 		.ascii	"int32_t\000"
+ 1131      325F7400 
+ 1132              	.LASF19:
+ 1133 0246 73697A65 		.ascii	"sizetype\000"
+ 1133      74797065 
+ 1133      00
+ 1134              	.LASF28:
+ 1135 024f 6D6F746F 		.ascii	"motor_heartbeat_shift_down\000"
+ 1135      725F6865 
+ 1135      61727462 
+ 1135      6561745F 
+ 1135      73686966 
+ 1136              	.LASF49:
+ 1137 026a 64697370 		.ascii	"display_profile\000"
+ 1137      6C61795F 
+ 1137      70726F66 
+ 1137      696C6500 
+ 1138              	.LASF17:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 25
+
+
+ 1139 027a 63686172 		.ascii	"char\000"
+ 1139      00
+ 1140              	.LASF26:
+ 1141 027f 50726F66 		.ascii	"Profile_e\000"
+ 1141      696C655F 
+ 1141      6500
+ 1142              	.LASF35:
+ 1143 0289 6D6F6465 		.ascii	"moderate\000"
+ 1143      72617465 
+ 1143      00
+ 1144              	.LASF37:
+ 1145 0292 65787472 		.ascii	"extreme\000"
+ 1145      656D6500 
+ 1146              	.LASF13:
+ 1147 029a 75696E74 		.ascii	"uint16_t\000"
+ 1147      31365F74 
+ 1147      00
+ 1148              	.LASF38:
+ 1149 02a3 72657456 		.ascii	"retVal\000"
+ 1149      616C00
+ 1150              	.LASF33:
+ 1151 02aa 50726F66 		.ascii	"Profile_t\000"
+ 1151      696C655F 
+ 1151      7400
+ 1152              	.LASF7:
+ 1153 02b4 6C6F6E67 		.ascii	"long int\000"
+ 1153      20696E74 
+ 1153      00
+ 1154              	.LASF44:
+ 1155 02bd 50726F66 		.ascii	"Profile.c\000"
+ 1155      696C652E 
+ 1155      6300
+ 1156              	.LASF18:
+ 1157 02c7 6C6F6E67 		.ascii	"long double\000"
+ 1157      20646F75 
+ 1157      626C6500 
+ 1158              	.LASF27:
+ 1159 02d3 6D6F746F 		.ascii	"motor_heartbeat_shift_up\000"
+ 1159      725F6865 
+ 1159      61727462 
+ 1159      6561745F 
+ 1159      73686966 
+ 1160              	.LASF0:
+ 1161 02ec 7369676E 		.ascii	"signed char\000"
+ 1161      65642063 
+ 1161      68617200 
+ 1162              	.LASF32:
+ 1163 02f8 64657461 		.ascii	"detail\000"
+ 1163      696C00
+ 1164              	.LASF20:
+ 1165 02ff 50524F46 		.ascii	"PROFILE_OFF\000"
+ 1165      494C455F 
+ 1165      4F464600 
+ 1166              	.LASF31:
+ 1167 030b 6E616D65 		.ascii	"name\000"
+ 1167      00
+ 1168              	.LASF40:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\cc0fwS3Q.s 			page 26
+
+
+ 1169 0310 70726F66 		.ascii	"profile_menu_option\000"
+ 1169      696C655F 
+ 1169      6D656E75 
+ 1169      5F6F7074 
+ 1169      696F6E00 
+ 1170              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

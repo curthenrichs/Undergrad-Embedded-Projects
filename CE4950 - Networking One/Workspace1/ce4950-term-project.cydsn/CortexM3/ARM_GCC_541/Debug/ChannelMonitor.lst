@@ -1,0 +1,2638 @@
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"ChannelMonitor.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.cm_idle_isr,"ax",%progbits
+  20              		.align	2
+  21              		.global	cm_idle_isr
+  22              		.thumb
+  23              		.thumb_func
+  24              		.type	cm_idle_isr, %function
+  25              	cm_idle_isr:
+  26              	.LFB69:
+  27              		.file 1 "ChannelMonitor.c"
+   1:ChannelMonitor.c **** /**
+   2:ChannelMonitor.c ****  * ChannelMonitor
+   3:ChannelMonitor.c ****  * @author Curt Henrichs
+   4:ChannelMonitor.c ****  * @date 12-6-2017
+   5:ChannelMonitor.c ****  *
+   6:ChannelMonitor.c ****  * Channel monitor is intended to run above the physical layer yet have high
+   7:ChannelMonitor.c ****  * coupling as the monitor must assess the state of the physical medium as
+   8:ChannelMonitor.c ****  * IDLE, BUSY, or COLLISION. This module should be used by higher layers to
+   9:ChannelMonitor.c ****  * get this state information.
+  10:ChannelMonitor.c ****  *
+  11:ChannelMonitor.c ****  * Note at startup the bus starts in INIT state which is an undetermined state
+  12:ChannelMonitor.c ****  * on the bus until an interrupt (pin or timer) occurs. It is recommended that
+  13:ChannelMonitor.c ****  * transmission is avoided until a known bus state is reached.
+  14:ChannelMonitor.c ****  */
+  15:ChannelMonitor.c **** 
+  16:ChannelMonitor.c **** //=============================================================================
+  17:ChannelMonitor.c **** //                                 Libraries
+  18:ChannelMonitor.c **** //=============================================================================
+  19:ChannelMonitor.c **** 
+  20:ChannelMonitor.c **** #include "ChannelMonitor.h"
+  21:ChannelMonitor.c **** #include <project.h>
+  22:ChannelMonitor.c **** #include "CSMA_CD_Bus.h"
+  23:ChannelMonitor.c **** 
+  24:ChannelMonitor.c **** //=============================================================================
+  25:ChannelMonitor.c **** //                        Constant and Macro Definition
+  26:ChannelMonitor.c **** //=============================================================================
+  27:ChannelMonitor.c **** 
+  28:ChannelMonitor.c **** // 0.6 * 100 <0.1 precision on timer>
+  29:ChannelMonitor.c **** #define CM_TIMER_SHORT_PERIOD (525)     //! Time for 1/2 a bit to pass through
+  30:ChannelMonitor.c **** // 7.7 * 100 <0.01 precision on timer>   
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 2
+
+
+  31:ChannelMonitor.c **** #define CM_TIMER_LONG_PERIOD (8150)     //! Time for 7 bits to pass through
+  32:ChannelMonitor.c **** 
+  33:ChannelMonitor.c **** //=============================================================================
+  34:ChannelMonitor.c **** //                          Data Structure Declaration
+  35:ChannelMonitor.c **** //=============================================================================
+  36:ChannelMonitor.c **** 
+  37:ChannelMonitor.c **** /**
+  38:ChannelMonitor.c ****  * State machine definition for channel monitor module
+  39:ChannelMonitor.c ****  */
+  40:ChannelMonitor.c **** typedef struct CM_State_Machine {
+  41:ChannelMonitor.c ****     CM_State_e state;                   //! current state of monitor as enum
+  42:ChannelMonitor.c ****     CSMA_CD_Edge_e prev_edge;           //! last edge triggered on bus
+  43:ChannelMonitor.c **** } CM_State_Machine_t;   
+  44:ChannelMonitor.c **** 
+  45:ChannelMonitor.c **** /**
+  46:ChannelMonitor.c ****  * ISR callback table for collision event. Triggered on collision ISR not on
+  47:ChannelMonitor.c ****  * transition to state.
+  48:ChannelMonitor.c ****  */
+  49:ChannelMonitor.c **** typedef struct CM_Collision_Callback_Table {
+  50:ChannelMonitor.c ****     void (*tx)(void);   //! Callback function for transmitter
+  51:ChannelMonitor.c ****     void (*rx)(void);   //! Callback function for receiver
+  52:ChannelMonitor.c **** } CM_Collision_Callback_Table_t;
+  53:ChannelMonitor.c **** 
+  54:ChannelMonitor.c **** /**
+  55:ChannelMonitor.c ****  * ISR callback table for idle event. Triggered on idle ISR not on transition
+  56:ChannelMonitor.c ****  * to sate
+  57:ChannelMonitor.c ****  */
+  58:ChannelMonitor.c **** typedef struct CM_Idle_Callback_Table {
+  59:ChannelMonitor.c ****     void (*tx)(void);   //! Callback function for transmitter
+  60:ChannelMonitor.c ****     void (*rx)(void);   //! Callback function for receiver
+  61:ChannelMonitor.c **** } CM_Idle_Callback_Table_t;
+  62:ChannelMonitor.c **** 
+  63:ChannelMonitor.c **** //=============================================================================
+  64:ChannelMonitor.c **** //                             Private Attributes
+  65:ChannelMonitor.c **** //=============================================================================
+  66:ChannelMonitor.c **** 
+  67:ChannelMonitor.c **** /**
+  68:ChannelMonitor.c ****  * State machine for channel monitor (including interrupt ISRs)
+  69:ChannelMonitor.c ****  */
+  70:ChannelMonitor.c **** static volatile CM_State_Machine_t _cm_sm;
+  71:ChannelMonitor.c **** /**
+  72:ChannelMonitor.c ****  * Callback table for collision ISR event (not state change)
+  73:ChannelMonitor.c ****  */
+  74:ChannelMonitor.c **** static volatile CM_Collision_Callback_Table_t _collision_callback_table;
+  75:ChannelMonitor.c **** /**
+  76:ChannelMonitor.c ****  * Callback table for idle ISR event (not state change)
+  77:ChannelMonitor.c ****  */
+  78:ChannelMonitor.c **** static volatile CM_Idle_Callback_Table_t _idle_callback_table;
+  79:ChannelMonitor.c **** 
+  80:ChannelMonitor.c **** //=============================================================================
+  81:ChannelMonitor.c **** //                           Private ISR Prototypes
+  82:ChannelMonitor.c **** //=============================================================================
+  83:ChannelMonitor.c **** 
+  84:ChannelMonitor.c **** /**
+  85:ChannelMonitor.c ****  * Callback to be assigned to receive pin ISR table. This function will handle
+  86:ChannelMonitor.c ****  * monitor state change logic associated with receiving a level change
+  87:ChannelMonitor.c ****  * @param edge is current state change on bus
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 3
+
+
+  88:ChannelMonitor.c ****  */
+  89:ChannelMonitor.c **** void cm_rx_isr_callback(CSMA_CD_Edge_e edge);
+  90:ChannelMonitor.c **** /*
+  91:ChannelMonitor.c ****  * ISR for channel monitor's timer which is used to detect end of busy and 
+  92:ChannelMonitor.c ****  * code violations (collisions).
+  93:ChannelMonitor.c ****  */
+  94:ChannelMonitor.c **** CY_ISR_PROTO(cm_timer_isr);
+  95:ChannelMonitor.c **** /**
+  96:ChannelMonitor.c ****  * IDLE ISR passes interrupt to all register callbacks
+  97:ChannelMonitor.c ****  */
+  98:ChannelMonitor.c **** CY_ISR_PROTO(cm_idle_isr);
+  99:ChannelMonitor.c **** /**
+ 100:ChannelMonitor.c ****  * Collision ISR passes interrupt to all register callbacks
+ 101:ChannelMonitor.c ****  */
+ 102:ChannelMonitor.c **** CY_ISR_PROTO(cm_collision_isr);
+ 103:ChannelMonitor.c **** 
+ 104:ChannelMonitor.c **** //=============================================================================
+ 105:ChannelMonitor.c **** //                        Public Function Implementation
+ 106:ChannelMonitor.c **** //=============================================================================
+ 107:ChannelMonitor.c **** 
+ 108:ChannelMonitor.c **** /**
+ 109:ChannelMonitor.c ****  * Initalize channel monitor hardware and state-machine. Will set the state-
+ 110:ChannelMonitor.c ****  * machine into the CD_INIT state which waits for the timer to expire before
+ 111:ChannelMonitor.c ****  * transitioning into IDLE. (See header for detailed documentation)
+ 112:ChannelMonitor.c ****  */
+ 113:ChannelMonitor.c **** void cm_init(void){
+ 114:ChannelMonitor.c ****     _cm_sm.state = CM_STATE_INIT;
+ 115:ChannelMonitor.c ****     _cm_sm.prev_edge = CSMA_CD_EDGE_UNKNOWN;
+ 116:ChannelMonitor.c ****     CM_State_Reg_Write(_cm_sm.state);
+ 117:ChannelMonitor.c ****     
+ 118:ChannelMonitor.c ****     _collision_callback_table.rx = NULL;
+ 119:ChannelMonitor.c ****     _collision_callback_table.tx = NULL;
+ 120:ChannelMonitor.c ****     
+ 121:ChannelMonitor.c ****     _idle_callback_table.rx = NULL;
+ 122:ChannelMonitor.c ****     _idle_callback_table.tx = NULL;
+ 123:ChannelMonitor.c **** 
+ 124:ChannelMonitor.c ****     CyDelay(100); //needed to let bus settle before starting network 
+ 125:ChannelMonitor.c ****     
+ 126:ChannelMonitor.c ****     csma_bus_assign_callback(CSMA_CD_BUS_CH_MONITOR_CALLBACK,cm_rx_isr_callback);
+ 127:ChannelMonitor.c **** 
+ 128:ChannelMonitor.c ****     CM_Timer_Start();
+ 129:ChannelMonitor.c ****     CM_Timer_WritePeriod(CM_TIMER_LONG_PERIOD);
+ 130:ChannelMonitor.c ****     CM_Timer_int_StartEx(cm_timer_isr);
+ 131:ChannelMonitor.c ****     CM_Timer_Trigger_Write(1);
+ 132:ChannelMonitor.c ****     CyDelayUs(1);
+ 133:ChannelMonitor.c ****     CM_Timer_Trigger_Write(0);
+ 134:ChannelMonitor.c ****     
+ 135:ChannelMonitor.c ****     CM_IDLE_int_StartEx(cm_idle_isr);
+ 136:ChannelMonitor.c ****     CM_COLLISION_int_StartEx(cm_collision_isr);
+ 137:ChannelMonitor.c **** }
+ 138:ChannelMonitor.c **** 
+ 139:ChannelMonitor.c **** /**
+ 140:ChannelMonitor.c ****  * @return current state from channel monitor, accurate to last bit received
+ 141:ChannelMonitor.c ****  */
+ 142:ChannelMonitor.c **** CM_State_e cm_get_bus_state(void){
+ 143:ChannelMonitor.c ****     return _cm_sm.state;   
+ 144:ChannelMonitor.c **** }
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 4
+
+
+ 145:ChannelMonitor.c **** 
+ 146:ChannelMonitor.c **** /**
+ 147:ChannelMonitor.c ****  * Assign a callback function to collision state interrupt
+ 148:ChannelMonitor.c ****  * @param name is table entry to place new callback
+ 149:ChannelMonitor.c ****  * @param fnt is function pointer to callback, NULL is to be cleared
+ 150:ChannelMonitor.c ****  */
+ 151:ChannelMonitor.c **** void cm_assign_collision_callback(CM_Collision_Callback_e name, void (*fnt)(void)){
+ 152:ChannelMonitor.c ****     switch(name){
+ 153:ChannelMonitor.c ****         case CM_COLLISION_RX_CALLBACK:
+ 154:ChannelMonitor.c ****             _collision_callback_table.rx = fnt;
+ 155:ChannelMonitor.c ****             break;
+ 156:ChannelMonitor.c ****         case CM_COLLISION_TX_CALLBACK:
+ 157:ChannelMonitor.c ****             _collision_callback_table.tx = fnt;
+ 158:ChannelMonitor.c ****             break;
+ 159:ChannelMonitor.c ****     }
+ 160:ChannelMonitor.c **** }
+ 161:ChannelMonitor.c **** 
+ 162:ChannelMonitor.c **** /**
+ 163:ChannelMonitor.c ****  * Assign a callback function to idle state interrupt
+ 164:ChannelMonitor.c ****  * @param name is table entry to place new callback
+ 165:ChannelMonitor.c ****  * @param fnt is function pointer to callback, NULL is to be cleared
+ 166:ChannelMonitor.c ****  */
+ 167:ChannelMonitor.c **** void cm_assign_idle_callback(CM_Idle_Callback_e name, void (*fnt)(void)){
+ 168:ChannelMonitor.c ****     switch(name){
+ 169:ChannelMonitor.c ****         case CM_IDLE_RX_CALLBACK:
+ 170:ChannelMonitor.c ****             _idle_callback_table.rx = fnt;
+ 171:ChannelMonitor.c ****             break;
+ 172:ChannelMonitor.c ****         case CM_IDLE_TX_CALLBACK:
+ 173:ChannelMonitor.c ****             _idle_callback_table.tx = fnt;
+ 174:ChannelMonitor.c ****             break;
+ 175:ChannelMonitor.c ****     }
+ 176:ChannelMonitor.c **** }
+ 177:ChannelMonitor.c **** 
+ 178:ChannelMonitor.c **** //=============================================================================
+ 179:ChannelMonitor.c **** //                           Private ISR Implementation
+ 180:ChannelMonitor.c **** //=============================================================================
+ 181:ChannelMonitor.c **** 
+ 182:ChannelMonitor.c **** /**
+ 183:ChannelMonitor.c ****  * Callback to be assigned to receive pin ISR table. This function will handle
+ 184:ChannelMonitor.c ****  * monitor state change logic associated with receiving a level change
+ 185:ChannelMonitor.c ****  * @param edge is current state change on bus
+ 186:ChannelMonitor.c ****  */
+ 187:ChannelMonitor.c **** void cm_rx_isr_callback(CSMA_CD_Edge_e edge){
+ 188:ChannelMonitor.c ****     CM_Timer_Trigger_Write(1);
+ 189:ChannelMonitor.c ****     if(edge == CSMA_CD_EDGE_RISING){ //rising edge  
+ 190:ChannelMonitor.c ****         if(_cm_sm.state == CM_STATE_IDLE || _cm_sm.state == CM_STATE_BUSY 
+ 191:ChannelMonitor.c ****                 ||_cm_sm.state == CM_STATE_INIT){
+ 192:ChannelMonitor.c ****             _cm_sm.state = CM_STATE_BUSY;
+ 193:ChannelMonitor.c ****             
+ 194:ChannelMonitor.c ****             CM_Timer_WritePeriod(CM_TIMER_SHORT_PERIOD);
+ 195:ChannelMonitor.c ****         }
+ 196:ChannelMonitor.c ****     }else{ //falling edge
+ 197:ChannelMonitor.c ****         if(_cm_sm.state == CM_STATE_BUSY || _cm_sm.state == CM_STATE_COLLISION 
+ 198:ChannelMonitor.c ****                 || _cm_sm.state == CM_STATE_INIT){
+ 199:ChannelMonitor.c ****             _cm_sm.state = CM_STATE_BUSY;
+ 200:ChannelMonitor.c ****                     
+ 201:ChannelMonitor.c ****             CM_Timer_WritePeriod(CM_TIMER_LONG_PERIOD);
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 5
+
+
+ 202:ChannelMonitor.c ****         }
+ 203:ChannelMonitor.c ****     }
+ 204:ChannelMonitor.c **** 
+ 205:ChannelMonitor.c ****     _cm_sm.prev_edge = edge;
+ 206:ChannelMonitor.c ****     CM_State_Reg_Write(_cm_sm.state);
+ 207:ChannelMonitor.c ****     CM_Timer_ReadStatusRegister(); 
+ 208:ChannelMonitor.c ****     CM_Timer_int_ClearPending();
+ 209:ChannelMonitor.c ****     
+ 210:ChannelMonitor.c ****     CyDelayUs(1);
+ 211:ChannelMonitor.c ****     CM_Timer_Trigger_Write(0);
+ 212:ChannelMonitor.c **** }
+ 213:ChannelMonitor.c **** 
+ 214:ChannelMonitor.c **** /*
+ 215:ChannelMonitor.c ****  * ISR for channel monitor's timer which is used to detect end of busy and 
+ 216:ChannelMonitor.c ****  * code violations (collisions).
+ 217:ChannelMonitor.c ****  */
+ 218:ChannelMonitor.c **** CY_ISR(cm_timer_isr){    
+ 219:ChannelMonitor.c ****     static volatile uint8_t level;
+ 220:ChannelMonitor.c ****     level = CSMA_Receive_Level();
+ 221:ChannelMonitor.c ****     
+ 222:ChannelMonitor.c ****     //next state
+ 223:ChannelMonitor.c ****     switch(_cm_sm.state){
+ 224:ChannelMonitor.c ****         case CM_STATE_INIT:
+ 225:ChannelMonitor.c ****             _cm_sm.state = (level) ? CM_STATE_BUSY : CM_STATE_IDLE;
+ 226:ChannelMonitor.c ****             _cm_sm.prev_edge = (level) ? CSMA_CD_EDGE_RISING : CSMA_CD_EDGE_FALLING; 
+ 227:ChannelMonitor.c ****             if(_cm_sm.state == CM_STATE_BUSY){
+ 228:ChannelMonitor.c ****                 CM_Timer_WritePeriod(CM_TIMER_SHORT_PERIOD);
+ 229:ChannelMonitor.c ****                 CM_Timer_Trigger_Write(1);
+ 230:ChannelMonitor.c ****                 CyDelayUs(1);
+ 231:ChannelMonitor.c ****                 CM_Timer_Trigger_Write(0);
+ 232:ChannelMonitor.c ****             }
+ 233:ChannelMonitor.c ****             break;
+ 234:ChannelMonitor.c ****         case CM_STATE_IDLE:
+ 235:ChannelMonitor.c ****             _cm_sm.state = (level) ? CM_STATE_BUSY : CM_STATE_IDLE;
+ 236:ChannelMonitor.c ****             break;
+ 237:ChannelMonitor.c ****         case CM_STATE_BUSY:
+ 238:ChannelMonitor.c ****                 _cm_sm.state = (level) ? CM_STATE_COLLISION : CM_STATE_IDLE;
+ 239:ChannelMonitor.c ****             break;
+ 240:ChannelMonitor.c ****         case CM_STATE_COLLISION:
+ 241:ChannelMonitor.c ****             _cm_sm.state = (level) ? CM_STATE_COLLISION : CM_STATE_BUSY;
+ 242:ChannelMonitor.c ****             break;
+ 243:ChannelMonitor.c ****     }
+ 244:ChannelMonitor.c ****     CM_State_Reg_Write(_cm_sm.state);
+ 245:ChannelMonitor.c ****     
+ 246:ChannelMonitor.c ****     //clear interrupt
+ 247:ChannelMonitor.c ****     CM_Timer_ReadStatusRegister(); 
+ 248:ChannelMonitor.c ****     CM_Timer_int_ClearPending();
+ 249:ChannelMonitor.c **** }
+ 250:ChannelMonitor.c **** 
+ 251:ChannelMonitor.c **** /**
+ 252:ChannelMonitor.c ****  * IDLE ISR passes interrupt to all register callbacks
+ 253:ChannelMonitor.c ****  */
+ 254:ChannelMonitor.c **** CY_ISR(cm_idle_isr){
+  28              		.loc 1 254 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 6
+
+
+  32 0000 08B5     		push	{r3, lr}
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 3, -8
+  35              		.cfi_offset 14, -4
+ 255:ChannelMonitor.c ****     if(_idle_callback_table.rx != NULL){
+  36              		.loc 1 255 0
+  37 0002 064B     		ldr	r3, .L5
+  38 0004 5B68     		ldr	r3, [r3, #4]
+  39 0006 13B1     		cbz	r3, .L2
+ 256:ChannelMonitor.c ****         _idle_callback_table.rx();
+  40              		.loc 1 256 0
+  41 0008 044B     		ldr	r3, .L5
+  42 000a 5B68     		ldr	r3, [r3, #4]
+  43 000c 9847     		blx	r3
+  44              	.LVL0:
+  45              	.L2:
+ 257:ChannelMonitor.c ****     }
+ 258:ChannelMonitor.c ****     if(_idle_callback_table.tx != NULL){
+  46              		.loc 1 258 0
+  47 000e 034B     		ldr	r3, .L5
+  48 0010 1B68     		ldr	r3, [r3]
+  49 0012 13B1     		cbz	r3, .L1
+ 259:ChannelMonitor.c ****         _idle_callback_table.tx();
+  50              		.loc 1 259 0
+  51 0014 014B     		ldr	r3, .L5
+  52 0016 1B68     		ldr	r3, [r3]
+  53 0018 9847     		blx	r3
+  54              	.LVL1:
+  55              	.L1:
+  56 001a 08BD     		pop	{r3, pc}
+  57              	.L6:
+  58              		.align	2
+  59              	.L5:
+  60 001c 00000000 		.word	.LANCHOR0
+  61              		.cfi_endproc
+  62              	.LFE69:
+  63              		.size	cm_idle_isr, .-cm_idle_isr
+  64              		.section	.text.cm_collision_isr,"ax",%progbits
+  65              		.align	2
+  66              		.global	cm_collision_isr
+  67              		.thumb
+  68              		.thumb_func
+  69              		.type	cm_collision_isr, %function
+  70              	cm_collision_isr:
+  71              	.LFB70:
+ 260:ChannelMonitor.c ****     }
+ 261:ChannelMonitor.c **** }
+ 262:ChannelMonitor.c **** 
+ 263:ChannelMonitor.c **** /**
+ 264:ChannelMonitor.c ****  * Collision ISR passes interrupt to all register callbacks
+ 265:ChannelMonitor.c ****  */
+ 266:ChannelMonitor.c **** CY_ISR(cm_collision_isr){
+  72              		.loc 1 266 0
+  73              		.cfi_startproc
+  74              		@ args = 0, pretend = 0, frame = 0
+  75              		@ frame_needed = 0, uses_anonymous_args = 0
+  76 0000 08B5     		push	{r3, lr}
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 7
+
+
+  77              		.cfi_def_cfa_offset 8
+  78              		.cfi_offset 3, -8
+  79              		.cfi_offset 14, -4
+ 267:ChannelMonitor.c ****     if(_collision_callback_table.rx != NULL){
+  80              		.loc 1 267 0
+  81 0002 064B     		ldr	r3, .L11
+  82 0004 DB68     		ldr	r3, [r3, #12]
+  83 0006 13B1     		cbz	r3, .L8
+ 268:ChannelMonitor.c ****         _collision_callback_table.rx();
+  84              		.loc 1 268 0
+  85 0008 044B     		ldr	r3, .L11
+  86 000a DB68     		ldr	r3, [r3, #12]
+  87 000c 9847     		blx	r3
+  88              	.LVL2:
+  89              	.L8:
+ 269:ChannelMonitor.c ****     }
+ 270:ChannelMonitor.c ****     if(_collision_callback_table.tx != NULL){
+  90              		.loc 1 270 0
+  91 000e 034B     		ldr	r3, .L11
+  92 0010 9B68     		ldr	r3, [r3, #8]
+  93 0012 13B1     		cbz	r3, .L7
+ 271:ChannelMonitor.c ****         _collision_callback_table.tx();
+  94              		.loc 1 271 0
+  95 0014 014B     		ldr	r3, .L11
+  96 0016 9B68     		ldr	r3, [r3, #8]
+  97 0018 9847     		blx	r3
+  98              	.LVL3:
+  99              	.L7:
+ 100 001a 08BD     		pop	{r3, pc}
+ 101              	.L12:
+ 102              		.align	2
+ 103              	.L11:
+ 104 001c 00000000 		.word	.LANCHOR0
+ 105              		.cfi_endproc
+ 106              	.LFE70:
+ 107              		.size	cm_collision_isr, .-cm_collision_isr
+ 108              		.section	.text.cm_rx_isr_callback,"ax",%progbits
+ 109              		.align	2
+ 110              		.global	cm_rx_isr_callback
+ 111              		.thumb
+ 112              		.thumb_func
+ 113              		.type	cm_rx_isr_callback, %function
+ 114              	cm_rx_isr_callback:
+ 115              	.LFB67:
+ 187:ChannelMonitor.c ****     CM_Timer_Trigger_Write(1);
+ 116              		.loc 1 187 0
+ 117              		.cfi_startproc
+ 118              		@ args = 0, pretend = 0, frame = 0
+ 119              		@ frame_needed = 0, uses_anonymous_args = 0
+ 120              	.LVL4:
+ 121 0000 10B5     		push	{r4, lr}
+ 122              		.cfi_def_cfa_offset 8
+ 123              		.cfi_offset 4, -8
+ 124              		.cfi_offset 14, -4
+ 125 0002 0446     		mov	r4, r0
+ 188:ChannelMonitor.c ****     if(edge == CSMA_CD_EDGE_RISING){ //rising edge  
+ 126              		.loc 1 188 0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 8
+
+
+ 127 0004 0120     		movs	r0, #1
+ 128              	.LVL5:
+ 129 0006 FFF7FEFF 		bl	CM_Timer_Trigger_Write
+ 130              	.LVL6:
+ 189:ChannelMonitor.c ****         if(_cm_sm.state == CM_STATE_IDLE || _cm_sm.state == CM_STATE_BUSY 
+ 131              		.loc 1 189 0
+ 132 000a B4B9     		cbnz	r4, .L14
+ 190:ChannelMonitor.c ****                 ||_cm_sm.state == CM_STATE_INIT){
+ 133              		.loc 1 190 0
+ 134 000c 1E4B     		ldr	r3, .L19
+ 135 000e 1B7C     		ldrb	r3, [r3, #16]	@ zero_extendqisi2
+ 136 0010 DBB2     		uxtb	r3, r3
+ 137 0012 012B     		cmp	r3, #1
+ 138 0014 09D0     		beq	.L15
+ 190:ChannelMonitor.c ****                 ||_cm_sm.state == CM_STATE_INIT){
+ 139              		.loc 1 190 0 is_stmt 0 discriminator 1
+ 140 0016 1C4B     		ldr	r3, .L19
+ 141 0018 1B7C     		ldrb	r3, [r3, #16]	@ zero_extendqisi2
+ 142 001a DBB2     		uxtb	r3, r3
+ 143 001c 022B     		cmp	r3, #2
+ 144 001e 04D0     		beq	.L15
+ 191:ChannelMonitor.c ****             _cm_sm.state = CM_STATE_BUSY;
+ 145              		.loc 1 191 0 is_stmt 1
+ 146 0020 194B     		ldr	r3, .L19
+ 147 0022 1B7C     		ldrb	r3, [r3, #16]	@ zero_extendqisi2
+ 148 0024 13F0FF0F 		tst	r3, #255
+ 149 0028 1DD1     		bne	.L16
+ 150              	.L15:
+ 192:ChannelMonitor.c ****             
+ 151              		.loc 1 192 0
+ 152 002a 0222     		movs	r2, #2
+ 153 002c 164B     		ldr	r3, .L19
+ 154 002e 1A74     		strb	r2, [r3, #16]
+ 194:ChannelMonitor.c ****         }
+ 155              		.loc 1 194 0
+ 156 0030 40F20D20 		movw	r0, #525
+ 157 0034 FFF7FEFF 		bl	CM_Timer_WritePeriod
+ 158              	.LVL7:
+ 159 0038 15E0     		b	.L16
+ 160              	.L14:
+ 197:ChannelMonitor.c ****                 || _cm_sm.state == CM_STATE_INIT){
+ 161              		.loc 1 197 0
+ 162 003a 134B     		ldr	r3, .L19
+ 163 003c 1B7C     		ldrb	r3, [r3, #16]	@ zero_extendqisi2
+ 164 003e DBB2     		uxtb	r3, r3
+ 165 0040 022B     		cmp	r3, #2
+ 166 0042 09D0     		beq	.L17
+ 197:ChannelMonitor.c ****                 || _cm_sm.state == CM_STATE_INIT){
+ 167              		.loc 1 197 0 is_stmt 0 discriminator 1
+ 168 0044 104B     		ldr	r3, .L19
+ 169 0046 1B7C     		ldrb	r3, [r3, #16]	@ zero_extendqisi2
+ 170 0048 DBB2     		uxtb	r3, r3
+ 171 004a 032B     		cmp	r3, #3
+ 172 004c 04D0     		beq	.L17
+ 198:ChannelMonitor.c ****             _cm_sm.state = CM_STATE_BUSY;
+ 173              		.loc 1 198 0 is_stmt 1
+ 174 004e 0E4B     		ldr	r3, .L19
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 9
+
+
+ 175 0050 1B7C     		ldrb	r3, [r3, #16]	@ zero_extendqisi2
+ 176 0052 13F0FF0F 		tst	r3, #255
+ 177 0056 06D1     		bne	.L16
+ 178              	.L17:
+ 199:ChannelMonitor.c ****                     
+ 179              		.loc 1 199 0
+ 180 0058 0222     		movs	r2, #2
+ 181 005a 0B4B     		ldr	r3, .L19
+ 182 005c 1A74     		strb	r2, [r3, #16]
+ 201:ChannelMonitor.c ****         }
+ 183              		.loc 1 201 0
+ 184 005e 41F6D670 		movw	r0, #8150
+ 185 0062 FFF7FEFF 		bl	CM_Timer_WritePeriod
+ 186              	.LVL8:
+ 187              	.L16:
+ 205:ChannelMonitor.c ****     CM_State_Reg_Write(_cm_sm.state);
+ 188              		.loc 1 205 0
+ 189 0066 084B     		ldr	r3, .L19
+ 190 0068 5C74     		strb	r4, [r3, #17]
+ 206:ChannelMonitor.c ****     CM_Timer_ReadStatusRegister(); 
+ 191              		.loc 1 206 0
+ 192 006a 187C     		ldrb	r0, [r3, #16]	@ zero_extendqisi2
+ 193 006c FFF7FEFF 		bl	CM_State_Reg_Write
+ 194              	.LVL9:
+ 207:ChannelMonitor.c ****     CM_Timer_int_ClearPending();
+ 195              		.loc 1 207 0
+ 196 0070 FFF7FEFF 		bl	CM_Timer_ReadStatusRegister
+ 197              	.LVL10:
+ 208:ChannelMonitor.c ****     
+ 198              		.loc 1 208 0
+ 199 0074 FFF7FEFF 		bl	CM_Timer_int_ClearPending
+ 200              	.LVL11:
+ 210:ChannelMonitor.c ****     CM_Timer_Trigger_Write(0);
+ 201              		.loc 1 210 0
+ 202 0078 0120     		movs	r0, #1
+ 203 007a FFF7FEFF 		bl	CyDelayUs
+ 204              	.LVL12:
+ 211:ChannelMonitor.c **** }
+ 205              		.loc 1 211 0
+ 206 007e 0020     		movs	r0, #0
+ 207 0080 FFF7FEFF 		bl	CM_Timer_Trigger_Write
+ 208              	.LVL13:
+ 209 0084 10BD     		pop	{r4, pc}
+ 210              	.L20:
+ 211 0086 00BF     		.align	2
+ 212              	.L19:
+ 213 0088 00000000 		.word	.LANCHOR0
+ 214              		.cfi_endproc
+ 215              	.LFE67:
+ 216              		.size	cm_rx_isr_callback, .-cm_rx_isr_callback
+ 217              		.section	.text.cm_timer_isr,"ax",%progbits
+ 218              		.align	2
+ 219              		.global	cm_timer_isr
+ 220              		.thumb
+ 221              		.thumb_func
+ 222              		.type	cm_timer_isr, %function
+ 223              	cm_timer_isr:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 10
+
+
+ 224              	.LFB68:
+ 218:ChannelMonitor.c ****     static volatile uint8_t level;
+ 225              		.loc 1 218 0
+ 226              		.cfi_startproc
+ 227              		@ args = 0, pretend = 0, frame = 0
+ 228              		@ frame_needed = 0, uses_anonymous_args = 0
+ 229 0000 08B5     		push	{r3, lr}
+ 230              		.cfi_def_cfa_offset 8
+ 231              		.cfi_offset 3, -8
+ 232              		.cfi_offset 14, -4
+ 220:ChannelMonitor.c ****     
+ 233              		.loc 1 220 0
+ 234 0002 FFF7FEFF 		bl	CSMA_RX_Read
+ 235              	.LVL14:
+ 236 0006 2B4B     		ldr	r3, .L37
+ 237 0008 9874     		strb	r0, [r3, #18]
+ 223:ChannelMonitor.c ****         case CM_STATE_INIT:
+ 238              		.loc 1 223 0
+ 239 000a 1B7C     		ldrb	r3, [r3, #16]	@ zero_extendqisi2
+ 240 000c DBB2     		uxtb	r3, r3
+ 241 000e 032B     		cmp	r3, #3
+ 242 0010 46D8     		bhi	.L22
+ 243 0012 DFE803F0 		tbb	[pc, r3]
+ 244              	.L24:
+ 245 0016 02       		.byte	(.L23-.L24)/2
+ 246 0017 25       		.byte	(.L25-.L24)/2
+ 247 0018 30       		.byte	(.L26-.L24)/2
+ 248 0019 3B       		.byte	(.L27-.L24)/2
+ 249              		.p2align 1
+ 250              	.L23:
+ 225:ChannelMonitor.c ****             _cm_sm.prev_edge = (level) ? CSMA_CD_EDGE_RISING : CSMA_CD_EDGE_FALLING; 
+ 251              		.loc 1 225 0
+ 252 001a 264B     		ldr	r3, .L37
+ 253 001c 9B7C     		ldrb	r3, [r3, #18]	@ zero_extendqisi2
+ 254 001e 13F0FF0F 		tst	r3, #255
+ 255 0022 01D0     		beq	.L32
+ 256 0024 0222     		movs	r2, #2
+ 257 0026 00E0     		b	.L28
+ 258              	.L32:
+ 259 0028 0122     		movs	r2, #1
+ 260              	.L28:
+ 225:ChannelMonitor.c ****             _cm_sm.prev_edge = (level) ? CSMA_CD_EDGE_RISING : CSMA_CD_EDGE_FALLING; 
+ 261              		.loc 1 225 0 is_stmt 0 discriminator 4
+ 262 002a 224B     		ldr	r3, .L37
+ 263 002c 1A74     		strb	r2, [r3, #16]
+ 226:ChannelMonitor.c ****             if(_cm_sm.state == CM_STATE_BUSY){
+ 264              		.loc 1 226 0 is_stmt 1 discriminator 4
+ 265 002e 9A7C     		ldrb	r2, [r3, #18]	@ zero_extendqisi2
+ 266 0030 12F0FF0F 		tst	r2, #255
+ 267 0034 0CBF     		ite	eq
+ 268 0036 0122     		moveq	r2, #1
+ 269 0038 0022     		movne	r2, #0
+ 270 003a 5A74     		strb	r2, [r3, #17]
+ 227:ChannelMonitor.c ****                 CM_Timer_WritePeriod(CM_TIMER_SHORT_PERIOD);
+ 271              		.loc 1 227 0 discriminator 4
+ 272 003c 1B7C     		ldrb	r3, [r3, #16]	@ zero_extendqisi2
+ 273 003e DBB2     		uxtb	r3, r3
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 11
+
+
+ 274 0040 022B     		cmp	r3, #2
+ 275 0042 2DD1     		bne	.L22
+ 228:ChannelMonitor.c ****                 CM_Timer_Trigger_Write(1);
+ 276              		.loc 1 228 0
+ 277 0044 40F20D20 		movw	r0, #525
+ 278 0048 FFF7FEFF 		bl	CM_Timer_WritePeriod
+ 279              	.LVL15:
+ 229:ChannelMonitor.c ****                 CyDelayUs(1);
+ 280              		.loc 1 229 0
+ 281 004c 0120     		movs	r0, #1
+ 282 004e FFF7FEFF 		bl	CM_Timer_Trigger_Write
+ 283              	.LVL16:
+ 230:ChannelMonitor.c ****                 CM_Timer_Trigger_Write(0);
+ 284              		.loc 1 230 0
+ 285 0052 0120     		movs	r0, #1
+ 286 0054 FFF7FEFF 		bl	CyDelayUs
+ 287              	.LVL17:
+ 231:ChannelMonitor.c ****             }
+ 288              		.loc 1 231 0
+ 289 0058 0020     		movs	r0, #0
+ 290 005a FFF7FEFF 		bl	CM_Timer_Trigger_Write
+ 291              	.LVL18:
+ 292 005e 1FE0     		b	.L22
+ 293              	.L25:
+ 235:ChannelMonitor.c ****             break;
+ 294              		.loc 1 235 0
+ 295 0060 144B     		ldr	r3, .L37
+ 296 0062 9B7C     		ldrb	r3, [r3, #18]	@ zero_extendqisi2
+ 297 0064 13F0FF0F 		tst	r3, #255
+ 298 0068 01D0     		beq	.L33
+ 299 006a 0222     		movs	r2, #2
+ 300 006c 00E0     		b	.L29
+ 301              	.L33:
+ 302 006e 0122     		movs	r2, #1
+ 303              	.L29:
+ 235:ChannelMonitor.c ****             break;
+ 304              		.loc 1 235 0 is_stmt 0 discriminator 4
+ 305 0070 104B     		ldr	r3, .L37
+ 306 0072 1A74     		strb	r2, [r3, #16]
+ 236:ChannelMonitor.c ****         case CM_STATE_BUSY:
+ 307              		.loc 1 236 0 is_stmt 1 discriminator 4
+ 308 0074 14E0     		b	.L22
+ 309              	.L26:
+ 238:ChannelMonitor.c ****             break;
+ 310              		.loc 1 238 0
+ 311 0076 0F4B     		ldr	r3, .L37
+ 312 0078 9B7C     		ldrb	r3, [r3, #18]	@ zero_extendqisi2
+ 313 007a 13F0FF0F 		tst	r3, #255
+ 314 007e 01D0     		beq	.L34
+ 315 0080 0322     		movs	r2, #3
+ 316 0082 00E0     		b	.L30
+ 317              	.L34:
+ 318 0084 0122     		movs	r2, #1
+ 319              	.L30:
+ 238:ChannelMonitor.c ****             break;
+ 320              		.loc 1 238 0 is_stmt 0 discriminator 4
+ 321 0086 0B4B     		ldr	r3, .L37
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 12
+
+
+ 322 0088 1A74     		strb	r2, [r3, #16]
+ 239:ChannelMonitor.c ****         case CM_STATE_COLLISION:
+ 323              		.loc 1 239 0 is_stmt 1 discriminator 4
+ 324 008a 09E0     		b	.L22
+ 325              	.L27:
+ 241:ChannelMonitor.c ****             break;
+ 326              		.loc 1 241 0
+ 327 008c 094B     		ldr	r3, .L37
+ 328 008e 9B7C     		ldrb	r3, [r3, #18]	@ zero_extendqisi2
+ 329 0090 13F0FF0F 		tst	r3, #255
+ 330 0094 01D0     		beq	.L35
+ 331 0096 0322     		movs	r2, #3
+ 332 0098 00E0     		b	.L31
+ 333              	.L35:
+ 334 009a 0222     		movs	r2, #2
+ 335              	.L31:
+ 241:ChannelMonitor.c ****             break;
+ 336              		.loc 1 241 0 is_stmt 0 discriminator 4
+ 337 009c 054B     		ldr	r3, .L37
+ 338 009e 1A74     		strb	r2, [r3, #16]
+ 339              	.L22:
+ 244:ChannelMonitor.c ****     
+ 340              		.loc 1 244 0 is_stmt 1
+ 341 00a0 044B     		ldr	r3, .L37
+ 342 00a2 187C     		ldrb	r0, [r3, #16]	@ zero_extendqisi2
+ 343 00a4 FFF7FEFF 		bl	CM_State_Reg_Write
+ 344              	.LVL19:
+ 247:ChannelMonitor.c ****     CM_Timer_int_ClearPending();
+ 345              		.loc 1 247 0
+ 346 00a8 FFF7FEFF 		bl	CM_Timer_ReadStatusRegister
+ 347              	.LVL20:
+ 248:ChannelMonitor.c **** }
+ 348              		.loc 1 248 0
+ 349 00ac FFF7FEFF 		bl	CM_Timer_int_ClearPending
+ 350              	.LVL21:
+ 351 00b0 08BD     		pop	{r3, pc}
+ 352              	.L38:
+ 353 00b2 00BF     		.align	2
+ 354              	.L37:
+ 355 00b4 00000000 		.word	.LANCHOR0
+ 356              		.cfi_endproc
+ 357              	.LFE68:
+ 358              		.size	cm_timer_isr, .-cm_timer_isr
+ 359              		.section	.text.cm_init,"ax",%progbits
+ 360              		.align	2
+ 361              		.global	cm_init
+ 362              		.thumb
+ 363              		.thumb_func
+ 364              		.type	cm_init, %function
+ 365              	cm_init:
+ 366              	.LFB63:
+ 113:ChannelMonitor.c ****     _cm_sm.state = CM_STATE_INIT;
+ 367              		.loc 1 113 0
+ 368              		.cfi_startproc
+ 369              		@ args = 0, pretend = 0, frame = 0
+ 370              		@ frame_needed = 0, uses_anonymous_args = 0
+ 371 0000 38B5     		push	{r3, r4, r5, lr}
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 13
+
+
+ 372              		.cfi_def_cfa_offset 16
+ 373              		.cfi_offset 3, -16
+ 374              		.cfi_offset 4, -12
+ 375              		.cfi_offset 5, -8
+ 376              		.cfi_offset 14, -4
+ 114:ChannelMonitor.c ****     _cm_sm.prev_edge = CSMA_CD_EDGE_UNKNOWN;
+ 377              		.loc 1 114 0
+ 378 0002 164D     		ldr	r5, .L41
+ 379 0004 0024     		movs	r4, #0
+ 380 0006 2C74     		strb	r4, [r5, #16]
+ 115:ChannelMonitor.c ****     CM_State_Reg_Write(_cm_sm.state);
+ 381              		.loc 1 115 0
+ 382 0008 0223     		movs	r3, #2
+ 383 000a 6B74     		strb	r3, [r5, #17]
+ 116:ChannelMonitor.c ****     
+ 384              		.loc 1 116 0
+ 385 000c 287C     		ldrb	r0, [r5, #16]	@ zero_extendqisi2
+ 386 000e FFF7FEFF 		bl	CM_State_Reg_Write
+ 387              	.LVL22:
+ 118:ChannelMonitor.c ****     _collision_callback_table.tx = NULL;
+ 388              		.loc 1 118 0
+ 389 0012 EC60     		str	r4, [r5, #12]
+ 119:ChannelMonitor.c ****     
+ 390              		.loc 1 119 0
+ 391 0014 AC60     		str	r4, [r5, #8]
+ 121:ChannelMonitor.c ****     _idle_callback_table.tx = NULL;
+ 392              		.loc 1 121 0
+ 393 0016 6C60     		str	r4, [r5, #4]
+ 122:ChannelMonitor.c **** 
+ 394              		.loc 1 122 0
+ 395 0018 2C60     		str	r4, [r5]
+ 124:ChannelMonitor.c ****     
+ 396              		.loc 1 124 0
+ 397 001a 6420     		movs	r0, #100
+ 398 001c FFF7FEFF 		bl	CyDelay
+ 399              	.LVL23:
+ 126:ChannelMonitor.c **** 
+ 400              		.loc 1 126 0
+ 401 0020 0F49     		ldr	r1, .L41+4
+ 402 0022 2046     		mov	r0, r4
+ 403 0024 FFF7FEFF 		bl	csma_bus_assign_callback
+ 404              	.LVL24:
+ 128:ChannelMonitor.c ****     CM_Timer_WritePeriod(CM_TIMER_LONG_PERIOD);
+ 405              		.loc 1 128 0
+ 406 0028 FFF7FEFF 		bl	CM_Timer_Start
+ 407              	.LVL25:
+ 129:ChannelMonitor.c ****     CM_Timer_int_StartEx(cm_timer_isr);
+ 408              		.loc 1 129 0
+ 409 002c 41F6D670 		movw	r0, #8150
+ 410 0030 FFF7FEFF 		bl	CM_Timer_WritePeriod
+ 411              	.LVL26:
+ 130:ChannelMonitor.c ****     CM_Timer_Trigger_Write(1);
+ 412              		.loc 1 130 0
+ 413 0034 0B48     		ldr	r0, .L41+8
+ 414 0036 FFF7FEFF 		bl	CM_Timer_int_StartEx
+ 415              	.LVL27:
+ 131:ChannelMonitor.c ****     CyDelayUs(1);
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 14
+
+
+ 416              		.loc 1 131 0
+ 417 003a 0120     		movs	r0, #1
+ 418 003c FFF7FEFF 		bl	CM_Timer_Trigger_Write
+ 419              	.LVL28:
+ 132:ChannelMonitor.c ****     CM_Timer_Trigger_Write(0);
+ 420              		.loc 1 132 0
+ 421 0040 0120     		movs	r0, #1
+ 422 0042 FFF7FEFF 		bl	CyDelayUs
+ 423              	.LVL29:
+ 133:ChannelMonitor.c ****     
+ 424              		.loc 1 133 0
+ 425 0046 2046     		mov	r0, r4
+ 426 0048 FFF7FEFF 		bl	CM_Timer_Trigger_Write
+ 427              	.LVL30:
+ 135:ChannelMonitor.c ****     CM_COLLISION_int_StartEx(cm_collision_isr);
+ 428              		.loc 1 135 0
+ 429 004c 0648     		ldr	r0, .L41+12
+ 430 004e FFF7FEFF 		bl	CM_IDLE_int_StartEx
+ 431              	.LVL31:
+ 136:ChannelMonitor.c **** }
+ 432              		.loc 1 136 0
+ 433 0052 0648     		ldr	r0, .L41+16
+ 434 0054 FFF7FEFF 		bl	CM_COLLISION_int_StartEx
+ 435              	.LVL32:
+ 436 0058 38BD     		pop	{r3, r4, r5, pc}
+ 437              	.L42:
+ 438 005a 00BF     		.align	2
+ 439              	.L41:
+ 440 005c 00000000 		.word	.LANCHOR0
+ 441 0060 00000000 		.word	cm_rx_isr_callback
+ 442 0064 00000000 		.word	cm_timer_isr
+ 443 0068 00000000 		.word	cm_idle_isr
+ 444 006c 00000000 		.word	cm_collision_isr
+ 445              		.cfi_endproc
+ 446              	.LFE63:
+ 447              		.size	cm_init, .-cm_init
+ 448              		.section	.text.cm_get_bus_state,"ax",%progbits
+ 449              		.align	2
+ 450              		.global	cm_get_bus_state
+ 451              		.thumb
+ 452              		.thumb_func
+ 453              		.type	cm_get_bus_state, %function
+ 454              	cm_get_bus_state:
+ 455              	.LFB64:
+ 142:ChannelMonitor.c ****     return _cm_sm.state;   
+ 456              		.loc 1 142 0
+ 457              		.cfi_startproc
+ 458              		@ args = 0, pretend = 0, frame = 0
+ 459              		@ frame_needed = 0, uses_anonymous_args = 0
+ 460              		@ link register save eliminated.
+ 143:ChannelMonitor.c **** }
+ 461              		.loc 1 143 0
+ 462 0000 014B     		ldr	r3, .L44
+ 463 0002 187C     		ldrb	r0, [r3, #16]	@ zero_extendqisi2
+ 144:ChannelMonitor.c **** 
+ 464              		.loc 1 144 0
+ 465 0004 7047     		bx	lr
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 15
+
+
+ 466              	.L45:
+ 467 0006 00BF     		.align	2
+ 468              	.L44:
+ 469 0008 00000000 		.word	.LANCHOR0
+ 470              		.cfi_endproc
+ 471              	.LFE64:
+ 472              		.size	cm_get_bus_state, .-cm_get_bus_state
+ 473              		.section	.text.cm_assign_collision_callback,"ax",%progbits
+ 474              		.align	2
+ 475              		.global	cm_assign_collision_callback
+ 476              		.thumb
+ 477              		.thumb_func
+ 478              		.type	cm_assign_collision_callback, %function
+ 479              	cm_assign_collision_callback:
+ 480              	.LFB65:
+ 151:ChannelMonitor.c ****     switch(name){
+ 481              		.loc 1 151 0
+ 482              		.cfi_startproc
+ 483              		@ args = 0, pretend = 0, frame = 0
+ 484              		@ frame_needed = 0, uses_anonymous_args = 0
+ 485              		@ link register save eliminated.
+ 486              	.LVL33:
+ 152:ChannelMonitor.c ****         case CM_COLLISION_RX_CALLBACK:
+ 487              		.loc 1 152 0
+ 488 0000 20B1     		cbz	r0, .L48
+ 489 0002 0128     		cmp	r0, #1
+ 490 0004 04D1     		bne	.L46
+ 154:ChannelMonitor.c ****             break;
+ 491              		.loc 1 154 0
+ 492 0006 034B     		ldr	r3, .L50
+ 493 0008 D960     		str	r1, [r3, #12]
+ 155:ChannelMonitor.c ****         case CM_COLLISION_TX_CALLBACK:
+ 494              		.loc 1 155 0
+ 495 000a 7047     		bx	lr
+ 496              	.L48:
+ 157:ChannelMonitor.c ****             break;
+ 497              		.loc 1 157 0
+ 498 000c 014B     		ldr	r3, .L50
+ 499 000e 9960     		str	r1, [r3, #8]
+ 500              	.L46:
+ 501 0010 7047     		bx	lr
+ 502              	.L51:
+ 503 0012 00BF     		.align	2
+ 504              	.L50:
+ 505 0014 00000000 		.word	.LANCHOR0
+ 506              		.cfi_endproc
+ 507              	.LFE65:
+ 508              		.size	cm_assign_collision_callback, .-cm_assign_collision_callback
+ 509              		.section	.text.cm_assign_idle_callback,"ax",%progbits
+ 510              		.align	2
+ 511              		.global	cm_assign_idle_callback
+ 512              		.thumb
+ 513              		.thumb_func
+ 514              		.type	cm_assign_idle_callback, %function
+ 515              	cm_assign_idle_callback:
+ 516              	.LFB66:
+ 167:ChannelMonitor.c ****     switch(name){
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 16
+
+
+ 517              		.loc 1 167 0
+ 518              		.cfi_startproc
+ 519              		@ args = 0, pretend = 0, frame = 0
+ 520              		@ frame_needed = 0, uses_anonymous_args = 0
+ 521              		@ link register save eliminated.
+ 522              	.LVL34:
+ 168:ChannelMonitor.c ****         case CM_IDLE_RX_CALLBACK:
+ 523              		.loc 1 168 0
+ 524 0000 20B1     		cbz	r0, .L54
+ 525 0002 0128     		cmp	r0, #1
+ 526 0004 04D1     		bne	.L52
+ 170:ChannelMonitor.c ****             break;
+ 527              		.loc 1 170 0
+ 528 0006 034B     		ldr	r3, .L56
+ 529 0008 5960     		str	r1, [r3, #4]
+ 171:ChannelMonitor.c ****         case CM_IDLE_TX_CALLBACK:
+ 530              		.loc 1 171 0
+ 531 000a 7047     		bx	lr
+ 532              	.L54:
+ 173:ChannelMonitor.c ****             break;
+ 533              		.loc 1 173 0
+ 534 000c 014B     		ldr	r3, .L56
+ 535 000e 1960     		str	r1, [r3]
+ 536              	.L52:
+ 537 0010 7047     		bx	lr
+ 538              	.L57:
+ 539 0012 00BF     		.align	2
+ 540              	.L56:
+ 541 0014 00000000 		.word	.LANCHOR0
+ 542              		.cfi_endproc
+ 543              	.LFE66:
+ 544              		.size	cm_assign_idle_callback, .-cm_assign_idle_callback
+ 545              		.bss
+ 546              		.align	2
+ 547              		.set	.LANCHOR0,. + 0
+ 548              		.type	_idle_callback_table, %object
+ 549              		.size	_idle_callback_table, 8
+ 550              	_idle_callback_table:
+ 551 0000 00000000 		.space	8
+ 551      00000000 
+ 552              		.type	_collision_callback_table, %object
+ 553              		.size	_collision_callback_table, 8
+ 554              	_collision_callback_table:
+ 555 0008 00000000 		.space	8
+ 555      00000000 
+ 556              		.type	_cm_sm, %object
+ 557              		.size	_cm_sm, 2
+ 558              	_cm_sm:
+ 559 0010 0000     		.space	2
+ 560              		.type	level.6689, %object
+ 561              		.size	level.6689, 1
+ 562              	level.6689:
+ 563 0012 00       		.space	1
+ 564              		.text
+ 565              	.Letext0:
+ 566              		.file 2 "ChannelMonitor.h"
+ 567              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 17
+
+
+ 568              		.file 4 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 569              		.file 5 "CSMA_CD_Bus.h"
+ 570              		.file 6 "Generated_Source\\PSoC5/CM_Timer_Trigger.h"
+ 571              		.file 7 "Generated_Source\\PSoC5/CM_Timer.h"
+ 572              		.file 8 "Generated_Source\\PSoC5/CM_State_Reg.h"
+ 573              		.file 9 "Generated_Source\\PSoC5/CM_Timer_int.h"
+ 574              		.file 10 "Generated_Source\\PSoC5/CyLib.h"
+ 575              		.file 11 "Generated_Source\\PSoC5/CSMA_RX.h"
+ 576              		.file 12 "Generated_Source\\PSoC5/CM_IDLE_int.h"
+ 577              		.file 13 "Generated_Source\\PSoC5/CM_COLLISION_int.h"
+ 578              		.file 14 "Generated_Source\\PSoC5/core_cm3.h"
+ 579              		.section	.debug_info,"",%progbits
+ 580              	.Ldebug_info0:
+ 581 0000 B9050000 		.4byte	0x5b9
+ 582 0004 0400     		.2byte	0x4
+ 583 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 584 000a 04       		.byte	0x4
+ 585 000b 01       		.uleb128 0x1
+ 586 000c 1D050000 		.4byte	.LASF74
+ 587 0010 0C       		.byte	0xc
+ 588 0011 A9000000 		.4byte	.LASF75
+ 589 0015 69030000 		.4byte	.LASF76
+ 590 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 591 001d 00000000 		.4byte	0
+ 592 0021 00000000 		.4byte	.Ldebug_line0
+ 593 0025 02       		.uleb128 0x2
+ 594 0026 12040000 		.4byte	.LASF4
+ 595 002a 01       		.byte	0x1
+ 596 002b 4E000000 		.4byte	0x4e
+ 597 002f 02       		.byte	0x2
+ 598 0030 1A       		.byte	0x1a
+ 599 0031 4E000000 		.4byte	0x4e
+ 600 0035 03       		.uleb128 0x3
+ 601 0036 AD040000 		.4byte	.LASF0
+ 602 003a 00       		.byte	0
+ 603 003b 03       		.uleb128 0x3
+ 604 003c 57040000 		.4byte	.LASF1
+ 605 0040 01       		.byte	0x1
+ 606 0041 03       		.uleb128 0x3
+ 607 0042 FB040000 		.4byte	.LASF2
+ 608 0046 02       		.byte	0x2
+ 609 0047 03       		.uleb128 0x3
+ 610 0048 40020000 		.4byte	.LASF3
+ 611 004c 03       		.byte	0x3
+ 612 004d 00       		.byte	0
+ 613 004e 04       		.uleb128 0x4
+ 614 004f 01       		.byte	0x1
+ 615 0050 08       		.byte	0x8
+ 616 0051 D6020000 		.4byte	.LASF14
+ 617 0055 05       		.uleb128 0x5
+ 618 0056 B3050000 		.4byte	.LASF8
+ 619 005a 02       		.byte	0x2
+ 620 005b 1F       		.byte	0x1f
+ 621 005c 25000000 		.4byte	0x25
+ 622 0060 02       		.uleb128 0x2
+ 623 0061 29030000 		.4byte	.LASF5
+ 624 0065 01       		.byte	0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 18
+
+
+ 625 0066 4E000000 		.4byte	0x4e
+ 626 006a 02       		.byte	0x2
+ 627 006b 24       		.byte	0x24
+ 628 006c 7D000000 		.4byte	0x7d
+ 629 0070 03       		.uleb128 0x3
+ 630 0071 E2040000 		.4byte	.LASF6
+ 631 0075 00       		.byte	0
+ 632 0076 03       		.uleb128 0x3
+ 633 0077 27020000 		.4byte	.LASF7
+ 634 007b 01       		.byte	0x1
+ 635 007c 00       		.byte	0
+ 636 007d 05       		.uleb128 0x5
+ 637 007e 51030000 		.4byte	.LASF9
+ 638 0082 02       		.byte	0x2
+ 639 0083 27       		.byte	0x27
+ 640 0084 60000000 		.4byte	0x60
+ 641 0088 02       		.uleb128 0x2
+ 642 0089 5D010000 		.4byte	.LASF10
+ 643 008d 01       		.byte	0x1
+ 644 008e 4E000000 		.4byte	0x4e
+ 645 0092 02       		.byte	0x2
+ 646 0093 2C       		.byte	0x2c
+ 647 0094 A5000000 		.4byte	0xa5
+ 648 0098 03       		.uleb128 0x3
+ 649 0099 B8020000 		.4byte	.LASF11
+ 650 009d 00       		.byte	0
+ 651 009e 03       		.uleb128 0x3
+ 652 009f 95000000 		.4byte	.LASF12
+ 653 00a3 01       		.byte	0x1
+ 654 00a4 00       		.byte	0
+ 655 00a5 05       		.uleb128 0x5
+ 656 00a6 46000000 		.4byte	.LASF13
+ 657 00aa 02       		.byte	0x2
+ 658 00ab 2F       		.byte	0x2f
+ 659 00ac 88000000 		.4byte	0x88
+ 660 00b0 04       		.uleb128 0x4
+ 661 00b1 01       		.byte	0x1
+ 662 00b2 06       		.byte	0x6
+ 663 00b3 F9020000 		.4byte	.LASF15
+ 664 00b7 05       		.uleb128 0x5
+ 665 00b8 77020000 		.4byte	.LASF16
+ 666 00bc 03       		.byte	0x3
+ 667 00bd 1D       		.byte	0x1d
+ 668 00be 4E000000 		.4byte	0x4e
+ 669 00c2 04       		.uleb128 0x4
+ 670 00c3 02       		.byte	0x2
+ 671 00c4 05       		.byte	0x5
+ 672 00c5 D3000000 		.4byte	.LASF17
+ 673 00c9 04       		.uleb128 0x4
+ 674 00ca 02       		.byte	0x2
+ 675 00cb 07       		.byte	0x7
+ 676 00cc F5030000 		.4byte	.LASF18
+ 677 00d0 05       		.uleb128 0x5
+ 678 00d1 BB040000 		.4byte	.LASF19
+ 679 00d5 03       		.byte	0x3
+ 680 00d6 3F       		.byte	0x3f
+ 681 00d7 DB000000 		.4byte	0xdb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 19
+
+
+ 682 00db 04       		.uleb128 0x4
+ 683 00dc 04       		.byte	0x4
+ 684 00dd 05       		.byte	0x5
+ 685 00de 1E020000 		.4byte	.LASF20
+ 686 00e2 04       		.uleb128 0x4
+ 687 00e3 04       		.byte	0x4
+ 688 00e4 07       		.byte	0x7
+ 689 00e5 3F030000 		.4byte	.LASF21
+ 690 00e9 04       		.uleb128 0x4
+ 691 00ea 08       		.byte	0x8
+ 692 00eb 05       		.byte	0x5
+ 693 00ec D4010000 		.4byte	.LASF22
+ 694 00f0 04       		.uleb128 0x4
+ 695 00f1 08       		.byte	0x8
+ 696 00f2 07       		.byte	0x7
+ 697 00f3 05030000 		.4byte	.LASF23
+ 698 00f7 06       		.uleb128 0x6
+ 699 00f8 04       		.byte	0x4
+ 700 00f9 05       		.byte	0x5
+ 701 00fa 696E7400 		.ascii	"int\000"
+ 702 00fe 04       		.uleb128 0x4
+ 703 00ff 04       		.byte	0x4
+ 704 0100 07       		.byte	0x7
+ 705 0101 1C030000 		.4byte	.LASF24
+ 706 0105 05       		.uleb128 0x5
+ 707 0106 CB040000 		.4byte	.LASF25
+ 708 010a 04       		.byte	0x4
+ 709 010b 18       		.byte	0x18
+ 710 010c B7000000 		.4byte	0xb7
+ 711 0110 05       		.uleb128 0x5
+ 712 0111 20040000 		.4byte	.LASF26
+ 713 0115 04       		.byte	0x4
+ 714 0116 2C       		.byte	0x2c
+ 715 0117 D0000000 		.4byte	0xd0
+ 716 011b 04       		.uleb128 0x4
+ 717 011c 04       		.byte	0x4
+ 718 011d 04       		.byte	0x4
+ 719 011e CE010000 		.4byte	.LASF27
+ 720 0122 04       		.uleb128 0x4
+ 721 0123 08       		.byte	0x8
+ 722 0124 04       		.byte	0x4
+ 723 0125 09050000 		.4byte	.LASF28
+ 724 0129 04       		.uleb128 0x4
+ 725 012a 01       		.byte	0x1
+ 726 012b 08       		.byte	0x8
+ 727 012c 1B040000 		.4byte	.LASF29
+ 728 0130 07       		.uleb128 0x7
+ 729 0131 04       		.byte	0x4
+ 730 0132 36010000 		.4byte	0x136
+ 731 0136 08       		.uleb128 0x8
+ 732 0137 04       		.uleb128 0x4
+ 733 0138 08       		.byte	0x8
+ 734 0139 04       		.byte	0x4
+ 735 013a 38010000 		.4byte	.LASF30
+ 736 013e 04       		.uleb128 0x4
+ 737 013f 04       		.byte	0x4
+ 738 0140 07       		.byte	0x7
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 20
+
+
+ 739 0141 03010000 		.4byte	.LASF31
+ 740 0145 09       		.uleb128 0x9
+ 741 0146 05010000 		.4byte	0x105
+ 742 014a 02       		.uleb128 0x2
+ 743 014b A4010000 		.4byte	.LASF32
+ 744 014f 01       		.byte	0x1
+ 745 0150 4E000000 		.4byte	0x4e
+ 746 0154 05       		.byte	0x5
+ 747 0155 1C       		.byte	0x1c
+ 748 0156 67010000 		.4byte	0x167
+ 749 015a 03       		.uleb128 0x3
+ 750 015b 37040000 		.4byte	.LASF33
+ 751 015f 00       		.byte	0
+ 752 0160 03       		.uleb128 0x3
+ 753 0161 BE050000 		.4byte	.LASF34
+ 754 0165 01       		.byte	0x1
+ 755 0166 00       		.byte	0
+ 756 0167 02       		.uleb128 0x2
+ 757 0168 6A020000 		.4byte	.LASF35
+ 758 016c 01       		.byte	0x1
+ 759 016d 4E000000 		.4byte	0x4e
+ 760 0171 05       		.byte	0x5
+ 761 0172 31       		.byte	0x31
+ 762 0173 8A010000 		.4byte	0x18a
+ 763 0177 03       		.uleb128 0x3
+ 764 0178 DB050000 		.4byte	.LASF36
+ 765 017c 00       		.byte	0
+ 766 017d 03       		.uleb128 0x3
+ 767 017e E4020000 		.4byte	.LASF37
+ 768 0182 01       		.byte	0x1
+ 769 0183 03       		.uleb128 0x3
+ 770 0184 A3020000 		.4byte	.LASF38
+ 771 0188 02       		.byte	0x2
+ 772 0189 00       		.byte	0
+ 773 018a 05       		.uleb128 0x5
+ 774 018b 28040000 		.4byte	.LASF39
+ 775 018f 05       		.byte	0x5
+ 776 0190 35       		.byte	0x35
+ 777 0191 67010000 		.4byte	0x167
+ 778 0195 0A       		.uleb128 0xa
+ 779 0196 8D020000 		.4byte	.LASF43
+ 780 019a 02       		.byte	0x2
+ 781 019b 01       		.byte	0x1
+ 782 019c 28       		.byte	0x28
+ 783 019d BA010000 		.4byte	0x1ba
+ 784 01a1 0B       		.uleb128 0xb
+ 785 01a2 CD000000 		.4byte	.LASF40
+ 786 01a6 01       		.byte	0x1
+ 787 01a7 29       		.byte	0x29
+ 788 01a8 55000000 		.4byte	0x55
+ 789 01ac 00       		.byte	0
+ 790 01ad 0B       		.uleb128 0xb
+ 791 01ae 08040000 		.4byte	.LASF41
+ 792 01b2 01       		.byte	0x1
+ 793 01b3 2A       		.byte	0x2a
+ 794 01b4 8A010000 		.4byte	0x18a
+ 795 01b8 01       		.byte	0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 21
+
+
+ 796 01b9 00       		.byte	0
+ 797 01ba 05       		.uleb128 0x5
+ 798 01bb EF050000 		.4byte	.LASF42
+ 799 01bf 01       		.byte	0x1
+ 800 01c0 2B       		.byte	0x2b
+ 801 01c1 95010000 		.4byte	0x195
+ 802 01c5 0A       		.uleb128 0xa
+ 803 01c6 00000000 		.4byte	.LASF44
+ 804 01ca 08       		.byte	0x8
+ 805 01cb 01       		.byte	0x1
+ 806 01cc 31       		.byte	0x31
+ 807 01cd E8010000 		.4byte	0x1e8
+ 808 01d1 0C       		.uleb128 0xc
+ 809 01d2 747800   		.ascii	"tx\000"
+ 810 01d5 01       		.byte	0x1
+ 811 01d6 32       		.byte	0x32
+ 812 01d7 30010000 		.4byte	0x130
+ 813 01db 00       		.byte	0
+ 814 01dc 0C       		.uleb128 0xc
+ 815 01dd 727800   		.ascii	"rx\000"
+ 816 01e0 01       		.byte	0x1
+ 817 01e1 33       		.byte	0x33
+ 818 01e2 30010000 		.4byte	0x130
+ 819 01e6 04       		.byte	0x4
+ 820 01e7 00       		.byte	0
+ 821 01e8 05       		.uleb128 0x5
+ 822 01e9 86010000 		.4byte	.LASF45
+ 823 01ed 01       		.byte	0x1
+ 824 01ee 34       		.byte	0x34
+ 825 01ef C5010000 		.4byte	0x1c5
+ 826 01f3 0A       		.uleb128 0xa
+ 827 01f4 DE030000 		.4byte	.LASF46
+ 828 01f8 08       		.byte	0x8
+ 829 01f9 01       		.byte	0x1
+ 830 01fa 3A       		.byte	0x3a
+ 831 01fb 16020000 		.4byte	0x216
+ 832 01ff 0C       		.uleb128 0xc
+ 833 0200 747800   		.ascii	"tx\000"
+ 834 0203 01       		.byte	0x1
+ 835 0204 3B       		.byte	0x3b
+ 836 0205 30010000 		.4byte	0x130
+ 837 0209 00       		.byte	0
+ 838 020a 0C       		.uleb128 0xc
+ 839 020b 727800   		.ascii	"rx\000"
+ 840 020e 01       		.byte	0x1
+ 841 020f 3C       		.byte	0x3c
+ 842 0210 30010000 		.4byte	0x130
+ 843 0214 04       		.byte	0x4
+ 844 0215 00       		.byte	0
+ 845 0216 05       		.uleb128 0x5
+ 846 0217 DD000000 		.4byte	.LASF47
+ 847 021b 01       		.byte	0x1
+ 848 021c 3D       		.byte	0x3d
+ 849 021d F3010000 		.4byte	0x1f3
+ 850 0221 0D       		.uleb128 0xd
+ 851 0222 81020000 		.4byte	.LASF48
+ 852 0226 01       		.byte	0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 22
+
+
+ 853 0227 FE       		.byte	0xfe
+ 854 0228 00000000 		.4byte	.LFB69
+ 855 022c 20000000 		.4byte	.LFE69-.LFB69
+ 856 0230 01       		.uleb128 0x1
+ 857 0231 9C       		.byte	0x9c
+ 858 0232 0E       		.uleb128 0xe
+ 859 0233 E2010000 		.4byte	.LASF49
+ 860 0237 01       		.byte	0x1
+ 861 0238 0A01     		.2byte	0x10a
+ 862 023a 00000000 		.4byte	.LFB70
+ 863 023e 20000000 		.4byte	.LFE70-.LFB70
+ 864 0242 01       		.uleb128 0x1
+ 865 0243 9C       		.byte	0x9c
+ 866 0244 0F       		.uleb128 0xf
+ 867 0245 0C010000 		.4byte	.LASF50
+ 868 0249 01       		.byte	0x1
+ 869 024a BB       		.byte	0xbb
+ 870 024b 00000000 		.4byte	.LFB67
+ 871 024f 8C000000 		.4byte	.LFE67-.LFB67
+ 872 0253 01       		.uleb128 0x1
+ 873 0254 9C       		.byte	0x9c
+ 874 0255 E3020000 		.4byte	0x2e3
+ 875 0259 10       		.uleb128 0x10
+ 876 025a 58010000 		.4byte	.LASF54
+ 877 025e 01       		.byte	0x1
+ 878 025f BB       		.byte	0xbb
+ 879 0260 8A010000 		.4byte	0x18a
+ 880 0264 00000000 		.4byte	.LLST0
+ 881 0268 11       		.uleb128 0x11
+ 882 0269 0A000000 		.4byte	.LVL6
+ 883 026d 2D050000 		.4byte	0x52d
+ 884 0271 7B020000 		.4byte	0x27b
+ 885 0275 12       		.uleb128 0x12
+ 886 0276 01       		.uleb128 0x1
+ 887 0277 50       		.byte	0x50
+ 888 0278 01       		.uleb128 0x1
+ 889 0279 31       		.byte	0x31
+ 890 027a 00       		.byte	0
+ 891 027b 11       		.uleb128 0x11
+ 892 027c 38000000 		.4byte	.LVL7
+ 893 0280 38050000 		.4byte	0x538
+ 894 0284 90020000 		.4byte	0x290
+ 895 0288 12       		.uleb128 0x12
+ 896 0289 01       		.uleb128 0x1
+ 897 028a 50       		.byte	0x50
+ 898 028b 03       		.uleb128 0x3
+ 899 028c 0A       		.byte	0xa
+ 900 028d 0D02     		.2byte	0x20d
+ 901 028f 00       		.byte	0
+ 902 0290 11       		.uleb128 0x11
+ 903 0291 66000000 		.4byte	.LVL8
+ 904 0295 38050000 		.4byte	0x538
+ 905 0299 A5020000 		.4byte	0x2a5
+ 906 029d 12       		.uleb128 0x12
+ 907 029e 01       		.uleb128 0x1
+ 908 029f 50       		.byte	0x50
+ 909 02a0 03       		.uleb128 0x3
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 23
+
+
+ 910 02a1 0A       		.byte	0xa
+ 911 02a2 D61F     		.2byte	0x1fd6
+ 912 02a4 00       		.byte	0
+ 913 02a5 13       		.uleb128 0x13
+ 914 02a6 70000000 		.4byte	.LVL9
+ 915 02aa 43050000 		.4byte	0x543
+ 916 02ae 13       		.uleb128 0x13
+ 917 02af 74000000 		.4byte	.LVL10
+ 918 02b3 4E050000 		.4byte	0x54e
+ 919 02b7 13       		.uleb128 0x13
+ 920 02b8 78000000 		.4byte	.LVL11
+ 921 02bc 59050000 		.4byte	0x559
+ 922 02c0 11       		.uleb128 0x11
+ 923 02c1 7E000000 		.4byte	.LVL12
+ 924 02c5 64050000 		.4byte	0x564
+ 925 02c9 D3020000 		.4byte	0x2d3
+ 926 02cd 12       		.uleb128 0x12
+ 927 02ce 01       		.uleb128 0x1
+ 928 02cf 50       		.byte	0x50
+ 929 02d0 01       		.uleb128 0x1
+ 930 02d1 31       		.byte	0x31
+ 931 02d2 00       		.byte	0
+ 932 02d3 14       		.uleb128 0x14
+ 933 02d4 84000000 		.4byte	.LVL13
+ 934 02d8 2D050000 		.4byte	0x52d
+ 935 02dc 12       		.uleb128 0x12
+ 936 02dd 01       		.uleb128 0x1
+ 937 02de 50       		.byte	0x50
+ 938 02df 01       		.uleb128 0x1
+ 939 02e0 30       		.byte	0x30
+ 940 02e1 00       		.byte	0
+ 941 02e2 00       		.byte	0
+ 942 02e3 0F       		.uleb128 0xf
+ 943 02e4 F6000000 		.4byte	.LASF51
+ 944 02e8 01       		.byte	0x1
+ 945 02e9 DA       		.byte	0xda
+ 946 02ea 00000000 		.4byte	.LFB68
+ 947 02ee B8000000 		.4byte	.LFE68-.LFB68
+ 948 02f2 01       		.uleb128 0x1
+ 949 02f3 9C       		.byte	0x9c
+ 950 02f4 7C030000 		.4byte	0x37c
+ 951 02f8 15       		.uleb128 0x15
+ 952 02f9 C5040000 		.4byte	.LASF57
+ 953 02fd 01       		.byte	0x1
+ 954 02fe DB       		.byte	0xdb
+ 955 02ff 45010000 		.4byte	0x145
+ 956 0303 05       		.uleb128 0x5
+ 957 0304 03       		.byte	0x3
+ 958 0305 12000000 		.4byte	level.6689
+ 959 0309 13       		.uleb128 0x13
+ 960 030a 06000000 		.4byte	.LVL14
+ 961 030e 6F050000 		.4byte	0x56f
+ 962 0312 11       		.uleb128 0x11
+ 963 0313 4C000000 		.4byte	.LVL15
+ 964 0317 38050000 		.4byte	0x538
+ 965 031b 27030000 		.4byte	0x327
+ 966 031f 12       		.uleb128 0x12
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 24
+
+
+ 967 0320 01       		.uleb128 0x1
+ 968 0321 50       		.byte	0x50
+ 969 0322 03       		.uleb128 0x3
+ 970 0323 0A       		.byte	0xa
+ 971 0324 0D02     		.2byte	0x20d
+ 972 0326 00       		.byte	0
+ 973 0327 11       		.uleb128 0x11
+ 974 0328 52000000 		.4byte	.LVL16
+ 975 032c 2D050000 		.4byte	0x52d
+ 976 0330 3A030000 		.4byte	0x33a
+ 977 0334 12       		.uleb128 0x12
+ 978 0335 01       		.uleb128 0x1
+ 979 0336 50       		.byte	0x50
+ 980 0337 01       		.uleb128 0x1
+ 981 0338 31       		.byte	0x31
+ 982 0339 00       		.byte	0
+ 983 033a 11       		.uleb128 0x11
+ 984 033b 58000000 		.4byte	.LVL17
+ 985 033f 64050000 		.4byte	0x564
+ 986 0343 4D030000 		.4byte	0x34d
+ 987 0347 12       		.uleb128 0x12
+ 988 0348 01       		.uleb128 0x1
+ 989 0349 50       		.byte	0x50
+ 990 034a 01       		.uleb128 0x1
+ 991 034b 31       		.byte	0x31
+ 992 034c 00       		.byte	0
+ 993 034d 11       		.uleb128 0x11
+ 994 034e 5E000000 		.4byte	.LVL18
+ 995 0352 2D050000 		.4byte	0x52d
+ 996 0356 60030000 		.4byte	0x360
+ 997 035a 12       		.uleb128 0x12
+ 998 035b 01       		.uleb128 0x1
+ 999 035c 50       		.byte	0x50
+ 1000 035d 01       		.uleb128 0x1
+ 1001 035e 30       		.byte	0x30
+ 1002 035f 00       		.byte	0
+ 1003 0360 13       		.uleb128 0x13
+ 1004 0361 A8000000 		.4byte	.LVL19
+ 1005 0365 43050000 		.4byte	0x543
+ 1006 0369 13       		.uleb128 0x13
+ 1007 036a AC000000 		.4byte	.LVL20
+ 1008 036e 4E050000 		.4byte	0x54e
+ 1009 0372 13       		.uleb128 0x13
+ 1010 0373 B0000000 		.4byte	.LVL21
+ 1011 0377 59050000 		.4byte	0x559
+ 1012 037b 00       		.byte	0
+ 1013 037c 0F       		.uleb128 0xf
+ 1014 037d 81040000 		.4byte	.LASF52
+ 1015 0381 01       		.byte	0x1
+ 1016 0382 71       		.byte	0x71
+ 1017 0383 00000000 		.4byte	.LFB63
+ 1018 0387 70000000 		.4byte	.LFE63-.LFB63
+ 1019 038b 01       		.uleb128 0x1
+ 1020 038c 9C       		.byte	0x9c
+ 1021 038d 65040000 		.4byte	0x465
+ 1022 0391 13       		.uleb128 0x13
+ 1023 0392 12000000 		.4byte	.LVL22
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 25
+
+
+ 1024 0396 43050000 		.4byte	0x543
+ 1025 039a 11       		.uleb128 0x11
+ 1026 039b 20000000 		.4byte	.LVL23
+ 1027 039f 7A050000 		.4byte	0x57a
+ 1028 03a3 AE030000 		.4byte	0x3ae
+ 1029 03a7 12       		.uleb128 0x12
+ 1030 03a8 01       		.uleb128 0x1
+ 1031 03a9 50       		.byte	0x50
+ 1032 03aa 02       		.uleb128 0x2
+ 1033 03ab 08       		.byte	0x8
+ 1034 03ac 64       		.byte	0x64
+ 1035 03ad 00       		.byte	0
+ 1036 03ae 11       		.uleb128 0x11
+ 1037 03af 28000000 		.4byte	.LVL24
+ 1038 03b3 85050000 		.4byte	0x585
+ 1039 03b7 CB030000 		.4byte	0x3cb
+ 1040 03bb 12       		.uleb128 0x12
+ 1041 03bc 01       		.uleb128 0x1
+ 1042 03bd 50       		.byte	0x50
+ 1043 03be 02       		.uleb128 0x2
+ 1044 03bf 74       		.byte	0x74
+ 1045 03c0 00       		.sleb128 0
+ 1046 03c1 12       		.uleb128 0x12
+ 1047 03c2 01       		.uleb128 0x1
+ 1048 03c3 51       		.byte	0x51
+ 1049 03c4 05       		.uleb128 0x5
+ 1050 03c5 03       		.byte	0x3
+ 1051 03c6 00000000 		.4byte	cm_rx_isr_callback
+ 1052 03ca 00       		.byte	0
+ 1053 03cb 13       		.uleb128 0x13
+ 1054 03cc 2C000000 		.4byte	.LVL25
+ 1055 03d0 90050000 		.4byte	0x590
+ 1056 03d4 11       		.uleb128 0x11
+ 1057 03d5 34000000 		.4byte	.LVL26
+ 1058 03d9 38050000 		.4byte	0x538
+ 1059 03dd E9030000 		.4byte	0x3e9
+ 1060 03e1 12       		.uleb128 0x12
+ 1061 03e2 01       		.uleb128 0x1
+ 1062 03e3 50       		.byte	0x50
+ 1063 03e4 03       		.uleb128 0x3
+ 1064 03e5 0A       		.byte	0xa
+ 1065 03e6 D61F     		.2byte	0x1fd6
+ 1066 03e8 00       		.byte	0
+ 1067 03e9 11       		.uleb128 0x11
+ 1068 03ea 3A000000 		.4byte	.LVL27
+ 1069 03ee 9B050000 		.4byte	0x59b
+ 1070 03f2 00040000 		.4byte	0x400
+ 1071 03f6 12       		.uleb128 0x12
+ 1072 03f7 01       		.uleb128 0x1
+ 1073 03f8 50       		.byte	0x50
+ 1074 03f9 05       		.uleb128 0x5
+ 1075 03fa 03       		.byte	0x3
+ 1076 03fb 00000000 		.4byte	cm_timer_isr
+ 1077 03ff 00       		.byte	0
+ 1078 0400 11       		.uleb128 0x11
+ 1079 0401 40000000 		.4byte	.LVL28
+ 1080 0405 2D050000 		.4byte	0x52d
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 26
+
+
+ 1081 0409 13040000 		.4byte	0x413
+ 1082 040d 12       		.uleb128 0x12
+ 1083 040e 01       		.uleb128 0x1
+ 1084 040f 50       		.byte	0x50
+ 1085 0410 01       		.uleb128 0x1
+ 1086 0411 31       		.byte	0x31
+ 1087 0412 00       		.byte	0
+ 1088 0413 11       		.uleb128 0x11
+ 1089 0414 46000000 		.4byte	.LVL29
+ 1090 0418 64050000 		.4byte	0x564
+ 1091 041c 26040000 		.4byte	0x426
+ 1092 0420 12       		.uleb128 0x12
+ 1093 0421 01       		.uleb128 0x1
+ 1094 0422 50       		.byte	0x50
+ 1095 0423 01       		.uleb128 0x1
+ 1096 0424 31       		.byte	0x31
+ 1097 0425 00       		.byte	0
+ 1098 0426 11       		.uleb128 0x11
+ 1099 0427 4C000000 		.4byte	.LVL30
+ 1100 042b 2D050000 		.4byte	0x52d
+ 1101 042f 3A040000 		.4byte	0x43a
+ 1102 0433 12       		.uleb128 0x12
+ 1103 0434 01       		.uleb128 0x1
+ 1104 0435 50       		.byte	0x50
+ 1105 0436 02       		.uleb128 0x2
+ 1106 0437 74       		.byte	0x74
+ 1107 0438 00       		.sleb128 0
+ 1108 0439 00       		.byte	0
+ 1109 043a 11       		.uleb128 0x11
+ 1110 043b 52000000 		.4byte	.LVL31
+ 1111 043f A6050000 		.4byte	0x5a6
+ 1112 0443 51040000 		.4byte	0x451
+ 1113 0447 12       		.uleb128 0x12
+ 1114 0448 01       		.uleb128 0x1
+ 1115 0449 50       		.byte	0x50
+ 1116 044a 05       		.uleb128 0x5
+ 1117 044b 03       		.byte	0x3
+ 1118 044c 00000000 		.4byte	cm_idle_isr
+ 1119 0450 00       		.byte	0
+ 1120 0451 14       		.uleb128 0x14
+ 1121 0452 58000000 		.4byte	.LVL32
+ 1122 0456 B1050000 		.4byte	0x5b1
+ 1123 045a 12       		.uleb128 0x12
+ 1124 045b 01       		.uleb128 0x1
+ 1125 045c 50       		.byte	0x50
+ 1126 045d 05       		.uleb128 0x5
+ 1127 045e 03       		.byte	0x3
+ 1128 045f 00000000 		.4byte	cm_collision_isr
+ 1129 0463 00       		.byte	0
+ 1130 0464 00       		.byte	0
+ 1131 0465 16       		.uleb128 0x16
+ 1132 0466 0D020000 		.4byte	.LASF77
+ 1133 046a 01       		.byte	0x1
+ 1134 046b 8E       		.byte	0x8e
+ 1135 046c 55000000 		.4byte	0x55
+ 1136 0470 00000000 		.4byte	.LFB64
+ 1137 0474 0C000000 		.4byte	.LFE64-.LFB64
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 27
+
+
+ 1138 0478 01       		.uleb128 0x1
+ 1139 0479 9C       		.byte	0x9c
+ 1140 047a 0F       		.uleb128 0xf
+ 1141 047b 90040000 		.4byte	.LASF53
+ 1142 047f 01       		.byte	0x1
+ 1143 0480 97       		.byte	0x97
+ 1144 0481 00000000 		.4byte	.LFB65
+ 1145 0485 18000000 		.4byte	.LFE65-.LFB65
+ 1146 0489 01       		.uleb128 0x1
+ 1147 048a 9C       		.byte	0x9c
+ 1148 048b AA040000 		.4byte	0x4aa
+ 1149 048f 17       		.uleb128 0x17
+ 1150 0490 9E020000 		.4byte	.LASF55
+ 1151 0494 01       		.byte	0x1
+ 1152 0495 97       		.byte	0x97
+ 1153 0496 7D000000 		.4byte	0x7d
+ 1154 049a 01       		.uleb128 0x1
+ 1155 049b 50       		.byte	0x50
+ 1156 049c 18       		.uleb128 0x18
+ 1157 049d 666E7400 		.ascii	"fnt\000"
+ 1158 04a1 01       		.byte	0x1
+ 1159 04a2 97       		.byte	0x97
+ 1160 04a3 30010000 		.4byte	0x130
+ 1161 04a7 01       		.uleb128 0x1
+ 1162 04a8 51       		.byte	0x51
+ 1163 04a9 00       		.byte	0
+ 1164 04aa 0F       		.uleb128 0xf
+ 1165 04ab 6E010000 		.4byte	.LASF56
+ 1166 04af 01       		.byte	0x1
+ 1167 04b0 A7       		.byte	0xa7
+ 1168 04b1 00000000 		.4byte	.LFB66
+ 1169 04b5 18000000 		.4byte	.LFE66-.LFB66
+ 1170 04b9 01       		.uleb128 0x1
+ 1171 04ba 9C       		.byte	0x9c
+ 1172 04bb DA040000 		.4byte	0x4da
+ 1173 04bf 17       		.uleb128 0x17
+ 1174 04c0 9E020000 		.4byte	.LASF55
+ 1175 04c4 01       		.byte	0x1
+ 1176 04c5 A7       		.byte	0xa7
+ 1177 04c6 A5000000 		.4byte	0xa5
+ 1178 04ca 01       		.uleb128 0x1
+ 1179 04cb 50       		.byte	0x50
+ 1180 04cc 18       		.uleb128 0x18
+ 1181 04cd 666E7400 		.ascii	"fnt\000"
+ 1182 04d1 01       		.byte	0x1
+ 1183 04d2 A7       		.byte	0xa7
+ 1184 04d3 30010000 		.4byte	0x130
+ 1185 04d7 01       		.uleb128 0x1
+ 1186 04d8 51       		.byte	0x51
+ 1187 04d9 00       		.byte	0
+ 1188 04da 15       		.uleb128 0x15
+ 1189 04db 89040000 		.4byte	.LASF58
+ 1190 04df 01       		.byte	0x1
+ 1191 04e0 46       		.byte	0x46
+ 1192 04e1 EB040000 		.4byte	0x4eb
+ 1193 04e5 05       		.uleb128 0x5
+ 1194 04e6 03       		.byte	0x3
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 28
+
+
+ 1195 04e7 10000000 		.4byte	_cm_sm
+ 1196 04eb 09       		.uleb128 0x9
+ 1197 04ec BA010000 		.4byte	0x1ba
+ 1198 04f0 15       		.uleb128 0x15
+ 1199 04f1 F3010000 		.4byte	.LASF59
+ 1200 04f5 01       		.byte	0x1
+ 1201 04f6 4A       		.byte	0x4a
+ 1202 04f7 01050000 		.4byte	0x501
+ 1203 04fb 05       		.uleb128 0x5
+ 1204 04fc 03       		.byte	0x3
+ 1205 04fd 08000000 		.4byte	_collision_callback_table
+ 1206 0501 09       		.uleb128 0x9
+ 1207 0502 E8010000 		.4byte	0x1e8
+ 1208 0506 15       		.uleb128 0x15
+ 1209 0507 31000000 		.4byte	.LASF60
+ 1210 050b 01       		.byte	0x1
+ 1211 050c 4E       		.byte	0x4e
+ 1212 050d 17050000 		.4byte	0x517
+ 1213 0511 05       		.uleb128 0x5
+ 1214 0512 03       		.byte	0x3
+ 1215 0513 00000000 		.4byte	_idle_callback_table
+ 1216 0517 09       		.uleb128 0x9
+ 1217 0518 16020000 		.4byte	0x216
+ 1218 051c 19       		.uleb128 0x19
+ 1219 051d 10050000 		.4byte	.LASF78
+ 1220 0521 0E       		.byte	0xe
+ 1221 0522 1207     		.2byte	0x712
+ 1222 0524 28050000 		.4byte	0x528
+ 1223 0528 09       		.uleb128 0x9
+ 1224 0529 10010000 		.4byte	0x110
+ 1225 052d 1A       		.uleb128 0x1a
+ 1226 052e 53020000 		.4byte	.LASF61
+ 1227 0532 53020000 		.4byte	.LASF61
+ 1228 0536 06       		.byte	0x6
+ 1229 0537 2F       		.byte	0x2f
+ 1230 0538 1A       		.uleb128 0x1a
+ 1231 0539 1C000000 		.4byte	.LASF62
+ 1232 053d 1C000000 		.4byte	.LASF62
+ 1233 0541 07       		.byte	0x7
+ 1234 0542 68       		.byte	0x68
+ 1235 0543 1A       		.uleb128 0x1a
+ 1236 0544 BA000000 		.4byte	.LASF63
+ 1237 0548 BA000000 		.4byte	.LASF63
+ 1238 054c 08       		.byte	0x8
+ 1239 054d 2F       		.byte	0x2f
+ 1240 054e 1A       		.uleb128 0x1a
+ 1241 054f 65040000 		.4byte	.LASF64
+ 1242 0553 65040000 		.4byte	.LASF64
+ 1243 0557 07       		.byte	0x7
+ 1244 0558 5E       		.byte	0x5e
+ 1245 0559 1A       		.uleb128 0x1a
+ 1246 055a 6E000000 		.4byte	.LASF65
+ 1247 055e 6E000000 		.4byte	.LASF65
+ 1248 0562 09       		.byte	0x9
+ 1249 0563 28       		.byte	0x28
+ 1250 0564 1A       		.uleb128 0x1a
+ 1251 0565 CC020000 		.4byte	.LASF66
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 29
+
+
+ 1252 0569 CC020000 		.4byte	.LASF66
+ 1253 056d 0A       		.byte	0xa
+ 1254 056e 77       		.byte	0x77
+ 1255 056f 1A       		.uleb128 0x1a
+ 1256 0570 88000000 		.4byte	.LASF67
+ 1257 0574 88000000 		.4byte	.LASF67
+ 1258 0578 0B       		.byte	0xb
+ 1259 0579 29       		.byte	0x29
+ 1260 057a 1A       		.uleb128 0x1a
+ 1261 057b AB050000 		.4byte	.LASF68
+ 1262 057f AB050000 		.4byte	.LASF68
+ 1263 0583 0A       		.byte	0xa
+ 1264 0584 76       		.byte	0x76
+ 1265 0585 1A       		.uleb128 0x1a
+ 1266 0586 B5010000 		.4byte	.LASF69
+ 1267 058a B5010000 		.4byte	.LASF69
+ 1268 058e 05       		.byte	0x5
+ 1269 058f 44       		.byte	0x44
+ 1270 0590 1A       		.uleb128 0x1a
+ 1271 0591 D3040000 		.4byte	.LASF70
+ 1272 0595 D3040000 		.4byte	.LASF70
+ 1273 0599 07       		.byte	0x7
+ 1274 059a 5A       		.byte	0x5a
+ 1275 059b 1A       		.uleb128 0x1a
+ 1276 059c 59000000 		.4byte	.LASF71
+ 1277 05a0 59000000 		.4byte	.LASF71
+ 1278 05a4 09       		.byte	0x9
+ 1279 05a5 18       		.byte	0x18
+ 1280 05a6 1A       		.uleb128 0x1a
+ 1281 05a7 44010000 		.4byte	.LASF72
+ 1282 05ab 44010000 		.4byte	.LASF72
+ 1283 05af 0C       		.byte	0xc
+ 1284 05b0 18       		.byte	0x18
+ 1285 05b1 1A       		.uleb128 0x1a
+ 1286 05b2 1F010000 		.4byte	.LASF73
+ 1287 05b6 1F010000 		.4byte	.LASF73
+ 1288 05ba 0D       		.byte	0xd
+ 1289 05bb 18       		.byte	0x18
+ 1290 05bc 00       		.byte	0
+ 1291              		.section	.debug_abbrev,"",%progbits
+ 1292              	.Ldebug_abbrev0:
+ 1293 0000 01       		.uleb128 0x1
+ 1294 0001 11       		.uleb128 0x11
+ 1295 0002 01       		.byte	0x1
+ 1296 0003 25       		.uleb128 0x25
+ 1297 0004 0E       		.uleb128 0xe
+ 1298 0005 13       		.uleb128 0x13
+ 1299 0006 0B       		.uleb128 0xb
+ 1300 0007 03       		.uleb128 0x3
+ 1301 0008 0E       		.uleb128 0xe
+ 1302 0009 1B       		.uleb128 0x1b
+ 1303 000a 0E       		.uleb128 0xe
+ 1304 000b 55       		.uleb128 0x55
+ 1305 000c 17       		.uleb128 0x17
+ 1306 000d 11       		.uleb128 0x11
+ 1307 000e 01       		.uleb128 0x1
+ 1308 000f 10       		.uleb128 0x10
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 30
+
+
+ 1309 0010 17       		.uleb128 0x17
+ 1310 0011 00       		.byte	0
+ 1311 0012 00       		.byte	0
+ 1312 0013 02       		.uleb128 0x2
+ 1313 0014 04       		.uleb128 0x4
+ 1314 0015 01       		.byte	0x1
+ 1315 0016 03       		.uleb128 0x3
+ 1316 0017 0E       		.uleb128 0xe
+ 1317 0018 0B       		.uleb128 0xb
+ 1318 0019 0B       		.uleb128 0xb
+ 1319 001a 49       		.uleb128 0x49
+ 1320 001b 13       		.uleb128 0x13
+ 1321 001c 3A       		.uleb128 0x3a
+ 1322 001d 0B       		.uleb128 0xb
+ 1323 001e 3B       		.uleb128 0x3b
+ 1324 001f 0B       		.uleb128 0xb
+ 1325 0020 01       		.uleb128 0x1
+ 1326 0021 13       		.uleb128 0x13
+ 1327 0022 00       		.byte	0
+ 1328 0023 00       		.byte	0
+ 1329 0024 03       		.uleb128 0x3
+ 1330 0025 28       		.uleb128 0x28
+ 1331 0026 00       		.byte	0
+ 1332 0027 03       		.uleb128 0x3
+ 1333 0028 0E       		.uleb128 0xe
+ 1334 0029 1C       		.uleb128 0x1c
+ 1335 002a 0B       		.uleb128 0xb
+ 1336 002b 00       		.byte	0
+ 1337 002c 00       		.byte	0
+ 1338 002d 04       		.uleb128 0x4
+ 1339 002e 24       		.uleb128 0x24
+ 1340 002f 00       		.byte	0
+ 1341 0030 0B       		.uleb128 0xb
+ 1342 0031 0B       		.uleb128 0xb
+ 1343 0032 3E       		.uleb128 0x3e
+ 1344 0033 0B       		.uleb128 0xb
+ 1345 0034 03       		.uleb128 0x3
+ 1346 0035 0E       		.uleb128 0xe
+ 1347 0036 00       		.byte	0
+ 1348 0037 00       		.byte	0
+ 1349 0038 05       		.uleb128 0x5
+ 1350 0039 16       		.uleb128 0x16
+ 1351 003a 00       		.byte	0
+ 1352 003b 03       		.uleb128 0x3
+ 1353 003c 0E       		.uleb128 0xe
+ 1354 003d 3A       		.uleb128 0x3a
+ 1355 003e 0B       		.uleb128 0xb
+ 1356 003f 3B       		.uleb128 0x3b
+ 1357 0040 0B       		.uleb128 0xb
+ 1358 0041 49       		.uleb128 0x49
+ 1359 0042 13       		.uleb128 0x13
+ 1360 0043 00       		.byte	0
+ 1361 0044 00       		.byte	0
+ 1362 0045 06       		.uleb128 0x6
+ 1363 0046 24       		.uleb128 0x24
+ 1364 0047 00       		.byte	0
+ 1365 0048 0B       		.uleb128 0xb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 31
+
+
+ 1366 0049 0B       		.uleb128 0xb
+ 1367 004a 3E       		.uleb128 0x3e
+ 1368 004b 0B       		.uleb128 0xb
+ 1369 004c 03       		.uleb128 0x3
+ 1370 004d 08       		.uleb128 0x8
+ 1371 004e 00       		.byte	0
+ 1372 004f 00       		.byte	0
+ 1373 0050 07       		.uleb128 0x7
+ 1374 0051 0F       		.uleb128 0xf
+ 1375 0052 00       		.byte	0
+ 1376 0053 0B       		.uleb128 0xb
+ 1377 0054 0B       		.uleb128 0xb
+ 1378 0055 49       		.uleb128 0x49
+ 1379 0056 13       		.uleb128 0x13
+ 1380 0057 00       		.byte	0
+ 1381 0058 00       		.byte	0
+ 1382 0059 08       		.uleb128 0x8
+ 1383 005a 15       		.uleb128 0x15
+ 1384 005b 00       		.byte	0
+ 1385 005c 27       		.uleb128 0x27
+ 1386 005d 19       		.uleb128 0x19
+ 1387 005e 00       		.byte	0
+ 1388 005f 00       		.byte	0
+ 1389 0060 09       		.uleb128 0x9
+ 1390 0061 35       		.uleb128 0x35
+ 1391 0062 00       		.byte	0
+ 1392 0063 49       		.uleb128 0x49
+ 1393 0064 13       		.uleb128 0x13
+ 1394 0065 00       		.byte	0
+ 1395 0066 00       		.byte	0
+ 1396 0067 0A       		.uleb128 0xa
+ 1397 0068 13       		.uleb128 0x13
+ 1398 0069 01       		.byte	0x1
+ 1399 006a 03       		.uleb128 0x3
+ 1400 006b 0E       		.uleb128 0xe
+ 1401 006c 0B       		.uleb128 0xb
+ 1402 006d 0B       		.uleb128 0xb
+ 1403 006e 3A       		.uleb128 0x3a
+ 1404 006f 0B       		.uleb128 0xb
+ 1405 0070 3B       		.uleb128 0x3b
+ 1406 0071 0B       		.uleb128 0xb
+ 1407 0072 01       		.uleb128 0x1
+ 1408 0073 13       		.uleb128 0x13
+ 1409 0074 00       		.byte	0
+ 1410 0075 00       		.byte	0
+ 1411 0076 0B       		.uleb128 0xb
+ 1412 0077 0D       		.uleb128 0xd
+ 1413 0078 00       		.byte	0
+ 1414 0079 03       		.uleb128 0x3
+ 1415 007a 0E       		.uleb128 0xe
+ 1416 007b 3A       		.uleb128 0x3a
+ 1417 007c 0B       		.uleb128 0xb
+ 1418 007d 3B       		.uleb128 0x3b
+ 1419 007e 0B       		.uleb128 0xb
+ 1420 007f 49       		.uleb128 0x49
+ 1421 0080 13       		.uleb128 0x13
+ 1422 0081 38       		.uleb128 0x38
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 32
+
+
+ 1423 0082 0B       		.uleb128 0xb
+ 1424 0083 00       		.byte	0
+ 1425 0084 00       		.byte	0
+ 1426 0085 0C       		.uleb128 0xc
+ 1427 0086 0D       		.uleb128 0xd
+ 1428 0087 00       		.byte	0
+ 1429 0088 03       		.uleb128 0x3
+ 1430 0089 08       		.uleb128 0x8
+ 1431 008a 3A       		.uleb128 0x3a
+ 1432 008b 0B       		.uleb128 0xb
+ 1433 008c 3B       		.uleb128 0x3b
+ 1434 008d 0B       		.uleb128 0xb
+ 1435 008e 49       		.uleb128 0x49
+ 1436 008f 13       		.uleb128 0x13
+ 1437 0090 38       		.uleb128 0x38
+ 1438 0091 0B       		.uleb128 0xb
+ 1439 0092 00       		.byte	0
+ 1440 0093 00       		.byte	0
+ 1441 0094 0D       		.uleb128 0xd
+ 1442 0095 2E       		.uleb128 0x2e
+ 1443 0096 00       		.byte	0
+ 1444 0097 3F       		.uleb128 0x3f
+ 1445 0098 19       		.uleb128 0x19
+ 1446 0099 03       		.uleb128 0x3
+ 1447 009a 0E       		.uleb128 0xe
+ 1448 009b 3A       		.uleb128 0x3a
+ 1449 009c 0B       		.uleb128 0xb
+ 1450 009d 3B       		.uleb128 0x3b
+ 1451 009e 0B       		.uleb128 0xb
+ 1452 009f 27       		.uleb128 0x27
+ 1453 00a0 19       		.uleb128 0x19
+ 1454 00a1 11       		.uleb128 0x11
+ 1455 00a2 01       		.uleb128 0x1
+ 1456 00a3 12       		.uleb128 0x12
+ 1457 00a4 06       		.uleb128 0x6
+ 1458 00a5 40       		.uleb128 0x40
+ 1459 00a6 18       		.uleb128 0x18
+ 1460 00a7 9642     		.uleb128 0x2116
+ 1461 00a9 19       		.uleb128 0x19
+ 1462 00aa 00       		.byte	0
+ 1463 00ab 00       		.byte	0
+ 1464 00ac 0E       		.uleb128 0xe
+ 1465 00ad 2E       		.uleb128 0x2e
+ 1466 00ae 00       		.byte	0
+ 1467 00af 3F       		.uleb128 0x3f
+ 1468 00b0 19       		.uleb128 0x19
+ 1469 00b1 03       		.uleb128 0x3
+ 1470 00b2 0E       		.uleb128 0xe
+ 1471 00b3 3A       		.uleb128 0x3a
+ 1472 00b4 0B       		.uleb128 0xb
+ 1473 00b5 3B       		.uleb128 0x3b
+ 1474 00b6 05       		.uleb128 0x5
+ 1475 00b7 27       		.uleb128 0x27
+ 1476 00b8 19       		.uleb128 0x19
+ 1477 00b9 11       		.uleb128 0x11
+ 1478 00ba 01       		.uleb128 0x1
+ 1479 00bb 12       		.uleb128 0x12
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 33
+
+
+ 1480 00bc 06       		.uleb128 0x6
+ 1481 00bd 40       		.uleb128 0x40
+ 1482 00be 18       		.uleb128 0x18
+ 1483 00bf 9642     		.uleb128 0x2116
+ 1484 00c1 19       		.uleb128 0x19
+ 1485 00c2 00       		.byte	0
+ 1486 00c3 00       		.byte	0
+ 1487 00c4 0F       		.uleb128 0xf
+ 1488 00c5 2E       		.uleb128 0x2e
+ 1489 00c6 01       		.byte	0x1
+ 1490 00c7 3F       		.uleb128 0x3f
+ 1491 00c8 19       		.uleb128 0x19
+ 1492 00c9 03       		.uleb128 0x3
+ 1493 00ca 0E       		.uleb128 0xe
+ 1494 00cb 3A       		.uleb128 0x3a
+ 1495 00cc 0B       		.uleb128 0xb
+ 1496 00cd 3B       		.uleb128 0x3b
+ 1497 00ce 0B       		.uleb128 0xb
+ 1498 00cf 27       		.uleb128 0x27
+ 1499 00d0 19       		.uleb128 0x19
+ 1500 00d1 11       		.uleb128 0x11
+ 1501 00d2 01       		.uleb128 0x1
+ 1502 00d3 12       		.uleb128 0x12
+ 1503 00d4 06       		.uleb128 0x6
+ 1504 00d5 40       		.uleb128 0x40
+ 1505 00d6 18       		.uleb128 0x18
+ 1506 00d7 9742     		.uleb128 0x2117
+ 1507 00d9 19       		.uleb128 0x19
+ 1508 00da 01       		.uleb128 0x1
+ 1509 00db 13       		.uleb128 0x13
+ 1510 00dc 00       		.byte	0
+ 1511 00dd 00       		.byte	0
+ 1512 00de 10       		.uleb128 0x10
+ 1513 00df 05       		.uleb128 0x5
+ 1514 00e0 00       		.byte	0
+ 1515 00e1 03       		.uleb128 0x3
+ 1516 00e2 0E       		.uleb128 0xe
+ 1517 00e3 3A       		.uleb128 0x3a
+ 1518 00e4 0B       		.uleb128 0xb
+ 1519 00e5 3B       		.uleb128 0x3b
+ 1520 00e6 0B       		.uleb128 0xb
+ 1521 00e7 49       		.uleb128 0x49
+ 1522 00e8 13       		.uleb128 0x13
+ 1523 00e9 02       		.uleb128 0x2
+ 1524 00ea 17       		.uleb128 0x17
+ 1525 00eb 00       		.byte	0
+ 1526 00ec 00       		.byte	0
+ 1527 00ed 11       		.uleb128 0x11
+ 1528 00ee 898201   		.uleb128 0x4109
+ 1529 00f1 01       		.byte	0x1
+ 1530 00f2 11       		.uleb128 0x11
+ 1531 00f3 01       		.uleb128 0x1
+ 1532 00f4 31       		.uleb128 0x31
+ 1533 00f5 13       		.uleb128 0x13
+ 1534 00f6 01       		.uleb128 0x1
+ 1535 00f7 13       		.uleb128 0x13
+ 1536 00f8 00       		.byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 34
+
+
+ 1537 00f9 00       		.byte	0
+ 1538 00fa 12       		.uleb128 0x12
+ 1539 00fb 8A8201   		.uleb128 0x410a
+ 1540 00fe 00       		.byte	0
+ 1541 00ff 02       		.uleb128 0x2
+ 1542 0100 18       		.uleb128 0x18
+ 1543 0101 9142     		.uleb128 0x2111
+ 1544 0103 18       		.uleb128 0x18
+ 1545 0104 00       		.byte	0
+ 1546 0105 00       		.byte	0
+ 1547 0106 13       		.uleb128 0x13
+ 1548 0107 898201   		.uleb128 0x4109
+ 1549 010a 00       		.byte	0
+ 1550 010b 11       		.uleb128 0x11
+ 1551 010c 01       		.uleb128 0x1
+ 1552 010d 31       		.uleb128 0x31
+ 1553 010e 13       		.uleb128 0x13
+ 1554 010f 00       		.byte	0
+ 1555 0110 00       		.byte	0
+ 1556 0111 14       		.uleb128 0x14
+ 1557 0112 898201   		.uleb128 0x4109
+ 1558 0115 01       		.byte	0x1
+ 1559 0116 11       		.uleb128 0x11
+ 1560 0117 01       		.uleb128 0x1
+ 1561 0118 31       		.uleb128 0x31
+ 1562 0119 13       		.uleb128 0x13
+ 1563 011a 00       		.byte	0
+ 1564 011b 00       		.byte	0
+ 1565 011c 15       		.uleb128 0x15
+ 1566 011d 34       		.uleb128 0x34
+ 1567 011e 00       		.byte	0
+ 1568 011f 03       		.uleb128 0x3
+ 1569 0120 0E       		.uleb128 0xe
+ 1570 0121 3A       		.uleb128 0x3a
+ 1571 0122 0B       		.uleb128 0xb
+ 1572 0123 3B       		.uleb128 0x3b
+ 1573 0124 0B       		.uleb128 0xb
+ 1574 0125 49       		.uleb128 0x49
+ 1575 0126 13       		.uleb128 0x13
+ 1576 0127 02       		.uleb128 0x2
+ 1577 0128 18       		.uleb128 0x18
+ 1578 0129 00       		.byte	0
+ 1579 012a 00       		.byte	0
+ 1580 012b 16       		.uleb128 0x16
+ 1581 012c 2E       		.uleb128 0x2e
+ 1582 012d 00       		.byte	0
+ 1583 012e 3F       		.uleb128 0x3f
+ 1584 012f 19       		.uleb128 0x19
+ 1585 0130 03       		.uleb128 0x3
+ 1586 0131 0E       		.uleb128 0xe
+ 1587 0132 3A       		.uleb128 0x3a
+ 1588 0133 0B       		.uleb128 0xb
+ 1589 0134 3B       		.uleb128 0x3b
+ 1590 0135 0B       		.uleb128 0xb
+ 1591 0136 27       		.uleb128 0x27
+ 1592 0137 19       		.uleb128 0x19
+ 1593 0138 49       		.uleb128 0x49
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 35
+
+
+ 1594 0139 13       		.uleb128 0x13
+ 1595 013a 11       		.uleb128 0x11
+ 1596 013b 01       		.uleb128 0x1
+ 1597 013c 12       		.uleb128 0x12
+ 1598 013d 06       		.uleb128 0x6
+ 1599 013e 40       		.uleb128 0x40
+ 1600 013f 18       		.uleb128 0x18
+ 1601 0140 9742     		.uleb128 0x2117
+ 1602 0142 19       		.uleb128 0x19
+ 1603 0143 00       		.byte	0
+ 1604 0144 00       		.byte	0
+ 1605 0145 17       		.uleb128 0x17
+ 1606 0146 05       		.uleb128 0x5
+ 1607 0147 00       		.byte	0
+ 1608 0148 03       		.uleb128 0x3
+ 1609 0149 0E       		.uleb128 0xe
+ 1610 014a 3A       		.uleb128 0x3a
+ 1611 014b 0B       		.uleb128 0xb
+ 1612 014c 3B       		.uleb128 0x3b
+ 1613 014d 0B       		.uleb128 0xb
+ 1614 014e 49       		.uleb128 0x49
+ 1615 014f 13       		.uleb128 0x13
+ 1616 0150 02       		.uleb128 0x2
+ 1617 0151 18       		.uleb128 0x18
+ 1618 0152 00       		.byte	0
+ 1619 0153 00       		.byte	0
+ 1620 0154 18       		.uleb128 0x18
+ 1621 0155 05       		.uleb128 0x5
+ 1622 0156 00       		.byte	0
+ 1623 0157 03       		.uleb128 0x3
+ 1624 0158 08       		.uleb128 0x8
+ 1625 0159 3A       		.uleb128 0x3a
+ 1626 015a 0B       		.uleb128 0xb
+ 1627 015b 3B       		.uleb128 0x3b
+ 1628 015c 0B       		.uleb128 0xb
+ 1629 015d 49       		.uleb128 0x49
+ 1630 015e 13       		.uleb128 0x13
+ 1631 015f 02       		.uleb128 0x2
+ 1632 0160 18       		.uleb128 0x18
+ 1633 0161 00       		.byte	0
+ 1634 0162 00       		.byte	0
+ 1635 0163 19       		.uleb128 0x19
+ 1636 0164 34       		.uleb128 0x34
+ 1637 0165 00       		.byte	0
+ 1638 0166 03       		.uleb128 0x3
+ 1639 0167 0E       		.uleb128 0xe
+ 1640 0168 3A       		.uleb128 0x3a
+ 1641 0169 0B       		.uleb128 0xb
+ 1642 016a 3B       		.uleb128 0x3b
+ 1643 016b 05       		.uleb128 0x5
+ 1644 016c 49       		.uleb128 0x49
+ 1645 016d 13       		.uleb128 0x13
+ 1646 016e 3F       		.uleb128 0x3f
+ 1647 016f 19       		.uleb128 0x19
+ 1648 0170 3C       		.uleb128 0x3c
+ 1649 0171 19       		.uleb128 0x19
+ 1650 0172 00       		.byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 36
+
+
+ 1651 0173 00       		.byte	0
+ 1652 0174 1A       		.uleb128 0x1a
+ 1653 0175 2E       		.uleb128 0x2e
+ 1654 0176 00       		.byte	0
+ 1655 0177 3F       		.uleb128 0x3f
+ 1656 0178 19       		.uleb128 0x19
+ 1657 0179 3C       		.uleb128 0x3c
+ 1658 017a 19       		.uleb128 0x19
+ 1659 017b 6E       		.uleb128 0x6e
+ 1660 017c 0E       		.uleb128 0xe
+ 1661 017d 03       		.uleb128 0x3
+ 1662 017e 0E       		.uleb128 0xe
+ 1663 017f 3A       		.uleb128 0x3a
+ 1664 0180 0B       		.uleb128 0xb
+ 1665 0181 3B       		.uleb128 0x3b
+ 1666 0182 0B       		.uleb128 0xb
+ 1667 0183 00       		.byte	0
+ 1668 0184 00       		.byte	0
+ 1669 0185 00       		.byte	0
+ 1670              		.section	.debug_loc,"",%progbits
+ 1671              	.Ldebug_loc0:
+ 1672              	.LLST0:
+ 1673 0000 00000000 		.4byte	.LVL4
+ 1674 0004 06000000 		.4byte	.LVL5
+ 1675 0008 0100     		.2byte	0x1
+ 1676 000a 50       		.byte	0x50
+ 1677 000b 06000000 		.4byte	.LVL5
+ 1678 000f 8C000000 		.4byte	.LFE67
+ 1679 0013 0400     		.2byte	0x4
+ 1680 0015 F3       		.byte	0xf3
+ 1681 0016 01       		.uleb128 0x1
+ 1682 0017 50       		.byte	0x50
+ 1683 0018 9F       		.byte	0x9f
+ 1684 0019 00000000 		.4byte	0
+ 1685 001d 00000000 		.4byte	0
+ 1686              		.section	.debug_aranges,"",%progbits
+ 1687 0000 54000000 		.4byte	0x54
+ 1688 0004 0200     		.2byte	0x2
+ 1689 0006 00000000 		.4byte	.Ldebug_info0
+ 1690 000a 04       		.byte	0x4
+ 1691 000b 00       		.byte	0
+ 1692 000c 0000     		.2byte	0
+ 1693 000e 0000     		.2byte	0
+ 1694 0010 00000000 		.4byte	.LFB69
+ 1695 0014 20000000 		.4byte	.LFE69-.LFB69
+ 1696 0018 00000000 		.4byte	.LFB70
+ 1697 001c 20000000 		.4byte	.LFE70-.LFB70
+ 1698 0020 00000000 		.4byte	.LFB67
+ 1699 0024 8C000000 		.4byte	.LFE67-.LFB67
+ 1700 0028 00000000 		.4byte	.LFB68
+ 1701 002c B8000000 		.4byte	.LFE68-.LFB68
+ 1702 0030 00000000 		.4byte	.LFB63
+ 1703 0034 70000000 		.4byte	.LFE63-.LFB63
+ 1704 0038 00000000 		.4byte	.LFB64
+ 1705 003c 0C000000 		.4byte	.LFE64-.LFB64
+ 1706 0040 00000000 		.4byte	.LFB65
+ 1707 0044 18000000 		.4byte	.LFE65-.LFB65
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 37
+
+
+ 1708 0048 00000000 		.4byte	.LFB66
+ 1709 004c 18000000 		.4byte	.LFE66-.LFB66
+ 1710 0050 00000000 		.4byte	0
+ 1711 0054 00000000 		.4byte	0
+ 1712              		.section	.debug_ranges,"",%progbits
+ 1713              	.Ldebug_ranges0:
+ 1714 0000 00000000 		.4byte	.LFB69
+ 1715 0004 20000000 		.4byte	.LFE69
+ 1716 0008 00000000 		.4byte	.LFB70
+ 1717 000c 20000000 		.4byte	.LFE70
+ 1718 0010 00000000 		.4byte	.LFB67
+ 1719 0014 8C000000 		.4byte	.LFE67
+ 1720 0018 00000000 		.4byte	.LFB68
+ 1721 001c B8000000 		.4byte	.LFE68
+ 1722 0020 00000000 		.4byte	.LFB63
+ 1723 0024 70000000 		.4byte	.LFE63
+ 1724 0028 00000000 		.4byte	.LFB64
+ 1725 002c 0C000000 		.4byte	.LFE64
+ 1726 0030 00000000 		.4byte	.LFB65
+ 1727 0034 18000000 		.4byte	.LFE65
+ 1728 0038 00000000 		.4byte	.LFB66
+ 1729 003c 18000000 		.4byte	.LFE66
+ 1730 0040 00000000 		.4byte	0
+ 1731 0044 00000000 		.4byte	0
+ 1732              		.section	.debug_line,"",%progbits
+ 1733              	.Ldebug_line0:
+ 1734 0000 F9020000 		.section	.debug_str,"MS",%progbits,1
+ 1734      0200F501 
+ 1734      00000201 
+ 1734      FB0E0D00 
+ 1734      01010101 
+ 1735              	.LASF44:
+ 1736 0000 434D5F43 		.ascii	"CM_Collision_Callback_Table\000"
+ 1736      6F6C6C69 
+ 1736      73696F6E 
+ 1736      5F43616C 
+ 1736      6C626163 
+ 1737              	.LASF62:
+ 1738 001c 434D5F54 		.ascii	"CM_Timer_WritePeriod\000"
+ 1738      696D6572 
+ 1738      5F577269 
+ 1738      74655065 
+ 1738      72696F64 
+ 1739              	.LASF60:
+ 1740 0031 5F69646C 		.ascii	"_idle_callback_table\000"
+ 1740      655F6361 
+ 1740      6C6C6261 
+ 1740      636B5F74 
+ 1740      61626C65 
+ 1741              	.LASF13:
+ 1742 0046 434D5F49 		.ascii	"CM_Idle_Callback_e\000"
+ 1742      646C655F 
+ 1742      43616C6C 
+ 1742      6261636B 
+ 1742      5F6500
+ 1743              	.LASF71:
+ 1744 0059 434D5F54 		.ascii	"CM_Timer_int_StartEx\000"
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 38
+
+
+ 1744      696D6572 
+ 1744      5F696E74 
+ 1744      5F537461 
+ 1744      72744578 
+ 1745              	.LASF65:
+ 1746 006e 434D5F54 		.ascii	"CM_Timer_int_ClearPending\000"
+ 1746      696D6572 
+ 1746      5F696E74 
+ 1746      5F436C65 
+ 1746      61725065 
+ 1747              	.LASF67:
+ 1748 0088 43534D41 		.ascii	"CSMA_RX_Read\000"
+ 1748      5F52585F 
+ 1748      52656164 
+ 1748      00
+ 1749              	.LASF12:
+ 1750 0095 434D5F49 		.ascii	"CM_IDLE_RX_CALLBACK\000"
+ 1750      444C455F 
+ 1750      52585F43 
+ 1750      414C4C42 
+ 1750      41434B00 
+ 1751              	.LASF75:
+ 1752 00a9 4368616E 		.ascii	"ChannelMonitor.c\000"
+ 1752      6E656C4D 
+ 1752      6F6E6974 
+ 1752      6F722E63 
+ 1752      00
+ 1753              	.LASF63:
+ 1754 00ba 434D5F53 		.ascii	"CM_State_Reg_Write\000"
+ 1754      74617465 
+ 1754      5F526567 
+ 1754      5F577269 
+ 1754      746500
+ 1755              	.LASF40:
+ 1756 00cd 73746174 		.ascii	"state\000"
+ 1756      6500
+ 1757              	.LASF17:
+ 1758 00d3 73686F72 		.ascii	"short int\000"
+ 1758      7420696E 
+ 1758      7400
+ 1759              	.LASF47:
+ 1760 00dd 434D5F49 		.ascii	"CM_Idle_Callback_Table_t\000"
+ 1760      646C655F 
+ 1760      43616C6C 
+ 1760      6261636B 
+ 1760      5F546162 
+ 1761              	.LASF51:
+ 1762 00f6 636D5F74 		.ascii	"cm_timer_isr\000"
+ 1762      696D6572 
+ 1762      5F697372 
+ 1762      00
+ 1763              	.LASF31:
+ 1764 0103 73697A65 		.ascii	"sizetype\000"
+ 1764      74797065 
+ 1764      00
+ 1765              	.LASF50:
+ 1766 010c 636D5F72 		.ascii	"cm_rx_isr_callback\000"
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 39
+
+
+ 1766      785F6973 
+ 1766      725F6361 
+ 1766      6C6C6261 
+ 1766      636B00
+ 1767              	.LASF73:
+ 1768 011f 434D5F43 		.ascii	"CM_COLLISION_int_StartEx\000"
+ 1768      4F4C4C49 
+ 1768      53494F4E 
+ 1768      5F696E74 
+ 1768      5F537461 
+ 1769              	.LASF30:
+ 1770 0138 6C6F6E67 		.ascii	"long double\000"
+ 1770      20646F75 
+ 1770      626C6500 
+ 1771              	.LASF72:
+ 1772 0144 434D5F49 		.ascii	"CM_IDLE_int_StartEx\000"
+ 1772      444C455F 
+ 1772      696E745F 
+ 1772      53746172 
+ 1772      74457800 
+ 1773              	.LASF54:
+ 1774 0158 65646765 		.ascii	"edge\000"
+ 1774      00
+ 1775              	.LASF10:
+ 1776 015d 434D5F49 		.ascii	"CM_Idle_Callback\000"
+ 1776      646C655F 
+ 1776      43616C6C 
+ 1776      6261636B 
+ 1776      00
+ 1777              	.LASF56:
+ 1778 016e 636D5F61 		.ascii	"cm_assign_idle_callback\000"
+ 1778      73736967 
+ 1778      6E5F6964 
+ 1778      6C655F63 
+ 1778      616C6C62 
+ 1779              	.LASF45:
+ 1780 0186 434D5F43 		.ascii	"CM_Collision_Callback_Table_t\000"
+ 1780      6F6C6C69 
+ 1780      73696F6E 
+ 1780      5F43616C 
+ 1780      6C626163 
+ 1781              	.LASF32:
+ 1782 01a4 43534D41 		.ascii	"CSMA_CD_Callback\000"
+ 1782      5F43445F 
+ 1782      43616C6C 
+ 1782      6261636B 
+ 1782      00
+ 1783              	.LASF69:
+ 1784 01b5 63736D61 		.ascii	"csma_bus_assign_callback\000"
+ 1784      5F627573 
+ 1784      5F617373 
+ 1784      69676E5F 
+ 1784      63616C6C 
+ 1785              	.LASF27:
+ 1786 01ce 666C6F61 		.ascii	"float\000"
+ 1786      7400
+ 1787              	.LASF22:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 40
+
+
+ 1788 01d4 6C6F6E67 		.ascii	"long long int\000"
+ 1788      206C6F6E 
+ 1788      6720696E 
+ 1788      7400
+ 1789              	.LASF49:
+ 1790 01e2 636D5F63 		.ascii	"cm_collision_isr\000"
+ 1790      6F6C6C69 
+ 1790      73696F6E 
+ 1790      5F697372 
+ 1790      00
+ 1791              	.LASF59:
+ 1792 01f3 5F636F6C 		.ascii	"_collision_callback_table\000"
+ 1792      6C697369 
+ 1792      6F6E5F63 
+ 1792      616C6C62 
+ 1792      61636B5F 
+ 1793              	.LASF77:
+ 1794 020d 636D5F67 		.ascii	"cm_get_bus_state\000"
+ 1794      65745F62 
+ 1794      75735F73 
+ 1794      74617465 
+ 1794      00
+ 1795              	.LASF20:
+ 1796 021e 6C6F6E67 		.ascii	"long int\000"
+ 1796      20696E74 
+ 1796      00
+ 1797              	.LASF7:
+ 1798 0227 434D5F43 		.ascii	"CM_COLLISION_RX_CALLBACK\000"
+ 1798      4F4C4C49 
+ 1798      53494F4E 
+ 1798      5F52585F 
+ 1798      43414C4C 
+ 1799              	.LASF3:
+ 1800 0240 434D5F53 		.ascii	"CM_STATE_COLLISION\000"
+ 1800      54415445 
+ 1800      5F434F4C 
+ 1800      4C495349 
+ 1800      4F4E00
+ 1801              	.LASF61:
+ 1802 0253 434D5F54 		.ascii	"CM_Timer_Trigger_Write\000"
+ 1802      696D6572 
+ 1802      5F547269 
+ 1802      67676572 
+ 1802      5F577269 
+ 1803              	.LASF35:
+ 1804 026a 43534D41 		.ascii	"CSMA_CD_Edge\000"
+ 1804      5F43445F 
+ 1804      45646765 
+ 1804      00
+ 1805              	.LASF16:
+ 1806 0277 5F5F7569 		.ascii	"__uint8_t\000"
+ 1806      6E74385F 
+ 1806      7400
+ 1807              	.LASF48:
+ 1808 0281 636D5F69 		.ascii	"cm_idle_isr\000"
+ 1808      646C655F 
+ 1808      69737200 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 41
+
+
+ 1809              	.LASF43:
+ 1810 028d 434D5F53 		.ascii	"CM_State_Machine\000"
+ 1810      74617465 
+ 1810      5F4D6163 
+ 1810      68696E65 
+ 1810      00
+ 1811              	.LASF55:
+ 1812 029e 6E616D65 		.ascii	"name\000"
+ 1812      00
+ 1813              	.LASF38:
+ 1814 02a3 43534D41 		.ascii	"CSMA_CD_EDGE_UNKNOWN\000"
+ 1814      5F43445F 
+ 1814      45444745 
+ 1814      5F554E4B 
+ 1814      4E4F574E 
+ 1815              	.LASF11:
+ 1816 02b8 434D5F49 		.ascii	"CM_IDLE_TX_CALLBACK\000"
+ 1816      444C455F 
+ 1816      54585F43 
+ 1816      414C4C42 
+ 1816      41434B00 
+ 1817              	.LASF66:
+ 1818 02cc 43794465 		.ascii	"CyDelayUs\000"
+ 1818      6C617955 
+ 1818      7300
+ 1819              	.LASF14:
+ 1820 02d6 756E7369 		.ascii	"unsigned char\000"
+ 1820      676E6564 
+ 1820      20636861 
+ 1820      7200
+ 1821              	.LASF37:
+ 1822 02e4 43534D41 		.ascii	"CSMA_CD_EDGE_FALLING\000"
+ 1822      5F43445F 
+ 1822      45444745 
+ 1822      5F46414C 
+ 1822      4C494E47 
+ 1823              	.LASF15:
+ 1824 02f9 7369676E 		.ascii	"signed char\000"
+ 1824      65642063 
+ 1824      68617200 
+ 1825              	.LASF23:
+ 1826 0305 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 1826      206C6F6E 
+ 1826      6720756E 
+ 1826      7369676E 
+ 1826      65642069 
+ 1827              	.LASF24:
+ 1828 031c 756E7369 		.ascii	"unsigned int\000"
+ 1828      676E6564 
+ 1828      20696E74 
+ 1828      00
+ 1829              	.LASF5:
+ 1830 0329 434D5F43 		.ascii	"CM_Collision_Callback\000"
+ 1830      6F6C6C69 
+ 1830      73696F6E 
+ 1830      5F43616C 
+ 1830      6C626163 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 42
+
+
+ 1831              	.LASF21:
+ 1832 033f 6C6F6E67 		.ascii	"long unsigned int\000"
+ 1832      20756E73 
+ 1832      69676E65 
+ 1832      6420696E 
+ 1832      7400
+ 1833              	.LASF9:
+ 1834 0351 434D5F43 		.ascii	"CM_Collision_Callback_e\000"
+ 1834      6F6C6C69 
+ 1834      73696F6E 
+ 1834      5F43616C 
+ 1834      6C626163 
+ 1835              	.LASF76:
+ 1836 0369 433A5C55 		.ascii	"C:\\Users\\henrichsc\\Desktop\\School\\Senior_year\\"
+ 1836      73657273 
+ 1836      5C68656E 
+ 1836      72696368 
+ 1836      73635C44 
+ 1837 0397 77696E74 		.ascii	"winter\\ce4950\\ce4950-term-project\\Workspace1\\ce"
+ 1837      65725C63 
+ 1837      65343935 
+ 1837      305C6365 
+ 1837      34393530 
+ 1838 03c6 34393530 		.ascii	"4950-term-project.cydsn\000"
+ 1838      2D746572 
+ 1838      6D2D7072 
+ 1838      6F6A6563 
+ 1838      742E6379 
+ 1839              	.LASF46:
+ 1840 03de 434D5F49 		.ascii	"CM_Idle_Callback_Table\000"
+ 1840      646C655F 
+ 1840      43616C6C 
+ 1840      6261636B 
+ 1840      5F546162 
+ 1841              	.LASF18:
+ 1842 03f5 73686F72 		.ascii	"short unsigned int\000"
+ 1842      7420756E 
+ 1842      7369676E 
+ 1842      65642069 
+ 1842      6E7400
+ 1843              	.LASF41:
+ 1844 0408 70726576 		.ascii	"prev_edge\000"
+ 1844      5F656467 
+ 1844      6500
+ 1845              	.LASF4:
+ 1846 0412 434D5F53 		.ascii	"CM_State\000"
+ 1846      74617465 
+ 1846      00
+ 1847              	.LASF29:
+ 1848 041b 63686172 		.ascii	"char\000"
+ 1848      00
+ 1849              	.LASF26:
+ 1850 0420 696E7433 		.ascii	"int32_t\000"
+ 1850      325F7400 
+ 1851              	.LASF39:
+ 1852 0428 43534D41 		.ascii	"CSMA_CD_Edge_e\000"
+ 1852      5F43445F 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 43
+
+
+ 1852      45646765 
+ 1852      5F6500
+ 1853              	.LASF33:
+ 1854 0437 43534D41 		.ascii	"CSMA_CD_BUS_CH_MONITOR_CALLBACK\000"
+ 1854      5F43445F 
+ 1854      4255535F 
+ 1854      43485F4D 
+ 1854      4F4E4954 
+ 1855              	.LASF1:
+ 1856 0457 434D5F53 		.ascii	"CM_STATE_IDLE\000"
+ 1856      54415445 
+ 1856      5F49444C 
+ 1856      4500
+ 1857              	.LASF64:
+ 1858 0465 434D5F54 		.ascii	"CM_Timer_ReadStatusRegister\000"
+ 1858      696D6572 
+ 1858      5F526561 
+ 1858      64537461 
+ 1858      74757352 
+ 1859              	.LASF52:
+ 1860 0481 636D5F69 		.ascii	"cm_init\000"
+ 1860      6E697400 
+ 1861              	.LASF58:
+ 1862 0489 5F636D5F 		.ascii	"_cm_sm\000"
+ 1862      736D00
+ 1863              	.LASF53:
+ 1864 0490 636D5F61 		.ascii	"cm_assign_collision_callback\000"
+ 1864      73736967 
+ 1864      6E5F636F 
+ 1864      6C6C6973 
+ 1864      696F6E5F 
+ 1865              	.LASF0:
+ 1866 04ad 434D5F53 		.ascii	"CM_STATE_INIT\000"
+ 1866      54415445 
+ 1866      5F494E49 
+ 1866      5400
+ 1867              	.LASF19:
+ 1868 04bb 5F5F696E 		.ascii	"__int32_t\000"
+ 1868      7433325F 
+ 1868      7400
+ 1869              	.LASF57:
+ 1870 04c5 6C657665 		.ascii	"level\000"
+ 1870      6C00
+ 1871              	.LASF25:
+ 1872 04cb 75696E74 		.ascii	"uint8_t\000"
+ 1872      385F7400 
+ 1873              	.LASF70:
+ 1874 04d3 434D5F54 		.ascii	"CM_Timer_Start\000"
+ 1874      696D6572 
+ 1874      5F537461 
+ 1874      727400
+ 1875              	.LASF6:
+ 1876 04e2 434D5F43 		.ascii	"CM_COLLISION_TX_CALLBACK\000"
+ 1876      4F4C4C49 
+ 1876      53494F4E 
+ 1876      5F54585F 
+ 1876      43414C4C 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccrLF8Oj.s 			page 44
+
+
+ 1877              	.LASF2:
+ 1878 04fb 434D5F53 		.ascii	"CM_STATE_BUSY\000"
+ 1878      54415445 
+ 1878      5F425553 
+ 1878      5900
+ 1879              	.LASF28:
+ 1880 0509 646F7562 		.ascii	"double\000"
+ 1880      6C6500
+ 1881              	.LASF78:
+ 1882 0510 49544D5F 		.ascii	"ITM_RxBuffer\000"
+ 1882      52784275 
+ 1882      66666572 
+ 1882      00
+ 1883              	.LASF74:
+ 1884 051d 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 1884      43313120 
+ 1884      352E342E 
+ 1884      31203230 
+ 1884      31363036 
+ 1885 0550 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m3 -mthumb -g -O"
+ 1885      20726576 
+ 1885      6973696F 
+ 1885      6E203233 
+ 1885      37373135 
+ 1886 0583 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 1886      66756E63 
+ 1886      74696F6E 
+ 1886      2D736563 
+ 1886      74696F6E 
+ 1887              	.LASF68:
+ 1888 05ab 43794465 		.ascii	"CyDelay\000"
+ 1888      6C617900 
+ 1889              	.LASF8:
+ 1890 05b3 434D5F53 		.ascii	"CM_State_e\000"
+ 1890      74617465 
+ 1890      5F6500
+ 1891              	.LASF34:
+ 1892 05be 43534D41 		.ascii	"CSMA_CD_BUS_RECEIVE_CALLBACK\000"
+ 1892      5F43445F 
+ 1892      4255535F 
+ 1892      52454345 
+ 1892      4956455F 
+ 1893              	.LASF36:
+ 1894 05db 43534D41 		.ascii	"CSMA_CD_EDGE_RISING\000"
+ 1894      5F43445F 
+ 1894      45444745 
+ 1894      5F524953 
+ 1894      494E4700 
+ 1895              	.LASF42:
+ 1896 05ef 434D5F53 		.ascii	"CM_State_Machine_t\000"
+ 1896      74617465 
+ 1896      5F4D6163 
+ 1896      68696E65 
+ 1896      5F7400
+ 1897              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

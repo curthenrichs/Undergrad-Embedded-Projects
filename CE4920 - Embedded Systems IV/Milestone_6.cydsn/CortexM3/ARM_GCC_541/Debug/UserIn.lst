@@ -1,0 +1,1475 @@
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"UserIn.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.userIn_init,"ax",%progbits
+  20              		.align	2
+  21              		.global	userIn_init
+  22              		.thumb
+  23              		.thumb_func
+  24              		.type	userIn_init, %function
+  25              	userIn_init:
+  26              	.LFB63:
+  27              		.file 1 "UserIn.c"
+   1:UserIn.c      **** /**
+   2:UserIn.c      ****  * UserIn
+   3:UserIn.c      ****  * @author Curt Henrichs
+   4:UserIn.c      ****  * @date 9-23-17
+   5:UserIn.c      ****  * 
+   6:UserIn.c      ****  * User Input module abstracts all user input hardware into a common module.
+   7:UserIn.c      ****  * The goal is to decouple the hardware API from the software application.
+   8:UserIn.c      ****  * Currently only a CapSense device is used with two buttons and a slider.
+   9:UserIn.c      ****  * Future input would need to extend this module.
+  10:UserIn.c      ****  */
+  11:UserIn.c      **** 
+  12:UserIn.c      **** //=============================================================================
+  13:UserIn.c      **** //                                 Library
+  14:UserIn.c      **** //=============================================================================
+  15:UserIn.c      **** 
+  16:UserIn.c      **** #include "UserIn.h"
+  17:UserIn.c      **** #include <project.h>
+  18:UserIn.c      **** 
+  19:UserIn.c      **** //=============================================================================
+  20:UserIn.c      **** //                        Constant and Macro Definitions
+  21:UserIn.c      **** //=============================================================================
+  22:UserIn.c      **** 
+  23:UserIn.c      **** #define CAPSENSE_SETTLE_TIME  100 //Time to delay during initialization (ms)
+  24:UserIn.c      **** 
+  25:UserIn.c      **** //=============================================================================
+  26:UserIn.c      **** //                        Public Function Implementation
+  27:UserIn.c      **** //=============================================================================
+  28:UserIn.c      **** 
+  29:UserIn.c      **** /**
+  30:UserIn.c      ****  * User input initalization function will start any hardware necessary to
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 2
+
+
+  31:UserIn.c      ****  * process user input events.
+  32:UserIn.c      ****  */
+  33:UserIn.c      **** void userIn_init(void){
+  28              		.loc 1 33 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32 0000 08B5     		push	{r3, lr}
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 3, -8
+  35              		.cfi_offset 14, -4
+  34:UserIn.c      ****     CapSense_Start();
+  36              		.loc 1 34 0
+  37 0002 FFF7FEFF 		bl	CapSense_Start
+  38              	.LVL0:
+  35:UserIn.c      ****     CyDelay(CAPSENSE_SETTLE_TIME);
+  39              		.loc 1 35 0
+  40 0006 6420     		movs	r0, #100
+  41 0008 FFF7FEFF 		bl	CyDelay
+  42              	.LVL1:
+  36:UserIn.c      ****     CapSense_InitializeAllBaselines();
+  43              		.loc 1 36 0
+  44 000c FFF7FEFF 		bl	CapSense_InitializeAllBaselines
+  45              	.LVL2:
+  46 0010 08BD     		pop	{r3, pc}
+  47              		.cfi_endproc
+  48              	.LFE63:
+  49              		.size	userIn_init, .-userIn_init
+  50 0012 00BF     		.section	.text.userIn_check_slider_state,"ax",%progbits
+  51              		.align	2
+  52              		.global	userIn_check_slider_state
+  53              		.thumb
+  54              		.thumb_func
+  55              		.type	userIn_check_slider_state, %function
+  56              	userIn_check_slider_state:
+  57              	.LFB64:
+  37:UserIn.c      **** }
+  38:UserIn.c      **** 
+  39:UserIn.c      **** /**
+  40:UserIn.c      ****  * User input process slider function will process the capacitive touch slider
+  41:UserIn.c      ****  * for user input.
+  42:UserIn.c      ****  * @param obj is pointer to Slider_Event_t object to assist in processing of
+  43:UserIn.c      ****  *        slider data.
+  44:UserIn.c      ****  * @param id is slider to check
+  45:UserIn.c      ****  * @return current state of the slider
+  46:UserIn.c      ****  */
+  47:UserIn.c      **** Slider_e userIn_check_slider_state(Slider_Event_t* obj, uint8_t id){  
+  58              		.loc 1 47 0
+  59              		.cfi_startproc
+  60              		@ args = 0, pretend = 0, frame = 0
+  61              		@ frame_needed = 0, uses_anonymous_args = 0
+  62              	.LVL3:
+  48:UserIn.c      ****     //parameter check
+  49:UserIn.c      ****     if(obj == NULL){
+  63              		.loc 1 49 0
+  64 0000 0028     		cmp	r0, #0
+  65 0002 4AD0     		beq	.L11
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 3
+
+
+  47:UserIn.c      ****     //parameter check
+  66              		.loc 1 47 0
+  67 0004 10B5     		push	{r4, lr}
+  68              		.cfi_def_cfa_offset 8
+  69              		.cfi_offset 4, -8
+  70              		.cfi_offset 14, -4
+  71 0006 0446     		mov	r4, r0
+  72 0008 0846     		mov	r0, r1
+  73              	.LVL4:
+  50:UserIn.c      ****         return SLIDE_NO_MATCH;   
+  51:UserIn.c      ****     }
+  52:UserIn.c      ****     
+  53:UserIn.c      ****     //process slider
+  54:UserIn.c      ****     Slider_e retVal;
+  55:UserIn.c      ****     uint16_t pos = CapSense_GetCentroidPos(id);
+  74              		.loc 1 55 0
+  75 000a FFF7FEFF 		bl	CapSense_GetCentroidPos
+  76              	.LVL5:
+  56:UserIn.c      **** 
+  57:UserIn.c      ****     //if start of button press
+  58:UserIn.c      ****     if(obj->prev_val == NO_TOUCH_ON_SLIDER 
+  77              		.loc 1 58 0
+  78 000e 2388     		ldrh	r3, [r4]
+  79 0010 4FF6FF72 		movw	r2, #65535
+  80 0014 9342     		cmp	r3, r2
+  81 0016 06D1     		bne	.L5
+  59:UserIn.c      ****             && pos != NO_TOUCH_ON_SLIDER){
+  82              		.loc 1 59 0
+  83 0018 9042     		cmp	r0, r2
+  84 001a 04D0     		beq	.L5
+  85              	.LVL6:
+  60:UserIn.c      ****         retVal = SLIDE_NOT_DETERMINED;
+  61:UserIn.c      ****         obj->dir = 0;
+  86              		.loc 1 61 0
+  87 001c 0023     		movs	r3, #0
+  88 001e A370     		strb	r3, [r4, #2]
+  62:UserIn.c      ****         obj->origin = pos;
+  89              		.loc 1 62 0
+  90 0020 E070     		strb	r0, [r4, #3]
+  60:UserIn.c      ****         retVal = SLIDE_NOT_DETERMINED;
+  91              		.loc 1 60 0
+  92 0022 0423     		movs	r3, #4
+  93              		.loc 1 62 0
+  94 0024 36E0     		b	.L6
+  95              	.LVL7:
+  96              	.L5:
+  63:UserIn.c      ****     }
+  64:UserIn.c      ****     //else if up event
+  65:UserIn.c      ****     else if(obj->prev_val != NO_TOUCH_ON_SLIDER 
+  97              		.loc 1 65 0
+  98 0026 4FF6FF72 		movw	r2, #65535
+  99 002a 9342     		cmp	r3, r2
+ 100 002c 0CD0     		beq	.L7
+  66:UserIn.c      ****             && pos == NO_TOUCH_ON_SLIDER){
+ 101              		.loc 1 66 0
+ 102 002e 9042     		cmp	r0, r2
+ 103 0030 0AD1     		bne	.L7
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 4
+
+
+  67:UserIn.c      ****         //if slide a left, right, or no match?
+  68:UserIn.c      ****         if(obj->origin <= SLIDE_RIGHT_START 
+ 104              		.loc 1 68 0
+ 105 0032 E278     		ldrb	r2, [r4, #3]	@ zero_extendqisi2
+ 106 0034 192A     		cmp	r2, #25
+ 107 0036 01D8     		bhi	.L8
+  69:UserIn.c      ****                 && obj->prev_val >= SLIDE_RIGHT_END){
+ 108              		.loc 1 69 0
+ 109 0038 4A2B     		cmp	r3, #74
+ 110 003a 20D8     		bhi	.L12
+ 111              	.L8:
+  70:UserIn.c      ****             retVal = SLIDE_RIGHT;
+  71:UserIn.c      ****         }else if(obj->origin >= SLIDE_LEFT_START 
+ 112              		.loc 1 71 0
+ 113 003c 4A2A     		cmp	r2, #74
+ 114 003e 20D9     		bls	.L13
+  72:UserIn.c      ****                 && obj->prev_val <= SLIDE_LEFT_END){
+ 115              		.loc 1 72 0
+ 116 0040 192B     		cmp	r3, #25
+ 117 0042 20D9     		bls	.L14
+  73:UserIn.c      ****             retVal = SLIDE_LEFT;
+  74:UserIn.c      ****         }else{
+  75:UserIn.c      ****             retVal = SLIDE_OFF;
+ 118              		.loc 1 75 0
+ 119 0044 0023     		movs	r3, #0
+ 120 0046 25E0     		b	.L6
+ 121              	.L7:
+  76:UserIn.c      ****         }
+  77:UserIn.c      ****     }
+  78:UserIn.c      ****     //else if not touching consistent event
+  79:UserIn.c      ****     else if(obj->prev_val == NO_TOUCH_ON_SLIDER 
+ 122              		.loc 1 79 0
+ 123 0048 4FF6FF72 		movw	r2, #65535
+ 124 004c 9342     		cmp	r3, r2
+ 125 004e 01D1     		bne	.L9
+  80:UserIn.c      ****             && pos == NO_TOUCH_ON_SLIDER){
+ 126              		.loc 1 80 0
+ 127 0050 9042     		cmp	r0, r2
+ 128 0052 1AD0     		beq	.L15
+ 129              	.L9:
+ 130              	.LVL8:
+ 131              	.LBB2:
+  81:UserIn.c      ****         retVal = SLIDE_OFF;
+  82:UserIn.c      ****     }
+  83:UserIn.c      ****     //else currently sliding
+  84:UserIn.c      ****     else{
+  85:UserIn.c      ****         retVal = SLIDE_NOT_DETERMINED;
+  86:UserIn.c      ****         
+  87:UserIn.c      ****         //if user starts moving in the reverse direction, reset origin
+  88:UserIn.c      ****         int8_t curr_dir = pos - obj->prev_val;
+ 132              		.loc 1 88 0
+ 133 0054 C2B2     		uxtb	r2, r0
+ 134 0056 D31A     		subs	r3, r2, r3
+ 135 0058 5BB2     		sxtb	r3, r3
+ 136              	.LVL9:
+  89:UserIn.c      ****         curr_dir = (curr_dir > 0) ? 1 : (curr_dir < 0) ? -1 : 0;
+ 137              		.loc 1 89 0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 5
+
+
+ 138 005a 002B     		cmp	r3, #0
+ 139 005c 03DC     		bgt	.L16
+ 140              		.loc 1 89 0 is_stmt 0 discriminator 1
+ 141 005e 04DA     		bge	.L17
+ 142              		.loc 1 89 0
+ 143 0060 4FF0FF33 		mov	r3, #-1
+ 144              	.LVL10:
+ 145 0064 02E0     		b	.L10
+ 146              	.LVL11:
+ 147              	.L16:
+ 148 0066 0123     		movs	r3, #1
+ 149              	.LVL12:
+ 150 0068 00E0     		b	.L10
+ 151              	.LVL13:
+ 152              	.L17:
+ 153 006a 0023     		movs	r3, #0
+ 154              	.LVL14:
+ 155              	.L10:
+  90:UserIn.c      ****         if(curr_dir != 0 && curr_dir != obj->dir){
+ 156              		.loc 1 90 0 is_stmt 1 discriminator 8
+ 157 006c 7BB1     		cbz	r3, .L18
+ 158              		.loc 1 90 0 is_stmt 0 discriminator 1
+ 159 006e 94F90210 		ldrsb	r1, [r4, #2]
+ 160 0072 8B42     		cmp	r3, r1
+ 161 0074 0DD0     		beq	.L19
+  91:UserIn.c      ****             obj->dir = curr_dir;
+ 162              		.loc 1 91 0 is_stmt 1
+ 163 0076 A370     		strb	r3, [r4, #2]
+  92:UserIn.c      ****             obj->origin = pos;
+ 164              		.loc 1 92 0
+ 165 0078 E270     		strb	r2, [r4, #3]
+  85:UserIn.c      ****         
+ 166              		.loc 1 85 0
+ 167 007a 0423     		movs	r3, #4
+ 168              	.LVL15:
+ 169 007c 0AE0     		b	.L6
+ 170              	.LVL16:
+ 171              	.L12:
+ 172              	.LBE2:
+  70:UserIn.c      ****         }else if(obj->origin >= SLIDE_LEFT_START 
+ 173              		.loc 1 70 0
+ 174 007e 0223     		movs	r3, #2
+ 175 0080 08E0     		b	.L6
+ 176              	.L13:
+  75:UserIn.c      ****         }
+ 177              		.loc 1 75 0
+ 178 0082 0023     		movs	r3, #0
+ 179 0084 06E0     		b	.L6
+ 180              	.L14:
+  73:UserIn.c      ****         }else{
+ 181              		.loc 1 73 0
+ 182 0086 0123     		movs	r3, #1
+ 183 0088 04E0     		b	.L6
+ 184              	.L15:
+  81:UserIn.c      ****     }
+ 185              		.loc 1 81 0
+ 186 008a 0023     		movs	r3, #0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 6
+
+
+ 187 008c 02E0     		b	.L6
+ 188              	.LVL17:
+ 189              	.L18:
+ 190              	.LBB3:
+  85:UserIn.c      ****         
+ 191              		.loc 1 85 0
+ 192 008e 0423     		movs	r3, #4
+ 193              	.LVL18:
+ 194 0090 00E0     		b	.L6
+ 195              	.LVL19:
+ 196              	.L19:
+ 197 0092 0423     		movs	r3, #4
+ 198              	.LVL20:
+ 199              	.L6:
+ 200              	.LBE3:
+  93:UserIn.c      ****         }
+  94:UserIn.c      ****     }
+  95:UserIn.c      ****     obj->prev_val = pos;
+ 201              		.loc 1 95 0
+ 202 0094 2080     		strh	r0, [r4]	@ movhi
+  96:UserIn.c      **** 
+  97:UserIn.c      ****     return retVal;
+ 203              		.loc 1 97 0
+ 204 0096 1846     		mov	r0, r3
+ 205              	.LVL21:
+ 206 0098 10BD     		pop	{r4, pc}
+ 207              	.LVL22:
+ 208              	.L11:
+ 209              		.cfi_def_cfa_offset 0
+ 210              		.cfi_restore 4
+ 211              		.cfi_restore 14
+  50:UserIn.c      ****     }
+ 212              		.loc 1 50 0
+ 213 009a 0320     		movs	r0, #3
+ 214              	.LVL23:
+ 215 009c 7047     		bx	lr
+ 216              		.cfi_endproc
+ 217              	.LFE64:
+ 218              		.size	userIn_check_slider_state, .-userIn_check_slider_state
+ 219 009e 00BF     		.section	.text.userIn_check_button_state,"ax",%progbits
+ 220              		.align	2
+ 221              		.global	userIn_check_button_state
+ 222              		.thumb
+ 223              		.thumb_func
+ 224              		.type	userIn_check_button_state, %function
+ 225              	userIn_check_button_state:
+ 226              	.LFB65:
+  98:UserIn.c      **** }
+  99:UserIn.c      **** 
+ 100:UserIn.c      **** /**
+ 101:UserIn.c      ****  * User input process button event will check a button for state of hardware.
+ 102:UserIn.c      ****  * @param id is the button to check
+ 103:UserIn.c      ****  * @return boolean where true is active state of button, false otherwise
+ 104:UserIn.c      ****  */
+ 105:UserIn.c      **** bool userIn_check_button_state(uint8_t id){
+ 227              		.loc 1 105 0
+ 228              		.cfi_startproc
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 7
+
+
+ 229              		@ args = 0, pretend = 0, frame = 0
+ 230              		@ frame_needed = 0, uses_anonymous_args = 0
+ 231              	.LVL24:
+ 232 0000 08B5     		push	{r3, lr}
+ 233              		.cfi_def_cfa_offset 8
+ 234              		.cfi_offset 3, -8
+ 235              		.cfi_offset 14, -4
+ 106:UserIn.c      ****     return CapSense_CheckIsWidgetActive(id);
+ 236              		.loc 1 106 0
+ 237 0002 FFF7FEFF 		bl	CapSense_CheckIsWidgetActive
+ 238              	.LVL25:
+ 107:UserIn.c      **** }...
+ 239              		.loc 1 107 0
+ 240 0006 0030     		adds	r0, r0, #0
+ 241 0008 18BF     		it	ne
+ 242 000a 0120     		movne	r0, #1
+ 243 000c 08BD     		pop	{r3, pc}
+ 244              		.cfi_endproc
+ 245              	.LFE65:
+ 246              		.size	userIn_check_button_state, .-userIn_check_button_state
+ 247 000e 00BF     		.text
+ 248              	.Letext0:
+ 249              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 250              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 251              		.file 4 "UserIn.h"
+ 252              		.file 5 "Generated_Source\\PSoC5/CapSense.h"
+ 253              		.file 6 "Generated_Source\\PSoC5/CyLib.h"
+ 254              		.file 7 "Generated_Source\\PSoC5/CapSense_CSHL.h"
+ 255              		.file 8 "Generated_Source\\PSoC5/core_cm3.h"
+ 256              		.section	.debug_info,"",%progbits
+ 257              	.Ldebug_info0:
+ 258 0000 92020000 		.4byte	0x292
+ 259 0004 0400     		.2byte	0x4
+ 260 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 261 000a 04       		.byte	0x4
+ 262 000b 01       		.uleb128 0x1
+ 263 000c E1000000 		.4byte	.LASF41
+ 264 0010 0C       		.byte	0xc
+ 265 0011 DD020000 		.4byte	.LASF42
+ 266 0015 92010000 		.4byte	.LASF43
+ 267 0019 18000000 		.4byte	.Ldebug_ranges0+0x18
+ 268 001d 00000000 		.4byte	0
+ 269 0021 00000000 		.4byte	.Ldebug_line0
+ 270 0025 02       		.uleb128 0x2
+ 271 0026 00000000 		.4byte	.LASF0
+ 272 002a 02       		.byte	0x2
+ 273 002b 1B       		.byte	0x1b
+ 274 002c 30000000 		.4byte	0x30
+ 275 0030 03       		.uleb128 0x3
+ 276 0031 01       		.byte	0x1
+ 277 0032 06       		.byte	0x6
+ 278 0033 C7000000 		.4byte	.LASF2
+ 279 0037 02       		.uleb128 0x2
+ 280 0038 15000000 		.4byte	.LASF1
+ 281 003c 02       		.byte	0x2
+ 282 003d 1D       		.byte	0x1d
+ 283 003e 42000000 		.4byte	0x42
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 8
+
+
+ 284 0042 03       		.uleb128 0x3
+ 285 0043 01       		.byte	0x1
+ 286 0044 08       		.byte	0x8
+ 287 0045 D3000000 		.4byte	.LASF3
+ 288 0049 03       		.uleb128 0x3
+ 289 004a 02       		.byte	0x2
+ 290 004b 05       		.byte	0x5
+ 291 004c F6010000 		.4byte	.LASF4
+ 292 0050 02       		.uleb128 0x2
+ 293 0051 E2010000 		.4byte	.LASF5
+ 294 0055 02       		.byte	0x2
+ 295 0056 2B       		.byte	0x2b
+ 296 0057 5B000000 		.4byte	0x5b
+ 297 005b 03       		.uleb128 0x3
+ 298 005c 02       		.byte	0x2
+ 299 005d 07       		.byte	0x7
+ 300 005e 41000000 		.4byte	.LASF6
+ 301 0062 02       		.uleb128 0x2
+ 302 0063 37000000 		.4byte	.LASF7
+ 303 0067 02       		.byte	0x2
+ 304 0068 3F       		.byte	0x3f
+ 305 0069 6D000000 		.4byte	0x6d
+ 306 006d 03       		.uleb128 0x3
+ 307 006e 04       		.byte	0x4
+ 308 006f 05       		.byte	0x5
+ 309 0070 AB020000 		.4byte	.LASF8
+ 310 0074 03       		.uleb128 0x3
+ 311 0075 04       		.byte	0x4
+ 312 0076 07       		.byte	0x7
+ 313 0077 63020000 		.4byte	.LASF9
+ 314 007b 03       		.uleb128 0x3
+ 315 007c 08       		.byte	0x8
+ 316 007d 05       		.byte	0x5
+ 317 007e 86020000 		.4byte	.LASF10
+ 318 0082 03       		.uleb128 0x3
+ 319 0083 08       		.byte	0x8
+ 320 0084 07       		.byte	0x7
+ 321 0085 37020000 		.4byte	.LASF11
+ 322 0089 04       		.uleb128 0x4
+ 323 008a 04       		.byte	0x4
+ 324 008b 05       		.byte	0x5
+ 325 008c 696E7400 		.ascii	"int\000"
+ 326 0090 03       		.uleb128 0x3
+ 327 0091 04       		.byte	0x4
+ 328 0092 07       		.byte	0x7
+ 329 0093 2A020000 		.4byte	.LASF12
+ 330 0097 02       		.uleb128 0x2
+ 331 0098 A8000000 		.4byte	.LASF13
+ 332 009c 03       		.byte	0x3
+ 333 009d 14       		.byte	0x14
+ 334 009e 25000000 		.4byte	0x25
+ 335 00a2 02       		.uleb128 0x2
+ 336 00a3 4E020000 		.4byte	.LASF14
+ 337 00a7 03       		.byte	0x3
+ 338 00a8 18       		.byte	0x18
+ 339 00a9 37000000 		.4byte	0x37
+ 340 00ad 02       		.uleb128 0x2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 9
+
+
+ 341 00ae A2020000 		.4byte	.LASF15
+ 342 00b2 03       		.byte	0x3
+ 343 00b3 24       		.byte	0x24
+ 344 00b4 50000000 		.4byte	0x50
+ 345 00b8 02       		.uleb128 0x2
+ 346 00b9 75020000 		.4byte	.LASF16
+ 347 00bd 03       		.byte	0x3
+ 348 00be 2C       		.byte	0x2c
+ 349 00bf 62000000 		.4byte	0x62
+ 350 00c3 05       		.uleb128 0x5
+ 351 00c4 99020000 		.4byte	.LASF22
+ 352 00c8 01       		.byte	0x1
+ 353 00c9 42000000 		.4byte	0x42
+ 354 00cd 04       		.byte	0x4
+ 355 00ce 1F       		.byte	0x1f
+ 356 00cf F2000000 		.4byte	0xf2
+ 357 00d3 06       		.uleb128 0x6
+ 358 00d4 00020000 		.4byte	.LASF17
+ 359 00d8 00       		.byte	0
+ 360 00d9 06       		.uleb128 0x6
+ 361 00da BC000000 		.4byte	.LASF18
+ 362 00de 01       		.byte	0x1
+ 363 00df 06       		.uleb128 0x6
+ 364 00e0 1E020000 		.4byte	.LASF19
+ 365 00e4 02       		.byte	0x2
+ 366 00e5 06       		.uleb128 0x6
+ 367 00e6 E6020000 		.4byte	.LASF20
+ 368 00ea 03       		.byte	0x3
+ 369 00eb 06       		.uleb128 0x6
+ 370 00ec 93000000 		.4byte	.LASF21
+ 371 00f0 04       		.byte	0x4
+ 372 00f1 00       		.byte	0
+ 373 00f2 02       		.uleb128 0x2
+ 374 00f3 99020000 		.4byte	.LASF22
+ 375 00f7 04       		.byte	0x4
+ 376 00f8 25       		.byte	0x25
+ 377 00f9 C3000000 		.4byte	0xc3
+ 378 00fd 07       		.uleb128 0x7
+ 379 00fe 56020000 		.4byte	.LASF44
+ 380 0102 04       		.byte	0x4
+ 381 0103 04       		.byte	0x4
+ 382 0104 34       		.byte	0x34
+ 383 0105 2E010000 		.4byte	0x12e
+ 384 0109 08       		.uleb128 0x8
+ 385 010a 89010000 		.4byte	.LASF23
+ 386 010e 04       		.byte	0x4
+ 387 010f 35       		.byte	0x35
+ 388 0110 AD000000 		.4byte	0xad
+ 389 0114 00       		.byte	0
+ 390 0115 09       		.uleb128 0x9
+ 391 0116 64697200 		.ascii	"dir\000"
+ 392 011a 04       		.byte	0x4
+ 393 011b 36       		.byte	0x36
+ 394 011c 97000000 		.4byte	0x97
+ 395 0120 02       		.byte	0x2
+ 396 0121 08       		.uleb128 0x8
+ 397 0122 AF000000 		.4byte	.LASF24
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 10
+
+
+ 398 0126 04       		.byte	0x4
+ 399 0127 37       		.byte	0x37
+ 400 0128 A2000000 		.4byte	0xa2
+ 401 012c 03       		.byte	0x3
+ 402 012d 00       		.byte	0
+ 403 012e 02       		.uleb128 0x2
+ 404 012f 84000000 		.4byte	.LASF25
+ 405 0133 04       		.byte	0x4
+ 406 0134 38       		.byte	0x38
+ 407 0135 FD000000 		.4byte	0xfd
+ 408 0139 03       		.uleb128 0x3
+ 409 013a 04       		.byte	0x4
+ 410 013b 04       		.byte	0x4
+ 411 013c B6000000 		.4byte	.LASF26
+ 412 0140 03       		.uleb128 0x3
+ 413 0141 08       		.byte	0x8
+ 414 0142 04       		.byte	0x4
+ 415 0143 63000000 		.4byte	.LASF27
+ 416 0147 03       		.uleb128 0x3
+ 417 0148 01       		.byte	0x1
+ 418 0149 08       		.byte	0x8
+ 419 014a 94020000 		.4byte	.LASF28
+ 420 014e 03       		.uleb128 0x3
+ 421 014f 08       		.byte	0x8
+ 422 0150 04       		.byte	0x4
+ 423 0151 B4020000 		.4byte	.LASF29
+ 424 0155 03       		.uleb128 0x3
+ 425 0156 04       		.byte	0x4
+ 426 0157 07       		.byte	0x7
+ 427 0158 7D020000 		.4byte	.LASF30
+ 428 015c 0A       		.uleb128 0xa
+ 429 015d 09000000 		.4byte	.LASF45
+ 430 0161 01       		.byte	0x1
+ 431 0162 21       		.byte	0x21
+ 432 0163 00000000 		.4byte	.LFB63
+ 433 0167 12000000 		.4byte	.LFE63-.LFB63
+ 434 016b 01       		.uleb128 0x1
+ 435 016c 9C       		.byte	0x9c
+ 436 016d 98010000 		.4byte	0x198
+ 437 0171 0B       		.uleb128 0xb
+ 438 0172 06000000 		.4byte	.LVL0
+ 439 0176 5E020000 		.4byte	0x25e
+ 440 017a 0C       		.uleb128 0xc
+ 441 017b 0C000000 		.4byte	.LVL1
+ 442 017f 69020000 		.4byte	0x269
+ 443 0183 8E010000 		.4byte	0x18e
+ 444 0187 0D       		.uleb128 0xd
+ 445 0188 01       		.uleb128 0x1
+ 446 0189 50       		.byte	0x50
+ 447 018a 02       		.uleb128 0x2
+ 448 018b 08       		.byte	0x8
+ 449 018c 64       		.byte	0x64
+ 450 018d 00       		.byte	0
+ 451 018e 0B       		.uleb128 0xb
+ 452 018f 10000000 		.4byte	.LVL2
+ 453 0193 74020000 		.4byte	0x274
+ 454 0197 00       		.byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 11
+
+
+ 455 0198 0E       		.uleb128 0xe
+ 456 0199 6A000000 		.4byte	.LASF33
+ 457 019d 01       		.byte	0x1
+ 458 019e 2F       		.byte	0x2f
+ 459 019f F2000000 		.4byte	0xf2
+ 460 01a3 00000000 		.4byte	.LFB64
+ 461 01a7 9E000000 		.4byte	.LFE64-.LFB64
+ 462 01ab 01       		.uleb128 0x1
+ 463 01ac 9C       		.byte	0x9c
+ 464 01ad 0F020000 		.4byte	0x20f
+ 465 01b1 0F       		.uleb128 0xf
+ 466 01b2 6F626A00 		.ascii	"obj\000"
+ 467 01b6 01       		.byte	0x1
+ 468 01b7 2F       		.byte	0x2f
+ 469 01b8 0F020000 		.4byte	0x20f
+ 470 01bc 00000000 		.4byte	.LLST0
+ 471 01c0 0F       		.uleb128 0xf
+ 472 01c1 696400   		.ascii	"id\000"
+ 473 01c4 01       		.byte	0x1
+ 474 01c5 2F       		.byte	0x2f
+ 475 01c6 A2000000 		.4byte	0xa2
+ 476 01ca 37000000 		.4byte	.LLST1
+ 477 01ce 10       		.uleb128 0x10
+ 478 01cf 17020000 		.4byte	.LASF31
+ 479 01d3 01       		.byte	0x1
+ 480 01d4 36       		.byte	0x36
+ 481 01d5 F2000000 		.4byte	0xf2
+ 482 01d9 63000000 		.4byte	.LLST2
+ 483 01dd 11       		.uleb128 0x11
+ 484 01de 706F7300 		.ascii	"pos\000"
+ 485 01e2 01       		.byte	0x1
+ 486 01e3 37       		.byte	0x37
+ 487 01e4 AD000000 		.4byte	0xad
+ 488 01e8 9A000000 		.4byte	.LLST3
+ 489 01ec 12       		.uleb128 0x12
+ 490 01ed 00000000 		.4byte	.Ldebug_ranges0+0
+ 491 01f1 05020000 		.4byte	0x205
+ 492 01f5 10       		.uleb128 0x10
+ 493 01f6 ED010000 		.4byte	.LASF32
+ 494 01fa 01       		.byte	0x1
+ 495 01fb 58       		.byte	0x58
+ 496 01fc 97000000 		.4byte	0x97
+ 497 0200 B9000000 		.4byte	.LLST4
+ 498 0204 00       		.byte	0
+ 499 0205 0B       		.uleb128 0xb
+ 500 0206 0E000000 		.4byte	.LVL5
+ 501 020a 7F020000 		.4byte	0x27f
+ 502 020e 00       		.byte	0
+ 503 020f 13       		.uleb128 0x13
+ 504 0210 04       		.byte	0x4
+ 505 0211 2E010000 		.4byte	0x12e
+ 506 0215 0E       		.uleb128 0xe
+ 507 0216 6F010000 		.4byte	.LASF34
+ 508 021a 01       		.byte	0x1
+ 509 021b 69       		.byte	0x69
+ 510 021c 46020000 		.4byte	0x246
+ 511 0220 00000000 		.4byte	.LFB65
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 12
+
+
+ 512 0224 0E000000 		.4byte	.LFE65-.LFB65
+ 513 0228 01       		.uleb128 0x1
+ 514 0229 9C       		.byte	0x9c
+ 515 022a 46020000 		.4byte	0x246
+ 516 022e 0F       		.uleb128 0xf
+ 517 022f 696400   		.ascii	"id\000"
+ 518 0232 01       		.byte	0x1
+ 519 0233 69       		.byte	0x69
+ 520 0234 A2000000 		.4byte	0xa2
+ 521 0238 30010000 		.4byte	.LLST5
+ 522 023c 0B       		.uleb128 0xb
+ 523 023d 06000000 		.4byte	.LVL25
+ 524 0241 8A020000 		.4byte	0x28a
+ 525 0245 00       		.byte	0
+ 526 0246 03       		.uleb128 0x3
+ 527 0247 01       		.byte	0x1
+ 528 0248 02       		.byte	0x2
+ 529 0249 15030000 		.4byte	.LASF35
+ 530 024d 14       		.uleb128 0x14
+ 531 024e 0A020000 		.4byte	.LASF46
+ 532 0252 08       		.byte	0x8
+ 533 0253 1207     		.2byte	0x712
+ 534 0255 59020000 		.4byte	0x259
+ 535 0259 15       		.uleb128 0x15
+ 536 025a B8000000 		.4byte	0xb8
+ 537 025e 16       		.uleb128 0x16
+ 538 025f 54000000 		.4byte	.LASF36
+ 539 0263 54000000 		.4byte	.LASF36
+ 540 0267 05       		.byte	0x5
+ 541 0268 93       		.byte	0x93
+ 542 0269 16       		.uleb128 0x16
+ 543 026a 1B030000 		.4byte	.LASF37
+ 544 026e 1B030000 		.4byte	.LASF37
+ 545 0272 06       		.byte	0x6
+ 546 0273 76       		.byte	0x76
+ 547 0274 16       		.uleb128 0x16
+ 548 0275 F5020000 		.4byte	.LASF38
+ 549 0279 F5020000 		.4byte	.LASF38
+ 550 027d 07       		.byte	0x7
+ 551 027e 97       		.byte	0x97
+ 552 027f 16       		.uleb128 0x16
+ 553 0280 1F000000 		.4byte	.LASF39
+ 554 0284 1F000000 		.4byte	.LASF39
+ 555 0288 07       		.byte	0x7
+ 556 0289 A7       		.byte	0xa7
+ 557 028a 16       		.uleb128 0x16
+ 558 028b C0020000 		.4byte	.LASF40
+ 559 028f C0020000 		.4byte	.LASF40
+ 560 0293 07       		.byte	0x7
+ 561 0294 9D       		.byte	0x9d
+ 562 0295 00       		.byte	0
+ 563              		.section	.debug_abbrev,"",%progbits
+ 564              	.Ldebug_abbrev0:
+ 565 0000 01       		.uleb128 0x1
+ 566 0001 11       		.uleb128 0x11
+ 567 0002 01       		.byte	0x1
+ 568 0003 25       		.uleb128 0x25
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 13
+
+
+ 569 0004 0E       		.uleb128 0xe
+ 570 0005 13       		.uleb128 0x13
+ 571 0006 0B       		.uleb128 0xb
+ 572 0007 03       		.uleb128 0x3
+ 573 0008 0E       		.uleb128 0xe
+ 574 0009 1B       		.uleb128 0x1b
+ 575 000a 0E       		.uleb128 0xe
+ 576 000b 55       		.uleb128 0x55
+ 577 000c 17       		.uleb128 0x17
+ 578 000d 11       		.uleb128 0x11
+ 579 000e 01       		.uleb128 0x1
+ 580 000f 10       		.uleb128 0x10
+ 581 0010 17       		.uleb128 0x17
+ 582 0011 00       		.byte	0
+ 583 0012 00       		.byte	0
+ 584 0013 02       		.uleb128 0x2
+ 585 0014 16       		.uleb128 0x16
+ 586 0015 00       		.byte	0
+ 587 0016 03       		.uleb128 0x3
+ 588 0017 0E       		.uleb128 0xe
+ 589 0018 3A       		.uleb128 0x3a
+ 590 0019 0B       		.uleb128 0xb
+ 591 001a 3B       		.uleb128 0x3b
+ 592 001b 0B       		.uleb128 0xb
+ 593 001c 49       		.uleb128 0x49
+ 594 001d 13       		.uleb128 0x13
+ 595 001e 00       		.byte	0
+ 596 001f 00       		.byte	0
+ 597 0020 03       		.uleb128 0x3
+ 598 0021 24       		.uleb128 0x24
+ 599 0022 00       		.byte	0
+ 600 0023 0B       		.uleb128 0xb
+ 601 0024 0B       		.uleb128 0xb
+ 602 0025 3E       		.uleb128 0x3e
+ 603 0026 0B       		.uleb128 0xb
+ 604 0027 03       		.uleb128 0x3
+ 605 0028 0E       		.uleb128 0xe
+ 606 0029 00       		.byte	0
+ 607 002a 00       		.byte	0
+ 608 002b 04       		.uleb128 0x4
+ 609 002c 24       		.uleb128 0x24
+ 610 002d 00       		.byte	0
+ 611 002e 0B       		.uleb128 0xb
+ 612 002f 0B       		.uleb128 0xb
+ 613 0030 3E       		.uleb128 0x3e
+ 614 0031 0B       		.uleb128 0xb
+ 615 0032 03       		.uleb128 0x3
+ 616 0033 08       		.uleb128 0x8
+ 617 0034 00       		.byte	0
+ 618 0035 00       		.byte	0
+ 619 0036 05       		.uleb128 0x5
+ 620 0037 04       		.uleb128 0x4
+ 621 0038 01       		.byte	0x1
+ 622 0039 03       		.uleb128 0x3
+ 623 003a 0E       		.uleb128 0xe
+ 624 003b 0B       		.uleb128 0xb
+ 625 003c 0B       		.uleb128 0xb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 14
+
+
+ 626 003d 49       		.uleb128 0x49
+ 627 003e 13       		.uleb128 0x13
+ 628 003f 3A       		.uleb128 0x3a
+ 629 0040 0B       		.uleb128 0xb
+ 630 0041 3B       		.uleb128 0x3b
+ 631 0042 0B       		.uleb128 0xb
+ 632 0043 01       		.uleb128 0x1
+ 633 0044 13       		.uleb128 0x13
+ 634 0045 00       		.byte	0
+ 635 0046 00       		.byte	0
+ 636 0047 06       		.uleb128 0x6
+ 637 0048 28       		.uleb128 0x28
+ 638 0049 00       		.byte	0
+ 639 004a 03       		.uleb128 0x3
+ 640 004b 0E       		.uleb128 0xe
+ 641 004c 1C       		.uleb128 0x1c
+ 642 004d 0B       		.uleb128 0xb
+ 643 004e 00       		.byte	0
+ 644 004f 00       		.byte	0
+ 645 0050 07       		.uleb128 0x7
+ 646 0051 13       		.uleb128 0x13
+ 647 0052 01       		.byte	0x1
+ 648 0053 03       		.uleb128 0x3
+ 649 0054 0E       		.uleb128 0xe
+ 650 0055 0B       		.uleb128 0xb
+ 651 0056 0B       		.uleb128 0xb
+ 652 0057 3A       		.uleb128 0x3a
+ 653 0058 0B       		.uleb128 0xb
+ 654 0059 3B       		.uleb128 0x3b
+ 655 005a 0B       		.uleb128 0xb
+ 656 005b 01       		.uleb128 0x1
+ 657 005c 13       		.uleb128 0x13
+ 658 005d 00       		.byte	0
+ 659 005e 00       		.byte	0
+ 660 005f 08       		.uleb128 0x8
+ 661 0060 0D       		.uleb128 0xd
+ 662 0061 00       		.byte	0
+ 663 0062 03       		.uleb128 0x3
+ 664 0063 0E       		.uleb128 0xe
+ 665 0064 3A       		.uleb128 0x3a
+ 666 0065 0B       		.uleb128 0xb
+ 667 0066 3B       		.uleb128 0x3b
+ 668 0067 0B       		.uleb128 0xb
+ 669 0068 49       		.uleb128 0x49
+ 670 0069 13       		.uleb128 0x13
+ 671 006a 38       		.uleb128 0x38
+ 672 006b 0B       		.uleb128 0xb
+ 673 006c 00       		.byte	0
+ 674 006d 00       		.byte	0
+ 675 006e 09       		.uleb128 0x9
+ 676 006f 0D       		.uleb128 0xd
+ 677 0070 00       		.byte	0
+ 678 0071 03       		.uleb128 0x3
+ 679 0072 08       		.uleb128 0x8
+ 680 0073 3A       		.uleb128 0x3a
+ 681 0074 0B       		.uleb128 0xb
+ 682 0075 3B       		.uleb128 0x3b
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 15
+
+
+ 683 0076 0B       		.uleb128 0xb
+ 684 0077 49       		.uleb128 0x49
+ 685 0078 13       		.uleb128 0x13
+ 686 0079 38       		.uleb128 0x38
+ 687 007a 0B       		.uleb128 0xb
+ 688 007b 00       		.byte	0
+ 689 007c 00       		.byte	0
+ 690 007d 0A       		.uleb128 0xa
+ 691 007e 2E       		.uleb128 0x2e
+ 692 007f 01       		.byte	0x1
+ 693 0080 3F       		.uleb128 0x3f
+ 694 0081 19       		.uleb128 0x19
+ 695 0082 03       		.uleb128 0x3
+ 696 0083 0E       		.uleb128 0xe
+ 697 0084 3A       		.uleb128 0x3a
+ 698 0085 0B       		.uleb128 0xb
+ 699 0086 3B       		.uleb128 0x3b
+ 700 0087 0B       		.uleb128 0xb
+ 701 0088 27       		.uleb128 0x27
+ 702 0089 19       		.uleb128 0x19
+ 703 008a 11       		.uleb128 0x11
+ 704 008b 01       		.uleb128 0x1
+ 705 008c 12       		.uleb128 0x12
+ 706 008d 06       		.uleb128 0x6
+ 707 008e 40       		.uleb128 0x40
+ 708 008f 18       		.uleb128 0x18
+ 709 0090 9742     		.uleb128 0x2117
+ 710 0092 19       		.uleb128 0x19
+ 711 0093 01       		.uleb128 0x1
+ 712 0094 13       		.uleb128 0x13
+ 713 0095 00       		.byte	0
+ 714 0096 00       		.byte	0
+ 715 0097 0B       		.uleb128 0xb
+ 716 0098 898201   		.uleb128 0x4109
+ 717 009b 00       		.byte	0
+ 718 009c 11       		.uleb128 0x11
+ 719 009d 01       		.uleb128 0x1
+ 720 009e 31       		.uleb128 0x31
+ 721 009f 13       		.uleb128 0x13
+ 722 00a0 00       		.byte	0
+ 723 00a1 00       		.byte	0
+ 724 00a2 0C       		.uleb128 0xc
+ 725 00a3 898201   		.uleb128 0x4109
+ 726 00a6 01       		.byte	0x1
+ 727 00a7 11       		.uleb128 0x11
+ 728 00a8 01       		.uleb128 0x1
+ 729 00a9 31       		.uleb128 0x31
+ 730 00aa 13       		.uleb128 0x13
+ 731 00ab 01       		.uleb128 0x1
+ 732 00ac 13       		.uleb128 0x13
+ 733 00ad 00       		.byte	0
+ 734 00ae 00       		.byte	0
+ 735 00af 0D       		.uleb128 0xd
+ 736 00b0 8A8201   		.uleb128 0x410a
+ 737 00b3 00       		.byte	0
+ 738 00b4 02       		.uleb128 0x2
+ 739 00b5 18       		.uleb128 0x18
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 16
+
+
+ 740 00b6 9142     		.uleb128 0x2111
+ 741 00b8 18       		.uleb128 0x18
+ 742 00b9 00       		.byte	0
+ 743 00ba 00       		.byte	0
+ 744 00bb 0E       		.uleb128 0xe
+ 745 00bc 2E       		.uleb128 0x2e
+ 746 00bd 01       		.byte	0x1
+ 747 00be 3F       		.uleb128 0x3f
+ 748 00bf 19       		.uleb128 0x19
+ 749 00c0 03       		.uleb128 0x3
+ 750 00c1 0E       		.uleb128 0xe
+ 751 00c2 3A       		.uleb128 0x3a
+ 752 00c3 0B       		.uleb128 0xb
+ 753 00c4 3B       		.uleb128 0x3b
+ 754 00c5 0B       		.uleb128 0xb
+ 755 00c6 27       		.uleb128 0x27
+ 756 00c7 19       		.uleb128 0x19
+ 757 00c8 49       		.uleb128 0x49
+ 758 00c9 13       		.uleb128 0x13
+ 759 00ca 11       		.uleb128 0x11
+ 760 00cb 01       		.uleb128 0x1
+ 761 00cc 12       		.uleb128 0x12
+ 762 00cd 06       		.uleb128 0x6
+ 763 00ce 40       		.uleb128 0x40
+ 764 00cf 18       		.uleb128 0x18
+ 765 00d0 9742     		.uleb128 0x2117
+ 766 00d2 19       		.uleb128 0x19
+ 767 00d3 01       		.uleb128 0x1
+ 768 00d4 13       		.uleb128 0x13
+ 769 00d5 00       		.byte	0
+ 770 00d6 00       		.byte	0
+ 771 00d7 0F       		.uleb128 0xf
+ 772 00d8 05       		.uleb128 0x5
+ 773 00d9 00       		.byte	0
+ 774 00da 03       		.uleb128 0x3
+ 775 00db 08       		.uleb128 0x8
+ 776 00dc 3A       		.uleb128 0x3a
+ 777 00dd 0B       		.uleb128 0xb
+ 778 00de 3B       		.uleb128 0x3b
+ 779 00df 0B       		.uleb128 0xb
+ 780 00e0 49       		.uleb128 0x49
+ 781 00e1 13       		.uleb128 0x13
+ 782 00e2 02       		.uleb128 0x2
+ 783 00e3 17       		.uleb128 0x17
+ 784 00e4 00       		.byte	0
+ 785 00e5 00       		.byte	0
+ 786 00e6 10       		.uleb128 0x10
+ 787 00e7 34       		.uleb128 0x34
+ 788 00e8 00       		.byte	0
+ 789 00e9 03       		.uleb128 0x3
+ 790 00ea 0E       		.uleb128 0xe
+ 791 00eb 3A       		.uleb128 0x3a
+ 792 00ec 0B       		.uleb128 0xb
+ 793 00ed 3B       		.uleb128 0x3b
+ 794 00ee 0B       		.uleb128 0xb
+ 795 00ef 49       		.uleb128 0x49
+ 796 00f0 13       		.uleb128 0x13
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 17
+
+
+ 797 00f1 02       		.uleb128 0x2
+ 798 00f2 17       		.uleb128 0x17
+ 799 00f3 00       		.byte	0
+ 800 00f4 00       		.byte	0
+ 801 00f5 11       		.uleb128 0x11
+ 802 00f6 34       		.uleb128 0x34
+ 803 00f7 00       		.byte	0
+ 804 00f8 03       		.uleb128 0x3
+ 805 00f9 08       		.uleb128 0x8
+ 806 00fa 3A       		.uleb128 0x3a
+ 807 00fb 0B       		.uleb128 0xb
+ 808 00fc 3B       		.uleb128 0x3b
+ 809 00fd 0B       		.uleb128 0xb
+ 810 00fe 49       		.uleb128 0x49
+ 811 00ff 13       		.uleb128 0x13
+ 812 0100 02       		.uleb128 0x2
+ 813 0101 17       		.uleb128 0x17
+ 814 0102 00       		.byte	0
+ 815 0103 00       		.byte	0
+ 816 0104 12       		.uleb128 0x12
+ 817 0105 0B       		.uleb128 0xb
+ 818 0106 01       		.byte	0x1
+ 819 0107 55       		.uleb128 0x55
+ 820 0108 17       		.uleb128 0x17
+ 821 0109 01       		.uleb128 0x1
+ 822 010a 13       		.uleb128 0x13
+ 823 010b 00       		.byte	0
+ 824 010c 00       		.byte	0
+ 825 010d 13       		.uleb128 0x13
+ 826 010e 0F       		.uleb128 0xf
+ 827 010f 00       		.byte	0
+ 828 0110 0B       		.uleb128 0xb
+ 829 0111 0B       		.uleb128 0xb
+ 830 0112 49       		.uleb128 0x49
+ 831 0113 13       		.uleb128 0x13
+ 832 0114 00       		.byte	0
+ 833 0115 00       		.byte	0
+ 834 0116 14       		.uleb128 0x14
+ 835 0117 34       		.uleb128 0x34
+ 836 0118 00       		.byte	0
+ 837 0119 03       		.uleb128 0x3
+ 838 011a 0E       		.uleb128 0xe
+ 839 011b 3A       		.uleb128 0x3a
+ 840 011c 0B       		.uleb128 0xb
+ 841 011d 3B       		.uleb128 0x3b
+ 842 011e 05       		.uleb128 0x5
+ 843 011f 49       		.uleb128 0x49
+ 844 0120 13       		.uleb128 0x13
+ 845 0121 3F       		.uleb128 0x3f
+ 846 0122 19       		.uleb128 0x19
+ 847 0123 3C       		.uleb128 0x3c
+ 848 0124 19       		.uleb128 0x19
+ 849 0125 00       		.byte	0
+ 850 0126 00       		.byte	0
+ 851 0127 15       		.uleb128 0x15
+ 852 0128 35       		.uleb128 0x35
+ 853 0129 00       		.byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 18
+
+
+ 854 012a 49       		.uleb128 0x49
+ 855 012b 13       		.uleb128 0x13
+ 856 012c 00       		.byte	0
+ 857 012d 00       		.byte	0
+ 858 012e 16       		.uleb128 0x16
+ 859 012f 2E       		.uleb128 0x2e
+ 860 0130 00       		.byte	0
+ 861 0131 3F       		.uleb128 0x3f
+ 862 0132 19       		.uleb128 0x19
+ 863 0133 3C       		.uleb128 0x3c
+ 864 0134 19       		.uleb128 0x19
+ 865 0135 6E       		.uleb128 0x6e
+ 866 0136 0E       		.uleb128 0xe
+ 867 0137 03       		.uleb128 0x3
+ 868 0138 0E       		.uleb128 0xe
+ 869 0139 3A       		.uleb128 0x3a
+ 870 013a 0B       		.uleb128 0xb
+ 871 013b 3B       		.uleb128 0x3b
+ 872 013c 0B       		.uleb128 0xb
+ 873 013d 00       		.byte	0
+ 874 013e 00       		.byte	0
+ 875 013f 00       		.byte	0
+ 876              		.section	.debug_loc,"",%progbits
+ 877              	.Ldebug_loc0:
+ 878              	.LLST0:
+ 879 0000 00000000 		.4byte	.LVL3
+ 880 0004 0A000000 		.4byte	.LVL4
+ 881 0008 0100     		.2byte	0x1
+ 882 000a 50       		.byte	0x50
+ 883 000b 0A000000 		.4byte	.LVL4
+ 884 000f 9A000000 		.4byte	.LVL22
+ 885 0013 0100     		.2byte	0x1
+ 886 0015 54       		.byte	0x54
+ 887 0016 9A000000 		.4byte	.LVL22
+ 888 001a 9C000000 		.4byte	.LVL23
+ 889 001e 0100     		.2byte	0x1
+ 890 0020 50       		.byte	0x50
+ 891 0021 9C000000 		.4byte	.LVL23
+ 892 0025 9E000000 		.4byte	.LFE64
+ 893 0029 0400     		.2byte	0x4
+ 894 002b F3       		.byte	0xf3
+ 895 002c 01       		.uleb128 0x1
+ 896 002d 50       		.byte	0x50
+ 897 002e 9F       		.byte	0x9f
+ 898 002f 00000000 		.4byte	0
+ 899 0033 00000000 		.4byte	0
+ 900              	.LLST1:
+ 901 0037 00000000 		.4byte	.LVL3
+ 902 003b 0D000000 		.4byte	.LVL5-1
+ 903 003f 0100     		.2byte	0x1
+ 904 0041 51       		.byte	0x51
+ 905 0042 0D000000 		.4byte	.LVL5-1
+ 906 0046 9A000000 		.4byte	.LVL22
+ 907 004a 0400     		.2byte	0x4
+ 908 004c F3       		.byte	0xf3
+ 909 004d 01       		.uleb128 0x1
+ 910 004e 51       		.byte	0x51
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 19
+
+
+ 911 004f 9F       		.byte	0x9f
+ 912 0050 9A000000 		.4byte	.LVL22
+ 913 0054 9E000000 		.4byte	.LFE64
+ 914 0058 0100     		.2byte	0x1
+ 915 005a 51       		.byte	0x51
+ 916 005b 00000000 		.4byte	0
+ 917 005f 00000000 		.4byte	0
+ 918              	.LLST2:
+ 919 0063 1C000000 		.4byte	.LVL6
+ 920 0067 26000000 		.4byte	.LVL7
+ 921 006b 0200     		.2byte	0x2
+ 922 006d 34       		.byte	0x34
+ 923 006e 9F       		.byte	0x9f
+ 924 006f 54000000 		.4byte	.LVL8
+ 925 0073 7E000000 		.4byte	.LVL16
+ 926 0077 0200     		.2byte	0x2
+ 927 0079 34       		.byte	0x34
+ 928 007a 9F       		.byte	0x9f
+ 929 007b 8E000000 		.4byte	.LVL17
+ 930 007f 94000000 		.4byte	.LVL20
+ 931 0083 0200     		.2byte	0x2
+ 932 0085 34       		.byte	0x34
+ 933 0086 9F       		.byte	0x9f
+ 934 0087 94000000 		.4byte	.LVL20
+ 935 008b 9A000000 		.4byte	.LVL22
+ 936 008f 0100     		.2byte	0x1
+ 937 0091 53       		.byte	0x53
+ 938 0092 00000000 		.4byte	0
+ 939 0096 00000000 		.4byte	0
+ 940              	.LLST3:
+ 941 009a 0E000000 		.4byte	.LVL5
+ 942 009e 98000000 		.4byte	.LVL21
+ 943 00a2 0100     		.2byte	0x1
+ 944 00a4 50       		.byte	0x50
+ 945 00a5 98000000 		.4byte	.LVL21
+ 946 00a9 9A000000 		.4byte	.LVL22
+ 947 00ad 0200     		.2byte	0x2
+ 948 00af 74       		.byte	0x74
+ 949 00b0 00       		.sleb128 0
+ 950 00b1 00000000 		.4byte	0
+ 951 00b5 00000000 		.4byte	0
+ 952              	.LLST4:
+ 953 00b9 5A000000 		.4byte	.LVL9
+ 954 00bd 64000000 		.4byte	.LVL10
+ 955 00c1 0100     		.2byte	0x1
+ 956 00c3 53       		.byte	0x53
+ 957 00c4 64000000 		.4byte	.LVL10
+ 958 00c8 66000000 		.4byte	.LVL11
+ 959 00cc 0C00     		.2byte	0xc
+ 960 00ce 72       		.byte	0x72
+ 961 00cf 00       		.sleb128 0
+ 962 00d0 74       		.byte	0x74
+ 963 00d1 00       		.sleb128 0
+ 964 00d2 94       		.byte	0x94
+ 965 00d3 02       		.byte	0x2
+ 966 00d4 0A       		.byte	0xa
+ 967 00d5 FFFF     		.2byte	0xffff
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 20
+
+
+ 968 00d7 1A       		.byte	0x1a
+ 969 00d8 1C       		.byte	0x1c
+ 970 00d9 9F       		.byte	0x9f
+ 971 00da 66000000 		.4byte	.LVL11
+ 972 00de 68000000 		.4byte	.LVL12
+ 973 00e2 0100     		.2byte	0x1
+ 974 00e4 53       		.byte	0x53
+ 975 00e5 68000000 		.4byte	.LVL12
+ 976 00e9 6A000000 		.4byte	.LVL13
+ 977 00ed 0C00     		.2byte	0xc
+ 978 00ef 72       		.byte	0x72
+ 979 00f0 00       		.sleb128 0
+ 980 00f1 74       		.byte	0x74
+ 981 00f2 00       		.sleb128 0
+ 982 00f3 94       		.byte	0x94
+ 983 00f4 02       		.byte	0x2
+ 984 00f5 0A       		.byte	0xa
+ 985 00f6 FFFF     		.2byte	0xffff
+ 986 00f8 1A       		.byte	0x1a
+ 987 00f9 1C       		.byte	0x1c
+ 988 00fa 9F       		.byte	0x9f
+ 989 00fb 6A000000 		.4byte	.LVL13
+ 990 00ff 7C000000 		.4byte	.LVL15
+ 991 0103 0100     		.2byte	0x1
+ 992 0105 53       		.byte	0x53
+ 993 0106 7C000000 		.4byte	.LVL15
+ 994 010a 7E000000 		.4byte	.LVL16
+ 995 010e 0200     		.2byte	0x2
+ 996 0110 74       		.byte	0x74
+ 997 0111 02       		.sleb128 2
+ 998 0112 8E000000 		.4byte	.LVL17
+ 999 0116 90000000 		.4byte	.LVL18
+ 1000 011a 0100     		.2byte	0x1
+ 1001 011c 53       		.byte	0x53
+ 1002 011d 92000000 		.4byte	.LVL19
+ 1003 0121 94000000 		.4byte	.LVL20
+ 1004 0125 0100     		.2byte	0x1
+ 1005 0127 53       		.byte	0x53
+ 1006 0128 00000000 		.4byte	0
+ 1007 012c 00000000 		.4byte	0
+ 1008              	.LLST5:
+ 1009 0130 00000000 		.4byte	.LVL24
+ 1010 0134 05000000 		.4byte	.LVL25-1
+ 1011 0138 0100     		.2byte	0x1
+ 1012 013a 50       		.byte	0x50
+ 1013 013b 05000000 		.4byte	.LVL25-1
+ 1014 013f 0E000000 		.4byte	.LFE65
+ 1015 0143 0400     		.2byte	0x4
+ 1016 0145 F3       		.byte	0xf3
+ 1017 0146 01       		.uleb128 0x1
+ 1018 0147 50       		.byte	0x50
+ 1019 0148 9F       		.byte	0x9f
+ 1020 0149 00000000 		.4byte	0
+ 1021 014d 00000000 		.4byte	0
+ 1022              		.section	.debug_aranges,"",%progbits
+ 1023 0000 2C000000 		.4byte	0x2c
+ 1024 0004 0200     		.2byte	0x2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 21
+
+
+ 1025 0006 00000000 		.4byte	.Ldebug_info0
+ 1026 000a 04       		.byte	0x4
+ 1027 000b 00       		.byte	0
+ 1028 000c 0000     		.2byte	0
+ 1029 000e 0000     		.2byte	0
+ 1030 0010 00000000 		.4byte	.LFB63
+ 1031 0014 12000000 		.4byte	.LFE63-.LFB63
+ 1032 0018 00000000 		.4byte	.LFB64
+ 1033 001c 9E000000 		.4byte	.LFE64-.LFB64
+ 1034 0020 00000000 		.4byte	.LFB65
+ 1035 0024 0E000000 		.4byte	.LFE65-.LFB65
+ 1036 0028 00000000 		.4byte	0
+ 1037 002c 00000000 		.4byte	0
+ 1038              		.section	.debug_ranges,"",%progbits
+ 1039              	.Ldebug_ranges0:
+ 1040 0000 54000000 		.4byte	.LBB2
+ 1041 0004 7E000000 		.4byte	.LBE2
+ 1042 0008 8E000000 		.4byte	.LBB3
+ 1043 000c 94000000 		.4byte	.LBE3
+ 1044 0010 00000000 		.4byte	0
+ 1045 0014 00000000 		.4byte	0
+ 1046 0018 00000000 		.4byte	.LFB63
+ 1047 001c 12000000 		.4byte	.LFE63
+ 1048 0020 00000000 		.4byte	.LFB64
+ 1049 0024 9E000000 		.4byte	.LFE64
+ 1050 0028 00000000 		.4byte	.LFB65
+ 1051 002c 0E000000 		.4byte	.LFE65
+ 1052 0030 00000000 		.4byte	0
+ 1053 0034 00000000 		.4byte	0
+ 1054              		.section	.debug_line,"",%progbits
+ 1055              	.Ldebug_line0:
+ 1056 0000 ED010000 		.section	.debug_str,"MS",%progbits,1
+ 1056      02007901 
+ 1056      00000201 
+ 1056      FB0E0D00 
+ 1056      01010101 
+ 1057              	.LASF0:
+ 1058 0000 5F5F696E 		.ascii	"__int8_t\000"
+ 1058      74385F74 
+ 1058      00
+ 1059              	.LASF45:
+ 1060 0009 75736572 		.ascii	"userIn_init\000"
+ 1060      496E5F69 
+ 1060      6E697400 
+ 1061              	.LASF1:
+ 1062 0015 5F5F7569 		.ascii	"__uint8_t\000"
+ 1062      6E74385F 
+ 1062      7400
+ 1063              	.LASF39:
+ 1064 001f 43617053 		.ascii	"CapSense_GetCentroidPos\000"
+ 1064      656E7365 
+ 1064      5F476574 
+ 1064      43656E74 
+ 1064      726F6964 
+ 1065              	.LASF7:
+ 1066 0037 5F5F696E 		.ascii	"__int32_t\000"
+ 1066      7433325F 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 22
+
+
+ 1066      7400
+ 1067              	.LASF6:
+ 1068 0041 73686F72 		.ascii	"short unsigned int\000"
+ 1068      7420756E 
+ 1068      7369676E 
+ 1068      65642069 
+ 1068      6E7400
+ 1069              	.LASF36:
+ 1070 0054 43617053 		.ascii	"CapSense_Start\000"
+ 1070      656E7365 
+ 1070      5F537461 
+ 1070      727400
+ 1071              	.LASF27:
+ 1072 0063 646F7562 		.ascii	"double\000"
+ 1072      6C6500
+ 1073              	.LASF33:
+ 1074 006a 75736572 		.ascii	"userIn_check_slider_state\000"
+ 1074      496E5F63 
+ 1074      6865636B 
+ 1074      5F736C69 
+ 1074      6465725F 
+ 1075              	.LASF25:
+ 1076 0084 536C6964 		.ascii	"Slider_Event_t\000"
+ 1076      65725F45 
+ 1076      76656E74 
+ 1076      5F7400
+ 1077              	.LASF21:
+ 1078 0093 534C4944 		.ascii	"SLIDE_NOT_DETERMINED\000"
+ 1078      455F4E4F 
+ 1078      545F4445 
+ 1078      5445524D 
+ 1078      494E4544 
+ 1079              	.LASF13:
+ 1080 00a8 696E7438 		.ascii	"int8_t\000"
+ 1080      5F7400
+ 1081              	.LASF24:
+ 1082 00af 6F726967 		.ascii	"origin\000"
+ 1082      696E00
+ 1083              	.LASF26:
+ 1084 00b6 666C6F61 		.ascii	"float\000"
+ 1084      7400
+ 1085              	.LASF18:
+ 1086 00bc 534C4944 		.ascii	"SLIDE_LEFT\000"
+ 1086      455F4C45 
+ 1086      465400
+ 1087              	.LASF2:
+ 1088 00c7 7369676E 		.ascii	"signed char\000"
+ 1088      65642063 
+ 1088      68617200 
+ 1089              	.LASF3:
+ 1090 00d3 756E7369 		.ascii	"unsigned char\000"
+ 1090      676E6564 
+ 1090      20636861 
+ 1090      7200
+ 1091              	.LASF41:
+ 1092 00e1 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 1092      43313120 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 23
+
+
+ 1092      352E342E 
+ 1092      31203230 
+ 1092      31363036 
+ 1093 0114 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m3 -mthumb -g -O"
+ 1093      20726576 
+ 1093      6973696F 
+ 1093      6E203233 
+ 1093      37373135 
+ 1094 0147 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 1094      66756E63 
+ 1094      74696F6E 
+ 1094      2D736563 
+ 1094      74696F6E 
+ 1095              	.LASF34:
+ 1096 016f 75736572 		.ascii	"userIn_check_button_state\000"
+ 1096      496E5F63 
+ 1096      6865636B 
+ 1096      5F627574 
+ 1096      746F6E5F 
+ 1097              	.LASF23:
+ 1098 0189 70726576 		.ascii	"prev_val\000"
+ 1098      5F76616C 
+ 1098      00
+ 1099              	.LASF43:
+ 1100 0192 433A5C55 		.ascii	"C:\\Users\\henrichsc\\Desktop\\School\\Senior_year\\"
+ 1100      73657273 
+ 1100      5C68656E 
+ 1100      72696368 
+ 1100      73635C44 
+ 1101 01c0 66616C6C 		.ascii	"fall\\CE4920\\lab\\Milestone_6.cydsn\000"
+ 1101      5C434534 
+ 1101      3932305C 
+ 1101      6C61625C 
+ 1101      4D696C65 
+ 1102              	.LASF5:
+ 1103 01e2 5F5F7569 		.ascii	"__uint16_t\000"
+ 1103      6E743136 
+ 1103      5F7400
+ 1104              	.LASF32:
+ 1105 01ed 63757272 		.ascii	"curr_dir\000"
+ 1105      5F646972 
+ 1105      00
+ 1106              	.LASF4:
+ 1107 01f6 73686F72 		.ascii	"short int\000"
+ 1107      7420696E 
+ 1107      7400
+ 1108              	.LASF17:
+ 1109 0200 534C4944 		.ascii	"SLIDE_OFF\000"
+ 1109      455F4F46 
+ 1109      4600
+ 1110              	.LASF46:
+ 1111 020a 49544D5F 		.ascii	"ITM_RxBuffer\000"
+ 1111      52784275 
+ 1111      66666572 
+ 1111      00
+ 1112              	.LASF31:
+ 1113 0217 72657456 		.ascii	"retVal\000"
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 24
+
+
+ 1113      616C00
+ 1114              	.LASF19:
+ 1115 021e 534C4944 		.ascii	"SLIDE_RIGHT\000"
+ 1115      455F5249 
+ 1115      47485400 
+ 1116              	.LASF12:
+ 1117 022a 756E7369 		.ascii	"unsigned int\000"
+ 1117      676E6564 
+ 1117      20696E74 
+ 1117      00
+ 1118              	.LASF11:
+ 1119 0237 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 1119      206C6F6E 
+ 1119      6720756E 
+ 1119      7369676E 
+ 1119      65642069 
+ 1120              	.LASF14:
+ 1121 024e 75696E74 		.ascii	"uint8_t\000"
+ 1121      385F7400 
+ 1122              	.LASF44:
+ 1123 0256 536C6964 		.ascii	"Slider_Event\000"
+ 1123      65725F45 
+ 1123      76656E74 
+ 1123      00
+ 1124              	.LASF9:
+ 1125 0263 6C6F6E67 		.ascii	"long unsigned int\000"
+ 1125      20756E73 
+ 1125      69676E65 
+ 1125      6420696E 
+ 1125      7400
+ 1126              	.LASF16:
+ 1127 0275 696E7433 		.ascii	"int32_t\000"
+ 1127      325F7400 
+ 1128              	.LASF30:
+ 1129 027d 73697A65 		.ascii	"sizetype\000"
+ 1129      74797065 
+ 1129      00
+ 1130              	.LASF10:
+ 1131 0286 6C6F6E67 		.ascii	"long long int\000"
+ 1131      206C6F6E 
+ 1131      6720696E 
+ 1131      7400
+ 1132              	.LASF28:
+ 1133 0294 63686172 		.ascii	"char\000"
+ 1133      00
+ 1134              	.LASF22:
+ 1135 0299 536C6964 		.ascii	"Slider_e\000"
+ 1135      65725F65 
+ 1135      00
+ 1136              	.LASF15:
+ 1137 02a2 75696E74 		.ascii	"uint16_t\000"
+ 1137      31365F74 
+ 1137      00
+ 1138              	.LASF8:
+ 1139 02ab 6C6F6E67 		.ascii	"long int\000"
+ 1139      20696E74 
+ 1139      00
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccS5aEij.s 			page 25
+
+
+ 1140              	.LASF29:
+ 1141 02b4 6C6F6E67 		.ascii	"long double\000"
+ 1141      20646F75 
+ 1141      626C6500 
+ 1142              	.LASF40:
+ 1143 02c0 43617053 		.ascii	"CapSense_CheckIsWidgetActive\000"
+ 1143      656E7365 
+ 1143      5F436865 
+ 1143      636B4973 
+ 1143      57696467 
+ 1144              	.LASF42:
+ 1145 02dd 55736572 		.ascii	"UserIn.c\000"
+ 1145      496E2E63 
+ 1145      00
+ 1146              	.LASF20:
+ 1147 02e6 534C4944 		.ascii	"SLIDE_NO_MATCH\000"
+ 1147      455F4E4F 
+ 1147      5F4D4154 
+ 1147      434800
+ 1148              	.LASF38:
+ 1149 02f5 43617053 		.ascii	"CapSense_InitializeAllBaselines\000"
+ 1149      656E7365 
+ 1149      5F496E69 
+ 1149      7469616C 
+ 1149      697A6541 
+ 1150              	.LASF35:
+ 1151 0315 5F426F6F 		.ascii	"_Bool\000"
+ 1151      6C00
+ 1152              	.LASF37:
+ 1153 031b 43794465 		.ascii	"CyDelay\000"
+ 1153      6C617900 
+ 1154              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

@@ -1,0 +1,2179 @@
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"cymetadata.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.global	cy_metadata
+  20              		.global	cy_meta_flashprotect
+  21              		.global	cy_meta_wonvl
+  22              		.global	cy_meta_custnvl
+  23              		.global	cy_meta_configecc
+  24              		.section	.cyconfigecc,"a",%progbits
+  25              		.align	2
+  26              		.type	cy_meta_configecc, %object
+  27              		.size	cy_meta_configecc, 1584
+  28              	cy_meta_configecc:
+  29 0000 01       		.byte	1
+  30 0001 45       		.byte	69
+  31 0002 00       		.byte	0
+  32 0003 40       		.byte	64
+  33 0004 04       		.byte	4
+  34 0005 4F       		.byte	79
+  35 0006 00       		.byte	0
+  36 0007 40       		.byte	64
+  37 0008 05       		.byte	5
+  38 0009 52       		.byte	82
+  39 000a 00       		.byte	0
+  40 000b 40       		.byte	64
+  41 000c 08       		.byte	8
+  42 000d 64       		.byte	100
+  43 000e 00       		.byte	0
+  44 000f 40       		.byte	64
+  45 0010 03       		.byte	3
+  46 0011 65       		.byte	101
+  47 0012 00       		.byte	0
+  48 0013 40       		.byte	64
+  49 0014 02       		.byte	2
+  50 0015 01       		.byte	1
+  51 0016 01       		.byte	1
+  52 0017 40       		.byte	64
+  53 0018 03       		.byte	3
+  54 0019 03       		.byte	3
+  55 001a 01       		.byte	1
+  56 001b 40       		.byte	64
+  57 001c 02       		.byte	2
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 2
+
+
+  58 001d 05       		.byte	5
+  59 001e 01       		.byte	1
+  60 001f 40       		.byte	64
+  61 0020 02       		.byte	2
+  62 0021 07       		.byte	7
+  63 0022 01       		.byte	1
+  64 0023 40       		.byte	64
+  65 0024 04       		.byte	4
+  66 0025 09       		.byte	9
+  67 0026 01       		.byte	1
+  68 0027 40       		.byte	64
+  69 0028 3F       		.byte	63
+  70 0029 0A       		.byte	10
+  71 002a 01       		.byte	1
+  72 002b 40       		.byte	64
+  73 002c 3C       		.byte	60
+  74 002d 0B       		.byte	11
+  75 002e 01       		.byte	1
+  76 002f 40       		.byte	64
+  77 0030 49       		.byte	73
+  78 0031 0C       		.byte	12
+  79 0032 01       		.byte	1
+  80 0033 40       		.byte	64
+  81 0034 3F       		.byte	63
+  82 0035 0D       		.byte	13
+  83 0036 01       		.byte	1
+  84 0037 40       		.byte	64
+  85 0038 4F       		.byte	79
+  86 0039 0E       		.byte	14
+  87 003a 01       		.byte	1
+  88 003b 40       		.byte	64
+  89 003c 2C       		.byte	44
+  90 003d 0F       		.byte	15
+  91 003e 01       		.byte	1
+  92 003f 40       		.byte	64
+  93 0040 3A       		.byte	58
+  94 0041 14       		.byte	20
+  95 0042 01       		.byte	1
+  96 0043 40       		.byte	64
+  97 0044 1D       		.byte	29
+  98 0045 15       		.byte	21
+  99 0046 01       		.byte	1
+ 100 0047 40       		.byte	64
+ 101 0048 33       		.byte	51
+ 102 0049 16       		.byte	22
+ 103 004a 01       		.byte	1
+ 104 004b 40       		.byte	64
+ 105 004c 19       		.byte	25
+ 106 004d 17       		.byte	23
+ 107 004e 01       		.byte	1
+ 108 004f 40       		.byte	64
+ 109 0050 01       		.byte	1
+ 110 0051 19       		.byte	25
+ 111 0052 01       		.byte	1
+ 112 0053 40       		.byte	64
+ 113 0054 0A       		.byte	10
+ 114 0055 40       		.byte	64
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 3
+
+
+ 115 0056 01       		.byte	1
+ 116 0057 40       		.byte	64
+ 117 0058 0F       		.byte	15
+ 118 0059 41       		.byte	65
+ 119 005a 01       		.byte	1
+ 120 005b 40       		.byte	64
+ 121 005c 0B       		.byte	11
+ 122 005d 42       		.byte	66
+ 123 005e 01       		.byte	1
+ 124 005f 40       		.byte	64
+ 125 0060 11       		.byte	17
+ 126 0061 43       		.byte	67
+ 127 0062 01       		.byte	1
+ 128 0063 40       		.byte	64
+ 129 0064 0F       		.byte	15
+ 130 0065 44       		.byte	68
+ 131 0066 01       		.byte	1
+ 132 0067 40       		.byte	64
+ 133 0068 0B       		.byte	11
+ 134 0069 45       		.byte	69
+ 135 006a 01       		.byte	1
+ 136 006b 40       		.byte	64
+ 137 006c 04       		.byte	4
+ 138 006d 46       		.byte	70
+ 139 006e 01       		.byte	1
+ 140 006f 40       		.byte	64
+ 141 0070 08       		.byte	8
+ 142 0071 47       		.byte	71
+ 143 0072 01       		.byte	1
+ 144 0073 40       		.byte	64
+ 145 0074 0C       		.byte	12
+ 146 0075 48       		.byte	72
+ 147 0076 01       		.byte	1
+ 148 0077 40       		.byte	64
+ 149 0078 03       		.byte	3
+ 150 0079 49       		.byte	73
+ 151 007a 01       		.byte	1
+ 152 007b 40       		.byte	64
+ 153 007c 01       		.byte	1
+ 154 007d 4C       		.byte	76
+ 155 007e 01       		.byte	1
+ 156 007f 40       		.byte	64
+ 157 0080 07       		.byte	7
+ 158 0081 50       		.byte	80
+ 159 0082 01       		.byte	1
+ 160 0083 40       		.byte	64
+ 161 0084 03       		.byte	3
+ 162 0085 51       		.byte	81
+ 163 0086 01       		.byte	1
+ 164 0087 40       		.byte	64
+ 165 0088 7E       		.byte	126
+ 166 0089 02       		.byte	2
+ 167 008a 0A       		.byte	10
+ 168 008b 27       		.byte	39
+ 169 008c 0D       		.byte	13
+ 170 008d 20       		.byte	32
+ 171 008e 16       		.byte	22
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 4
+
+
+ 172 008f B1       		.byte	-79
+ 173 0090 22       		.byte	34
+ 174 0091 D2       		.byte	-46
+ 175 0092 2E       		.byte	46
+ 176 0093 60       		.byte	96
+ 177 0094 30       		.byte	48
+ 178 0095 40       		.byte	64
+ 179 0096 31       		.byte	49
+ 180 0097 01       		.byte	1
+ 181 0098 60       		.byte	96
+ 182 0099 80       		.byte	-128
+ 183 009a 7C       		.byte	124
+ 184 009b 40       		.byte	64
+ 185 009c 0B       		.byte	11
+ 186 009d FF       		.byte	-1
+ 187 009e 0D       		.byte	13
+ 188 009f FF       		.byte	-1
+ 189 00a0 1B       		.byte	27
+ 190 00a1 FF       		.byte	-1
+ 191 00a2 1D       		.byte	29
+ 192 00a3 FF       		.byte	-1
+ 193 00a4 2B       		.byte	43
+ 194 00a5 FF       		.byte	-1
+ 195 00a6 2D       		.byte	45
+ 196 00a7 FF       		.byte	-1
+ 197 00a8 7C       		.byte	124
+ 198 00a9 01       		.byte	1
+ 199 00aa 8E       		.byte	-114
+ 200 00ab 1F       		.byte	31
+ 201 00ac 75       		.byte	117
+ 202 00ad 01       		.byte	1
+ 203 00ae 77       		.byte	119
+ 204 00af 01       		.byte	1
+ 205 00b0 87       		.byte	-121
+ 206 00b1 0D       		.byte	13
+ 207 00b2 E2       		.byte	-30
+ 208 00b3 42       		.byte	66
+ 209 00b4 E6       		.byte	-26
+ 210 00b5 20       		.byte	32
+ 211 00b6 E2       		.byte	-30
+ 212 00b7 04       		.byte	4
+ 213 00b8 E6       		.byte	-26
+ 214 00b9 02       		.byte	2
+ 215 00ba EE       		.byte	-18
+ 216 00bb 28       		.byte	40
+ 217 00bc E6       		.byte	-26
+ 218 00bd 10       		.byte	16
+ 219 00be EA       		.byte	-22
+ 220 00bf 20       		.byte	32
+ 221 00c0 E0       		.byte	-32
+ 222 00c1 02       		.byte	2
+ 223 00c2 E6       		.byte	-26
+ 224 00c3 09       		.byte	9
+ 225 00c4 86       		.byte	-122
+ 226 00c5 10       		.byte	16
+ 227 00c6 9E       		.byte	-98
+ 228 00c7 10       		.byte	16
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 5
+
+
+ 229 00c8 B6       		.byte	-74
+ 230 00c9 40       		.byte	64
+ 231 00ca E6       		.byte	-26
+ 232 00cb 09       		.byte	9
+ 233 00cc 02       		.byte	2
+ 234 00cd 06       		.byte	6
+ 235 00ce 04       		.byte	4
+ 236 00cf 02       		.byte	2
+ 237 00d0 05       		.byte	5
+ 238 00d1 02       		.byte	2
+ 239 00d2 08       		.byte	8
+ 240 00d3 04       		.byte	4
+ 241 00d4 0B       		.byte	11
+ 242 00d5 02       		.byte	2
+ 243 00d6 0E       		.byte	14
+ 244 00d7 01       		.byte	1
+ 245 00d8 11       		.byte	17
+ 246 00d9 01       		.byte	1
+ 247 00da 15       		.byte	21
+ 248 00db 01       		.byte	1
+ 249 00dc 18       		.byte	24
+ 250 00dd 06       		.byte	6
+ 251 00de 1B       		.byte	27
+ 252 00df 04       		.byte	4
+ 253 00e0 1C       		.byte	28
+ 254 00e1 06       		.byte	6
+ 255 00e2 1F       		.byte	31
+ 256 00e3 02       		.byte	2
+ 257 00e4 24       		.byte	36
+ 258 00e5 01       		.byte	1
+ 259 00e6 32       		.byte	50
+ 260 00e7 01       		.byte	1
+ 261 00e8 35       		.byte	53
+ 262 00e9 06       		.byte	6
+ 263 00ea 36       		.byte	54
+ 264 00eb 06       		.byte	6
+ 265 00ec 37       		.byte	55
+ 266 00ed 01       		.byte	1
+ 267 00ee 3E       		.byte	62
+ 268 00ef 44       		.byte	68
+ 269 00f0 3F       		.byte	63
+ 270 00f1 50       		.byte	80
+ 271 00f2 54       		.byte	84
+ 272 00f3 0F       		.byte	15
+ 273 00f4 58       		.byte	88
+ 274 00f5 04       		.byte	4
+ 275 00f6 59       		.byte	89
+ 276 00f7 04       		.byte	4
+ 277 00f8 5B       		.byte	91
+ 278 00f9 04       		.byte	4
+ 279 00fa 5D       		.byte	93
+ 280 00fb 90       		.byte	-112
+ 281 00fc 5F       		.byte	95
+ 282 00fd 01       		.byte	1
+ 283 00fe 82       		.byte	-126
+ 284 00ff 03       		.byte	3
+ 285 0100 84       		.byte	-124
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 6
+
+
+ 286 0101 01       		.byte	1
+ 287 0102 85       		.byte	-123
+ 288 0103 01       		.byte	1
+ 289 0104 88       		.byte	-120
+ 290 0105 02       		.byte	2
+ 291 0106 89       		.byte	-119
+ 292 0107 02       		.byte	2
+ 293 0108 8C       		.byte	-116
+ 294 0109 03       		.byte	3
+ 295 010a 8F       		.byte	-113
+ 296 010b 03       		.byte	3
+ 297 010c 9A       		.byte	-102
+ 298 010d 03       		.byte	3
+ 299 010e 9B       		.byte	-101
+ 300 010f 04       		.byte	4
+ 301 0110 9D       		.byte	-99
+ 302 0111 03       		.byte	3
+ 303 0112 A3       		.byte	-93
+ 304 0113 03       		.byte	3
+ 305 0114 A8       		.byte	-88
+ 306 0115 03       		.byte	3
+ 307 0116 B4       		.byte	-76
+ 308 0117 03       		.byte	3
+ 309 0118 B5       		.byte	-75
+ 310 0119 07       		.byte	7
+ 311 011a BE       		.byte	-66
+ 312 011b 10       		.byte	16
+ 313 011c BF       		.byte	-65
+ 314 011d 10       		.byte	16
+ 315 011e C0       		.byte	-64
+ 316 011f 23       		.byte	35
+ 317 0120 C1       		.byte	-63
+ 318 0121 05       		.byte	5
+ 319 0122 C5       		.byte	-59
+ 320 0123 02       		.byte	2
+ 321 0124 C6       		.byte	-58
+ 322 0125 06       		.byte	6
+ 323 0126 C8       		.byte	-56
+ 324 0127 05       		.byte	5
+ 325 0128 D8       		.byte	-40
+ 326 0129 04       		.byte	4
+ 327 012a D9       		.byte	-39
+ 328 012b 04       		.byte	4
+ 329 012c DA       		.byte	-38
+ 330 012d 04       		.byte	4
+ 331 012e DD       		.byte	-35
+ 332 012f 02       		.byte	2
+ 333 0130 DF       		.byte	-33
+ 334 0131 01       		.byte	1
+ 335 0132 E1       		.byte	-31
+ 336 0133 0C       		.byte	12
+ 337 0134 E2       		.byte	-30
+ 338 0135 F0       		.byte	-16
+ 339 0136 E3       		.byte	-29
+ 340 0137 0C       		.byte	12
+ 341 0138 E5       		.byte	-27
+ 342 0139 0C       		.byte	12
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 7
+
+
+ 343 013a E7       		.byte	-25
+ 344 013b 0C       		.byte	12
+ 345 013c E8       		.byte	-24
+ 346 013d 40       		.byte	64
+ 347 013e E9       		.byte	-23
+ 348 013f 4C       		.byte	76
+ 349 0140 EA       		.byte	-22
+ 350 0141 40       		.byte	64
+ 351 0142 EB       		.byte	-21
+ 352 0143 4C       		.byte	76
+ 353 0144 EC       		.byte	-20
+ 354 0145 90       		.byte	-112
+ 355 0146 ED       		.byte	-19
+ 356 0147 58       		.byte	88
+ 357 0148 EF       		.byte	-17
+ 358 0149 0C       		.byte	12
+ 359 014a 00       		.byte	0
+ 360 014b 10       		.byte	16
+ 361 014c 01       		.byte	1
+ 362 014d 44       		.byte	68
+ 363 014e 03       		.byte	3
+ 364 014f 40       		.byte	64
+ 365 0150 04       		.byte	4
+ 366 0151 28       		.byte	40
+ 367 0152 05       		.byte	5
+ 368 0153 40       		.byte	64
+ 369 0154 07       		.byte	7
+ 370 0155 40       		.byte	64
+ 371 0156 08       		.byte	8
+ 372 0157 50       		.byte	80
+ 373 0158 0F       		.byte	15
+ 374 0159 08       		.byte	8
+ 375 015a 13       		.byte	19
+ 376 015b 08       		.byte	8
+ 377 015c 17       		.byte	23
+ 378 015d 10       		.byte	16
+ 379 015e 19       		.byte	25
+ 380 015f 80       		.byte	-128
+ 381 0160 1A       		.byte	26
+ 382 0161 10       		.byte	16
+ 383 0162 1D       		.byte	29
+ 384 0163 20       		.byte	32
+ 385 0164 20       		.byte	32
+ 386 0165 04       		.byte	4
+ 387 0166 22       		.byte	34
+ 388 0167 40       		.byte	64
+ 389 0168 27       		.byte	39
+ 390 0169 04       		.byte	4
+ 391 016a 2F       		.byte	47
+ 392 016b 80       		.byte	-128
+ 393 016c 30       		.byte	48
+ 394 016d 18       		.byte	24
+ 395 016e 32       		.byte	50
+ 396 016f 20       		.byte	32
+ 397 0170 33       		.byte	51
+ 398 0171 D1       		.byte	-47
+ 399 0172 34       		.byte	52
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 8
+
+
+ 400 0173 40       		.byte	64
+ 401 0174 35       		.byte	53
+ 402 0175 40       		.byte	64
+ 403 0176 36       		.byte	54
+ 404 0177 20       		.byte	32
+ 405 0178 38       		.byte	56
+ 406 0179 38       		.byte	56
+ 407 017a 39       		.byte	57
+ 408 017b 04       		.byte	4
+ 409 017c 3C       		.byte	60
+ 410 017d 10       		.byte	16
+ 411 017e 3D       		.byte	61
+ 412 017f 04       		.byte	4
+ 413 0180 3F       		.byte	63
+ 414 0181 80       		.byte	-128
+ 415 0182 45       		.byte	69
+ 416 0183 20       		.byte	32
+ 417 0184 47       		.byte	71
+ 418 0185 04       		.byte	4
+ 419 0186 4D       		.byte	77
+ 420 0187 80       		.byte	-128
+ 421 0188 4F       		.byte	79
+ 422 0189 08       		.byte	8
+ 423 018a 57       		.byte	87
+ 424 018b 40       		.byte	64
+ 425 018c 59       		.byte	89
+ 426 018d 04       		.byte	4
+ 427 018e 5A       		.byte	90
+ 428 018f 92       		.byte	-110
+ 429 0190 68       		.byte	104
+ 430 0191 08       		.byte	8
+ 431 0192 69       		.byte	105
+ 432 0193 40       		.byte	64
+ 433 0194 6B       		.byte	107
+ 434 0195 09       		.byte	9
+ 435 0196 8E       		.byte	-114
+ 436 0197 10       		.byte	16
+ 437 0198 90       		.byte	-112
+ 438 0199 28       		.byte	40
+ 439 019a 92       		.byte	-110
+ 440 019b 02       		.byte	2
+ 441 019c 94       		.byte	-108
+ 442 019d 04       		.byte	4
+ 443 019e 95       		.byte	-107
+ 444 019f 40       		.byte	64
+ 445 01a0 99       		.byte	-103
+ 446 01a1 44       		.byte	68
+ 447 01a2 9B       		.byte	-101
+ 448 01a3 40       		.byte	64
+ 449 01a4 9E       		.byte	-98
+ 450 01a5 10       		.byte	16
+ 451 01a6 A2       		.byte	-94
+ 452 01a7 20       		.byte	32
+ 453 01a8 A4       		.byte	-92
+ 454 01a9 08       		.byte	8
+ 455 01aa B1       		.byte	-79
+ 456 01ab 04       		.byte	4
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 9
+
+
+ 457 01ac C0       		.byte	-64
+ 458 01ad FF       		.byte	-1
+ 459 01ae C2       		.byte	-62
+ 460 01af 43       		.byte	67
+ 461 01b0 C4       		.byte	-60
+ 462 01b1 44       		.byte	68
+ 463 01b2 CA       		.byte	-54
+ 464 01b3 80       		.byte	-128
+ 465 01b4 CC       		.byte	-52
+ 466 01b5 3F       		.byte	63
+ 467 01b6 CE       		.byte	-50
+ 468 01b7 76       		.byte	118
+ 469 01b8 D0       		.byte	-48
+ 470 01b9 60       		.byte	96
+ 471 01ba D2       		.byte	-46
+ 472 01bb 10       		.byte	16
+ 473 01bc D6       		.byte	-42
+ 474 01bd 0F       		.byte	15
+ 475 01be E6       		.byte	-26
+ 476 01bf 10       		.byte	16
+ 477 01c0 EA       		.byte	-22
+ 478 01c1 20       		.byte	32
+ 479 01c2 00       		.byte	0
+ 480 01c3 26       		.byte	38
+ 481 01c4 02       		.byte	2
+ 482 01c5 19       		.byte	25
+ 483 01c6 04       		.byte	4
+ 484 01c7 08       		.byte	8
+ 485 01c8 06       		.byte	6
+ 486 01c9 01       		.byte	1
+ 487 01ca 07       		.byte	7
+ 488 01cb 02       		.byte	2
+ 489 01cc 08       		.byte	8
+ 490 01cd 10       		.byte	16
+ 491 01ce 0A       		.byte	10
+ 492 01cf 01       		.byte	1
+ 493 01d0 0E       		.byte	14
+ 494 01d1 02       		.byte	2
+ 495 01d2 0F       		.byte	15
+ 496 01d3 02       		.byte	2
+ 497 01d4 11       		.byte	17
+ 498 01d5 02       		.byte	2
+ 499 01d6 13       		.byte	19
+ 500 01d7 01       		.byte	1
+ 501 01d8 14       		.byte	20
+ 502 01d9 3F       		.byte	63
+ 503 01da 18       		.byte	24
+ 504 01db 1F       		.byte	31
+ 505 01dc 19       		.byte	25
+ 506 01dd 03       		.byte	3
+ 507 01de 1A       		.byte	26
+ 508 01df 20       		.byte	32
+ 509 01e0 1C       		.byte	28
+ 510 01e1 3B       		.byte	59
+ 511 01e2 1D       		.byte	29
+ 512 01e3 03       		.byte	3
+ 513 01e4 1E       		.byte	30
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 10
+
+
+ 514 01e5 04       		.byte	4
+ 515 01e6 20       		.byte	32
+ 516 01e7 04       		.byte	4
+ 517 01e8 24       		.byte	36
+ 518 01e9 3D       		.byte	61
+ 519 01ea 25       		.byte	37
+ 520 01eb 03       		.byte	3
+ 521 01ec 26       		.byte	38
+ 522 01ed 02       		.byte	2
+ 523 01ee 29       		.byte	41
+ 524 01ef 03       		.byte	3
+ 525 01f0 2A       		.byte	42
+ 526 01f1 02       		.byte	2
+ 527 01f2 2F       		.byte	47
+ 528 01f3 01       		.byte	1
+ 529 01f4 31       		.byte	49
+ 530 01f5 01       		.byte	1
+ 531 01f6 34       		.byte	52
+ 532 01f7 03       		.byte	3
+ 533 01f8 35       		.byte	53
+ 534 01f9 02       		.byte	2
+ 535 01fa 36       		.byte	54
+ 536 01fb 3C       		.byte	60
+ 537 01fc 56       		.byte	86
+ 538 01fd 08       		.byte	8
+ 539 01fe 58       		.byte	88
+ 540 01ff 04       		.byte	4
+ 541 0200 59       		.byte	89
+ 542 0201 04       		.byte	4
+ 543 0202 5B       		.byte	91
+ 544 0203 0C       		.byte	12
+ 545 0204 5C       		.byte	92
+ 546 0205 22       		.byte	34
+ 547 0206 5D       		.byte	93
+ 548 0207 20       		.byte	32
+ 549 0208 5F       		.byte	95
+ 550 0209 01       		.byte	1
+ 551 020a 85       		.byte	-123
+ 552 020b 02       		.byte	2
+ 553 020c 87       		.byte	-121
+ 554 020d 01       		.byte	1
+ 555 020e 89       		.byte	-119
+ 556 020f 05       		.byte	5
+ 557 0210 8C       		.byte	-116
+ 558 0211 01       		.byte	1
+ 559 0212 8F       		.byte	-113
+ 560 0213 08       		.byte	8
+ 561 0214 97       		.byte	-105
+ 562 0215 08       		.byte	8
+ 563 0216 99       		.byte	-103
+ 564 0217 07       		.byte	7
+ 565 0218 9F       		.byte	-97
+ 566 0219 07       		.byte	7
+ 567 021a AA       		.byte	-86
+ 568 021b 01       		.byte	1
+ 569 021c B1       		.byte	-79
+ 570 021d 08       		.byte	8
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 11
+
+
+ 571 021e B2       		.byte	-78
+ 572 021f 01       		.byte	1
+ 573 0220 B3       		.byte	-77
+ 574 0221 01       		.byte	1
+ 575 0222 B5       		.byte	-75
+ 576 0223 06       		.byte	6
+ 577 0224 BE       		.byte	-66
+ 578 0225 04       		.byte	4
+ 579 0226 BF       		.byte	-65
+ 580 0227 15       		.byte	21
+ 581 0228 C0       		.byte	-64
+ 582 0229 32       		.byte	50
+ 583 022a C1       		.byte	-63
+ 584 022b 06       		.byte	6
+ 585 022c C6       		.byte	-58
+ 586 022d 60       		.byte	96
+ 587 022e C7       		.byte	-57
+ 588 022f 02       		.byte	2
+ 589 0230 C8       		.byte	-56
+ 590 0231 18       		.byte	24
+ 591 0232 D8       		.byte	-40
+ 592 0233 04       		.byte	4
+ 593 0234 D9       		.byte	-39
+ 594 0235 04       		.byte	4
+ 595 0236 DA       		.byte	-38
+ 596 0237 04       		.byte	4
+ 597 0238 DD       		.byte	-35
+ 598 0239 02       		.byte	2
+ 599 023a DF       		.byte	-33
+ 600 023b 01       		.byte	1
+ 601 023c E1       		.byte	-31
+ 602 023d 0C       		.byte	12
+ 603 023e E2       		.byte	-30
+ 604 023f F0       		.byte	-16
+ 605 0240 E3       		.byte	-29
+ 606 0241 0C       		.byte	12
+ 607 0242 E5       		.byte	-27
+ 608 0243 0C       		.byte	12
+ 609 0244 E7       		.byte	-25
+ 610 0245 0C       		.byte	12
+ 611 0246 E8       		.byte	-24
+ 612 0247 40       		.byte	64
+ 613 0248 E9       		.byte	-23
+ 614 0249 4C       		.byte	76
+ 615 024a EA       		.byte	-22
+ 616 024b 40       		.byte	64
+ 617 024c EB       		.byte	-21
+ 618 024d 4C       		.byte	76
+ 619 024e EC       		.byte	-20
+ 620 024f 90       		.byte	-112
+ 621 0250 ED       		.byte	-19
+ 622 0251 58       		.byte	88
+ 623 0252 EF       		.byte	-17
+ 624 0253 0C       		.byte	12
+ 625 0254 01       		.byte	1
+ 626 0255 40       		.byte	64
+ 627 0256 04       		.byte	4
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 12
+
+
+ 628 0257 68       		.byte	104
+ 629 0258 07       		.byte	7
+ 630 0259 40       		.byte	64
+ 631 025a 0C       		.byte	12
+ 632 025b 04       		.byte	4
+ 633 025c 0D       		.byte	13
+ 634 025d 20       		.byte	32
+ 635 025e 0E       		.byte	14
+ 636 025f 22       		.byte	34
+ 637 0260 10       		.byte	16
+ 638 0261 08       		.byte	8
+ 639 0262 15       		.byte	21
+ 640 0263 04       		.byte	4
+ 641 0264 16       		.byte	22
+ 642 0265 88       		.byte	-120
+ 643 0266 19       		.byte	25
+ 644 0267 04       		.byte	4
+ 645 0268 1E       		.byte	30
+ 646 0269 02       		.byte	2
+ 647 026a 1F       		.byte	31
+ 648 026b 10       		.byte	16
+ 649 026c 20       		.byte	32
+ 650 026d 18       		.byte	24
+ 651 026e 22       		.byte	34
+ 652 026f 01       		.byte	1
+ 653 0270 25       		.byte	37
+ 654 0271 20       		.byte	32
+ 655 0272 26       		.byte	38
+ 656 0273 20       		.byte	32
+ 657 0274 27       		.byte	39
+ 658 0275 40       		.byte	64
+ 659 0276 2C       		.byte	44
+ 660 0277 04       		.byte	4
+ 661 0278 2D       		.byte	45
+ 662 0279 04       		.byte	4
+ 663 027a 2E       		.byte	46
+ 664 027b 80       		.byte	-128
+ 665 027c 2F       		.byte	47
+ 666 027d 11       		.byte	17
+ 667 027e 30       		.byte	48
+ 668 027f 08       		.byte	8
+ 669 0280 32       		.byte	50
+ 670 0281 20       		.byte	32
+ 671 0282 33       		.byte	51
+ 672 0283 40       		.byte	64
+ 673 0284 36       		.byte	54
+ 674 0285 21       		.byte	33
+ 675 0286 37       		.byte	55
+ 676 0287 40       		.byte	64
+ 677 0288 38       		.byte	56
+ 678 0289 28       		.byte	40
+ 679 028a 39       		.byte	57
+ 680 028b 40       		.byte	64
+ 681 028c 3C       		.byte	60
+ 682 028d 40       		.byte	64
+ 683 028e 3E       		.byte	62
+ 684 028f 0C       		.byte	12
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 13
+
+
+ 685 0290 40       		.byte	64
+ 686 0291 14       		.byte	20
+ 687 0292 48       		.byte	72
+ 688 0293 04       		.byte	4
+ 689 0294 50       		.byte	80
+ 690 0295 14       		.byte	20
+ 691 0296 5C       		.byte	92
+ 692 0297 80       		.byte	-128
+ 693 0298 65       		.byte	101
+ 694 0299 40       		.byte	64
+ 695 029a 6F       		.byte	111
+ 696 029b 02       		.byte	2
+ 697 029c 7F       		.byte	127
+ 698 029d 01       		.byte	1
+ 699 029e 81       		.byte	-127
+ 700 029f 04       		.byte	4
+ 701 02a0 83       		.byte	-125
+ 702 02a1 02       		.byte	2
+ 703 02a2 86       		.byte	-122
+ 704 02a3 01       		.byte	1
+ 705 02a4 89       		.byte	-119
+ 706 02a5 40       		.byte	64
+ 707 02a6 90       		.byte	-112
+ 708 02a7 40       		.byte	64
+ 709 02a8 92       		.byte	-110
+ 710 02a9 04       		.byte	4
+ 711 02aa 98       		.byte	-104
+ 712 02ab 80       		.byte	-128
+ 713 02ac 9A       		.byte	-102
+ 714 02ad 80       		.byte	-128
+ 715 02ae 9E       		.byte	-98
+ 716 02af 10       		.byte	16
+ 717 02b0 A2       		.byte	-94
+ 718 02b1 10       		.byte	16
+ 719 02b2 AE       		.byte	-82
+ 720 02b3 04       		.byte	4
+ 721 02b4 B1       		.byte	-79
+ 722 02b5 02       		.byte	2
+ 723 02b6 B4       		.byte	-76
+ 724 02b7 80       		.byte	-128
+ 725 02b8 C0       		.byte	-64
+ 726 02b9 F1       		.byte	-15
+ 727 02ba C2       		.byte	-62
+ 728 02bb E0       		.byte	-32
+ 729 02bc C4       		.byte	-60
+ 730 02bd 72       		.byte	114
+ 731 02be CA       		.byte	-54
+ 732 02bf 70       		.byte	112
+ 733 02c0 CC       		.byte	-52
+ 734 02c1 BE       		.byte	-66
+ 735 02c2 CE       		.byte	-50
+ 736 02c3 5E       		.byte	94
+ 737 02c4 D0       		.byte	-48
+ 738 02c5 06       		.byte	6
+ 739 02c6 D2       		.byte	-46
+ 740 02c7 04       		.byte	4
+ 741 02c8 D6       		.byte	-42
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 14
+
+
+ 742 02c9 10       		.byte	16
+ 743 02ca D8       		.byte	-40
+ 744 02cb 10       		.byte	16
+ 745 02cc DE       		.byte	-34
+ 746 02cd 10       		.byte	16
+ 747 02ce E4       		.byte	-28
+ 748 02cf 03       		.byte	3
+ 749 02d0 EE       		.byte	-18
+ 750 02d1 20       		.byte	32
+ 751 02d2 06       		.byte	6
+ 752 02d3 01       		.byte	1
+ 753 02d4 10       		.byte	16
+ 754 02d5 02       		.byte	2
+ 755 02d6 32       		.byte	50
+ 756 02d7 01       		.byte	1
+ 757 02d8 34       		.byte	52
+ 758 02d9 02       		.byte	2
+ 759 02da 39       		.byte	57
+ 760 02db 02       		.byte	2
+ 761 02dc 3E       		.byte	62
+ 762 02dd 10       		.byte	16
+ 763 02de 3F       		.byte	63
+ 764 02df 01       		.byte	1
+ 765 02e0 40       		.byte	64
+ 766 02e1 02       		.byte	2
+ 767 02e2 41       		.byte	65
+ 768 02e3 03       		.byte	3
+ 769 02e4 49       		.byte	73
+ 770 02e5 FF       		.byte	-1
+ 771 02e6 4A       		.byte	74
+ 772 02e7 FF       		.byte	-1
+ 773 02e8 4B       		.byte	75
+ 774 02e9 FF       		.byte	-1
+ 775 02ea 4C       		.byte	76
+ 776 02eb 02       		.byte	2
+ 777 02ec 4D       		.byte	77
+ 778 02ed 0C       		.byte	12
+ 779 02ee 4E       		.byte	78
+ 780 02ef F8       		.byte	-8
+ 781 02f0 56       		.byte	86
+ 782 02f1 02       		.byte	2
+ 783 02f2 58       		.byte	88
+ 784 02f3 04       		.byte	4
+ 785 02f4 59       		.byte	89
+ 786 02f5 04       		.byte	4
+ 787 02f6 5A       		.byte	90
+ 788 02f7 04       		.byte	4
+ 789 02f8 5B       		.byte	91
+ 790 02f9 04       		.byte	4
+ 791 02fa 5C       		.byte	92
+ 792 02fb 02       		.byte	2
+ 793 02fc 5D       		.byte	93
+ 794 02fd 22       		.byte	34
+ 795 02fe 5E       		.byte	94
+ 796 02ff 08       		.byte	8
+ 797 0300 5F       		.byte	95
+ 798 0301 01       		.byte	1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 15
+
+
+ 799 0302 62       		.byte	98
+ 800 0303 48       		.byte	72
+ 801 0304 63       		.byte	99
+ 802 0305 A1       		.byte	-95
+ 803 0306 68       		.byte	104
+ 804 0307 F0       		.byte	-16
+ 805 0308 6A       		.byte	106
+ 806 0309 F0       		.byte	-16
+ 807 030a 6C       		.byte	108
+ 808 030b F0       		.byte	-16
+ 809 030c 6E       		.byte	110
+ 810 030d F0       		.byte	-16
+ 811 030e 86       		.byte	-122
+ 812 030f 05       		.byte	5
+ 813 0310 8C       		.byte	-116
+ 814 0311 70       		.byte	112
+ 815 0312 8D       		.byte	-115
+ 816 0313 02       		.byte	2
+ 817 0314 8E       		.byte	-114
+ 818 0315 08       		.byte	8
+ 819 0316 93       		.byte	-109
+ 820 0317 02       		.byte	2
+ 821 0318 94       		.byte	-108
+ 822 0319 28       		.byte	40
+ 823 031a 96       		.byte	-106
+ 824 031b 50       		.byte	80
+ 825 031c 97       		.byte	-105
+ 826 031d 01       		.byte	1
+ 827 031e 99       		.byte	-103
+ 828 031f 02       		.byte	2
+ 829 0320 9A       		.byte	-102
+ 830 0321 02       		.byte	2
+ 831 0322 9C       		.byte	-100
+ 832 0323 01       		.byte	1
+ 833 0324 9D       		.byte	-99
+ 834 0325 01       		.byte	1
+ 835 0326 9E       		.byte	-98
+ 836 0327 02       		.byte	2
+ 837 0328 A2       		.byte	-94
+ 838 0329 08       		.byte	8
+ 839 032a A4       		.byte	-92
+ 840 032b 40       		.byte	64
+ 841 032c A6       		.byte	-90
+ 842 032d 10       		.byte	16
+ 843 032e A8       		.byte	-88
+ 844 032f 58       		.byte	88
+ 845 0330 A9       		.byte	-87
+ 846 0331 02       		.byte	2
+ 847 0332 AA       		.byte	-86
+ 848 0333 20       		.byte	32
+ 849 0334 B0       		.byte	-80
+ 850 0335 18       		.byte	24
+ 851 0336 B2       		.byte	-78
+ 852 0337 60       		.byte	96
+ 853 0338 B3       		.byte	-77
+ 854 0339 02       		.byte	2
+ 855 033a B4       		.byte	-76
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 16
+
+
+ 856 033b 03       		.byte	3
+ 857 033c B5       		.byte	-75
+ 858 033d 01       		.byte	1
+ 859 033e B6       		.byte	-74
+ 860 033f 04       		.byte	4
+ 861 0340 BE       		.byte	-66
+ 862 0341 10       		.byte	16
+ 863 0342 C0       		.byte	-64
+ 864 0343 03       		.byte	3
+ 865 0344 C1       		.byte	-63
+ 866 0345 02       		.byte	2
+ 867 0346 C5       		.byte	-59
+ 868 0347 0A       		.byte	10
+ 869 0348 C9       		.byte	-55
+ 870 0349 FF       		.byte	-1
+ 871 034a CA       		.byte	-54
+ 872 034b FF       		.byte	-1
+ 873 034c CB       		.byte	-53
+ 874 034d FF       		.byte	-1
+ 875 034e CC       		.byte	-52
+ 876 034f 03       		.byte	3
+ 877 0350 CD       		.byte	-51
+ 878 0351 0C       		.byte	12
+ 879 0352 CE       		.byte	-50
+ 880 0353 F4       		.byte	-12
+ 881 0354 D2       		.byte	-46
+ 882 0355 17       		.byte	23
+ 883 0356 D8       		.byte	-40
+ 884 0357 04       		.byte	4
+ 885 0358 D9       		.byte	-39
+ 886 0359 04       		.byte	4
+ 887 035a DA       		.byte	-38
+ 888 035b 04       		.byte	4
+ 889 035c DB       		.byte	-37
+ 890 035d 04       		.byte	4
+ 891 035e DC       		.byte	-36
+ 892 035f 22       		.byte	34
+ 893 0360 DD       		.byte	-35
+ 894 0361 22       		.byte	34
+ 895 0362 DF       		.byte	-33
+ 896 0363 01       		.byte	1
+ 897 0364 E2       		.byte	-30
+ 898 0365 48       		.byte	72
+ 899 0366 E3       		.byte	-29
+ 900 0367 A1       		.byte	-95
+ 901 0368 E8       		.byte	-24
+ 902 0369 F0       		.byte	-16
+ 903 036a EA       		.byte	-22
+ 904 036b F0       		.byte	-16
+ 905 036c EC       		.byte	-20
+ 906 036d F0       		.byte	-16
+ 907 036e EE       		.byte	-18
+ 908 036f F0       		.byte	-16
+ 909 0370 02       		.byte	2
+ 910 0371 10       		.byte	16
+ 911 0372 04       		.byte	4
+ 912 0373 40       		.byte	64
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 17
+
+
+ 913 0374 05       		.byte	5
+ 914 0375 08       		.byte	8
+ 915 0376 09       		.byte	9
+ 916 0377 02       		.byte	2
+ 917 0378 0C       		.byte	12
+ 918 0379 80       		.byte	-128
+ 919 037a 0E       		.byte	14
+ 920 037b 20       		.byte	32
+ 921 037c 0F       		.byte	15
+ 922 037d 08       		.byte	8
+ 923 037e 17       		.byte	23
+ 924 037f 25       		.byte	37
+ 925 0380 19       		.byte	25
+ 926 0381 08       		.byte	8
+ 927 0382 1A       		.byte	26
+ 928 0383 08       		.byte	8
+ 929 0384 1C       		.byte	28
+ 930 0385 40       		.byte	64
+ 931 0386 1D       		.byte	29
+ 932 0387 40       		.byte	64
+ 933 0388 1E       		.byte	30
+ 934 0389 20       		.byte	32
+ 935 038a 1F       		.byte	31
+ 936 038b 24       		.byte	36
+ 937 038c 22       		.byte	34
+ 938 038d 02       		.byte	2
+ 939 038e 24       		.byte	36
+ 940 038f 14       		.byte	20
+ 941 0390 26       		.byte	38
+ 942 0391 04       		.byte	4
+ 943 0392 27       		.byte	39
+ 944 0393 28       		.byte	40
+ 945 0394 2F       		.byte	47
+ 946 0395 04       		.byte	4
+ 947 0396 35       		.byte	53
+ 948 0397 48       		.byte	72
+ 949 0398 37       		.byte	55
+ 950 0399 21       		.byte	33
+ 951 039a 3C       		.byte	60
+ 952 039b 40       		.byte	64
+ 953 039c 40       		.byte	64
+ 954 039d 14       		.byte	20
+ 955 039e 47       		.byte	71
+ 956 039f 28       		.byte	40
+ 957 03a0 4F       		.byte	79
+ 958 03a1 08       		.byte	8
+ 959 03a2 6E       		.byte	110
+ 960 03a3 04       		.byte	4
+ 961 03a4 6F       		.byte	111
+ 962 03a5 05       		.byte	5
+ 963 03a6 72       		.byte	114
+ 964 03a7 80       		.byte	-128
+ 965 03a8 74       		.byte	116
+ 966 03a9 80       		.byte	-128
+ 967 03aa 7A       		.byte	122
+ 968 03ab 04       		.byte	4
+ 969 03ac 81       		.byte	-127
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 18
+
+
+ 970 03ad 02       		.byte	2
+ 971 03ae 87       		.byte	-121
+ 972 03af 20       		.byte	32
+ 973 03b0 8A       		.byte	-118
+ 974 03b1 02       		.byte	2
+ 975 03b2 8F       		.byte	-113
+ 976 03b3 20       		.byte	32
+ 977 03b4 C0       		.byte	-64
+ 978 03b5 A4       		.byte	-92
+ 979 03b6 C2       		.byte	-62
+ 980 03b7 E8       		.byte	-24
+ 981 03b8 C4       		.byte	-60
+ 982 03b9 70       		.byte	112
+ 983 03ba CA       		.byte	-54
+ 984 03bb 20       		.byte	32
+ 985 03bc CC       		.byte	-52
+ 986 03bd F0       		.byte	-16
+ 987 03be CE       		.byte	-50
+ 988 03bf 10       		.byte	16
+ 989 03c0 D0       		.byte	-48
+ 990 03c1 66       		.byte	102
+ 991 03c2 DE       		.byte	-34
+ 992 03c3 04       		.byte	4
+ 993 03c4 E2       		.byte	-30
+ 994 03c5 41       		.byte	65
+ 995 03c6 E6       		.byte	-26
+ 996 03c7 20       		.byte	32
+ 997 03c8 00       		.byte	0
+ 998 03c9 04       		.byte	4
+ 999 03ca 02       		.byte	2
+ 1000 03cb 01       		.byte	1
+ 1001 03cc 03       		.byte	3
+ 1002 03cd 01       		.byte	1
+ 1003 03ce 04       		.byte	4
+ 1004 03cf 1C       		.byte	28
+ 1005 03d0 06       		.byte	6
+ 1006 03d1 02       		.byte	2
+ 1007 03d2 0C       		.byte	12
+ 1008 03d3 1F       		.byte	31
+ 1009 03d4 12       		.byte	18
+ 1010 03d5 1C       		.byte	28
+ 1011 03d6 18       		.byte	24
+ 1012 03d7 08       		.byte	8
+ 1013 03d8 1A       		.byte	26
+ 1014 03d9 01       		.byte	1
+ 1015 03da 28       		.byte	40
+ 1016 03db 10       		.byte	16
+ 1017 03dc 2A       		.byte	42
+ 1018 03dd 01       		.byte	1
+ 1019 03de 31       		.byte	49
+ 1020 03df 01       		.byte	1
+ 1021 03e0 34       		.byte	52
+ 1022 03e1 03       		.byte	3
+ 1023 03e2 35       		.byte	53
+ 1024 03e3 01       		.byte	1
+ 1025 03e4 36       		.byte	54
+ 1026 03e5 1C       		.byte	28
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 19
+
+
+ 1027 03e6 40       		.byte	64
+ 1028 03e7 16       		.byte	22
+ 1029 03e8 41       		.byte	65
+ 1030 03e9 05       		.byte	5
+ 1031 03ea 49       		.byte	73
+ 1032 03eb FF       		.byte	-1
+ 1033 03ec 4A       		.byte	74
+ 1034 03ed FF       		.byte	-1
+ 1035 03ee 4B       		.byte	75
+ 1036 03ef FF       		.byte	-1
+ 1037 03f0 4F       		.byte	79
+ 1038 03f1 01       		.byte	1
+ 1039 03f2 50       		.byte	80
+ 1040 03f3 18       		.byte	24
+ 1041 03f4 52       		.byte	82
+ 1042 03f5 80       		.byte	-128
+ 1043 03f6 58       		.byte	88
+ 1044 03f7 04       		.byte	4
+ 1045 03f8 59       		.byte	89
+ 1046 03f9 04       		.byte	4
+ 1047 03fa 5A       		.byte	90
+ 1048 03fb 04       		.byte	4
+ 1049 03fc 5B       		.byte	91
+ 1050 03fd 04       		.byte	4
+ 1051 03fe 5F       		.byte	95
+ 1052 03ff 01       		.byte	1
+ 1053 0400 60       		.byte	96
+ 1054 0401 40       		.byte	64
+ 1055 0402 62       		.byte	98
+ 1056 0403 40       		.byte	64
+ 1057 0404 64       		.byte	100
+ 1058 0405 40       		.byte	64
+ 1059 0406 65       		.byte	101
+ 1060 0407 40       		.byte	64
+ 1061 0408 66       		.byte	102
+ 1062 0409 80       		.byte	-128
+ 1063 040a 68       		.byte	104
+ 1064 040b 80       		.byte	-128
+ 1065 040c 6A       		.byte	106
+ 1066 040d 80       		.byte	-128
+ 1067 040e 6C       		.byte	108
+ 1068 040f 80       		.byte	-128
+ 1069 0410 6E       		.byte	110
+ 1070 0411 80       		.byte	-128
+ 1071 0412 C0       		.byte	-64
+ 1072 0413 56       		.byte	86
+ 1073 0414 C1       		.byte	-63
+ 1074 0415 04       		.byte	4
+ 1075 0416 C9       		.byte	-55
+ 1076 0417 FF       		.byte	-1
+ 1077 0418 CA       		.byte	-54
+ 1078 0419 FF       		.byte	-1
+ 1079 041a CB       		.byte	-53
+ 1080 041b FF       		.byte	-1
+ 1081 041c CD       		.byte	-51
+ 1082 041d 83       		.byte	-125
+ 1083 041e CE       		.byte	-50
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 20
+
+
+ 1084 041f 03       		.byte	3
+ 1085 0420 CF       		.byte	-49
+ 1086 0421 01       		.byte	1
+ 1087 0422 D0       		.byte	-48
+ 1088 0423 18       		.byte	24
+ 1089 0424 DA       		.byte	-38
+ 1090 0425 04       		.byte	4
+ 1091 0426 DB       		.byte	-37
+ 1092 0427 04       		.byte	4
+ 1093 0428 DF       		.byte	-33
+ 1094 0429 01       		.byte	1
+ 1095 042a E0       		.byte	-32
+ 1096 042b 40       		.byte	64
+ 1097 042c E2       		.byte	-30
+ 1098 042d 40       		.byte	64
+ 1099 042e E4       		.byte	-28
+ 1100 042f 40       		.byte	64
+ 1101 0430 E5       		.byte	-27
+ 1102 0431 40       		.byte	64
+ 1103 0432 E6       		.byte	-26
+ 1104 0433 80       		.byte	-128
+ 1105 0434 E8       		.byte	-24
+ 1106 0435 80       		.byte	-128
+ 1107 0436 EA       		.byte	-22
+ 1108 0437 80       		.byte	-128
+ 1109 0438 EC       		.byte	-20
+ 1110 0439 80       		.byte	-128
+ 1111 043a EE       		.byte	-18
+ 1112 043b 80       		.byte	-128
+ 1113 043c 00       		.byte	0
+ 1114 043d 05       		.byte	5
+ 1115 043e 03       		.byte	3
+ 1116 043f 01       		.byte	1
+ 1117 0440 09       		.byte	9
+ 1118 0441 20       		.byte	32
+ 1119 0442 0A       		.byte	10
+ 1120 0443 40       		.byte	64
+ 1121 0444 10       		.byte	16
+ 1122 0445 08       		.byte	8
+ 1123 0446 18       		.byte	24
+ 1124 0447 05       		.byte	5
+ 1125 0448 1B       		.byte	27
+ 1126 0449 40       		.byte	64
+ 1127 044a 21       		.byte	33
+ 1128 044b 22       		.byte	34
+ 1129 044c 38       		.byte	56
+ 1130 044d 02       		.byte	2
+ 1131 044e 40       		.byte	64
+ 1132 044f 01       		.byte	1
+ 1133 0450 47       		.byte	71
+ 1134 0451 01       		.byte	1
+ 1135 0452 48       		.byte	72
+ 1136 0453 0A       		.byte	10
+ 1137 0454 4C       		.byte	76
+ 1138 0455 08       		.byte	8
+ 1139 0456 4F       		.byte	79
+ 1140 0457 80       		.byte	-128
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 21
+
+
+ 1141 0458 6C       		.byte	108
+ 1142 0459 02       		.byte	2
+ 1143 045a 6F       		.byte	111
+ 1144 045b 01       		.byte	1
+ 1145 045c 70       		.byte	112
+ 1146 045d 01       		.byte	1
+ 1147 045e 72       		.byte	114
+ 1148 045f 40       		.byte	64
+ 1149 0460 94       		.byte	-108
+ 1150 0461 01       		.byte	1
+ 1151 0462 9F       		.byte	-97
+ 1152 0463 01       		.byte	1
+ 1153 0464 A0       		.byte	-96
+ 1154 0465 08       		.byte	8
+ 1155 0466 A5       		.byte	-91
+ 1156 0467 02       		.byte	2
+ 1157 0468 A7       		.byte	-89
+ 1158 0469 40       		.byte	64
+ 1159 046a C0       		.byte	-64
+ 1160 046b 0D       		.byte	13
+ 1161 046c C2       		.byte	-62
+ 1162 046d 0A       		.byte	10
+ 1163 046e C4       		.byte	-60
+ 1164 046f 02       		.byte	2
+ 1165 0470 CE       		.byte	-50
+ 1166 0471 01       		.byte	1
+ 1167 0472 D0       		.byte	-48
+ 1168 0473 88       		.byte	-120
+ 1169 0474 D2       		.byte	-46
+ 1170 0475 3C       		.byte	60
+ 1171 0476 40       		.byte	64
+ 1172 0477 56       		.byte	86
+ 1173 0478 41       		.byte	65
+ 1174 0479 04       		.byte	4
+ 1175 047a 49       		.byte	73
+ 1176 047b FF       		.byte	-1
+ 1177 047c 4A       		.byte	74
+ 1178 047d FF       		.byte	-1
+ 1179 047e 4B       		.byte	75
+ 1180 047f FF       		.byte	-1
+ 1181 0480 4D       		.byte	77
+ 1182 0481 83       		.byte	-125
+ 1183 0482 4E       		.byte	78
+ 1184 0483 03       		.byte	3
+ 1185 0484 4F       		.byte	79
+ 1186 0485 01       		.byte	1
+ 1187 0486 50       		.byte	80
+ 1188 0487 18       		.byte	24
+ 1189 0488 5A       		.byte	90
+ 1190 0489 04       		.byte	4
+ 1191 048a 5F       		.byte	95
+ 1192 048b 01       		.byte	1
+ 1193 048c 60       		.byte	96
+ 1194 048d 40       		.byte	64
+ 1195 048e 62       		.byte	98
+ 1196 048f 40       		.byte	64
+ 1197 0490 64       		.byte	100
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 22
+
+
+ 1198 0491 40       		.byte	64
+ 1199 0492 65       		.byte	101
+ 1200 0493 40       		.byte	64
+ 1201 0494 66       		.byte	102
+ 1202 0495 80       		.byte	-128
+ 1203 0496 68       		.byte	104
+ 1204 0497 80       		.byte	-128
+ 1205 0498 6A       		.byte	106
+ 1206 0499 80       		.byte	-128
+ 1207 049a 6C       		.byte	108
+ 1208 049b 80       		.byte	-128
+ 1209 049c 6E       		.byte	110
+ 1210 049d 80       		.byte	-128
+ 1211 049e 93       		.byte	-109
+ 1212 049f 01       		.byte	1
+ 1213 04a0 97       		.byte	-105
+ 1214 04a1 01       		.byte	1
+ 1215 04a2 B7       		.byte	-73
+ 1216 04a3 01       		.byte	1
+ 1217 04a4 BF       		.byte	-65
+ 1218 04a5 40       		.byte	64
+ 1219 04a6 C0       		.byte	-64
+ 1220 04a7 16       		.byte	22
+ 1221 04a8 C1       		.byte	-63
+ 1222 04a9 04       		.byte	4
+ 1223 04aa C5       		.byte	-59
+ 1224 04ab EC       		.byte	-20
+ 1225 04ac C7       		.byte	-57
+ 1226 04ad 02       		.byte	2
+ 1227 04ae C8       		.byte	-56
+ 1228 04af 13       		.byte	19
+ 1229 04b0 C9       		.byte	-55
+ 1230 04b1 FF       		.byte	-1
+ 1231 04b2 CA       		.byte	-54
+ 1232 04b3 FF       		.byte	-1
+ 1233 04b4 CB       		.byte	-53
+ 1234 04b5 FF       		.byte	-1
+ 1235 04b6 CD       		.byte	-51
+ 1236 04b7 83       		.byte	-125
+ 1237 04b8 CE       		.byte	-50
+ 1238 04b9 03       		.byte	3
+ 1239 04ba CF       		.byte	-49
+ 1240 04bb 01       		.byte	1
+ 1241 04bc D0       		.byte	-48
+ 1242 04bd 18       		.byte	24
+ 1243 04be D4       		.byte	-44
+ 1244 04bf 01       		.byte	1
+ 1245 04c0 D6       		.byte	-42
+ 1246 04c1 04       		.byte	4
+ 1247 04c2 D9       		.byte	-39
+ 1248 04c3 04       		.byte	4
+ 1249 04c4 DA       		.byte	-38
+ 1250 04c5 04       		.byte	4
+ 1251 04c6 DB       		.byte	-37
+ 1252 04c7 04       		.byte	4
+ 1253 04c8 DF       		.byte	-33
+ 1254 04c9 05       		.byte	5
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 23
+
+
+ 1255 04ca E0       		.byte	-32
+ 1256 04cb 40       		.byte	64
+ 1257 04cc E2       		.byte	-30
+ 1258 04cd 40       		.byte	64
+ 1259 04ce E4       		.byte	-28
+ 1260 04cf 40       		.byte	64
+ 1261 04d0 E5       		.byte	-27
+ 1262 04d1 40       		.byte	64
+ 1263 04d2 E6       		.byte	-26
+ 1264 04d3 80       		.byte	-128
+ 1265 04d4 E8       		.byte	-24
+ 1266 04d5 80       		.byte	-128
+ 1267 04d6 EA       		.byte	-22
+ 1268 04d7 80       		.byte	-128
+ 1269 04d8 EC       		.byte	-20
+ 1270 04d9 80       		.byte	-128
+ 1271 04da EE       		.byte	-18
+ 1272 04db 80       		.byte	-128
+ 1273 04dc 22       		.byte	34
+ 1274 04dd 40       		.byte	64
+ 1275 04de 30       		.byte	48
+ 1276 04df 08       		.byte	8
+ 1277 04e0 31       		.byte	49
+ 1278 04e1 02       		.byte	2
+ 1279 04e2 40       		.byte	64
+ 1280 04e3 81       		.byte	-127
+ 1281 04e4 43       		.byte	67
+ 1282 04e5 01       		.byte	1
+ 1283 04e6 47       		.byte	71
+ 1284 04e7 01       		.byte	1
+ 1285 04e8 48       		.byte	72
+ 1286 04e9 08       		.byte	8
+ 1287 04ea 49       		.byte	73
+ 1288 04eb 05       		.byte	5
+ 1289 04ec 4C       		.byte	76
+ 1290 04ed 08       		.byte	8
+ 1291 04ee 4F       		.byte	79
+ 1292 04ef 80       		.byte	-128
+ 1293 04f0 50       		.byte	80
+ 1294 04f1 08       		.byte	8
+ 1295 04f2 59       		.byte	89
+ 1296 04f3 05       		.byte	5
+ 1297 04f4 5A       		.byte	90
+ 1298 04f5 80       		.byte	-128
+ 1299 04f6 63       		.byte	99
+ 1300 04f7 40       		.byte	64
+ 1301 04f8 69       		.byte	105
+ 1302 04f9 80       		.byte	-128
+ 1303 04fa 78       		.byte	120
+ 1304 04fb 80       		.byte	-128
+ 1305 04fc 81       		.byte	-127
+ 1306 04fd 40       		.byte	64
+ 1307 04fe 87       		.byte	-121
+ 1308 04ff 40       		.byte	64
+ 1309 0500 CC       		.byte	-52
+ 1310 0501 03       		.byte	3
+ 1311 0502 D0       		.byte	-48
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 24
+
+
+ 1312 0503 89       		.byte	-119
+ 1313 0504 D2       		.byte	-46
+ 1314 0505 34       		.byte	52
+ 1315 0506 D6       		.byte	-42
+ 1316 0507 0B       		.byte	11
+ 1317 0508 D8       		.byte	-40
+ 1318 0509 01       		.byte	1
+ 1319 050a DE       		.byte	-34
+ 1320 050b 08       		.byte	8
+ 1321 050c EE       		.byte	-18
+ 1322 050d 02       		.byte	2
+ 1323 050e EE       		.byte	-18
+ 1324 050f 02       		.byte	2
+ 1325 0510 30       		.byte	48
+ 1326 0511 10       		.byte	16
+ 1327 0512 32       		.byte	50
+ 1328 0513 04       		.byte	4
+ 1329 0514 37       		.byte	55
+ 1330 0515 81       		.byte	-127
+ 1331 0516 3B       		.byte	59
+ 1332 0517 20       		.byte	32
+ 1333 0518 84       		.byte	-124
+ 1334 0519 40       		.byte	64
+ 1335 051a 88       		.byte	-120
+ 1336 051b 20       		.byte	32
+ 1337 051c 8F       		.byte	-113
+ 1338 051d 20       		.byte	32
+ 1339 051e CC       		.byte	-52
+ 1340 051f F0       		.byte	-16
+ 1341 0520 CE       		.byte	-50
+ 1342 0521 10       		.byte	16
+ 1343 0522 E2       		.byte	-30
+ 1344 0523 40       		.byte	64
+ 1345 0524 32       		.byte	50
+ 1346 0525 24       		.byte	36
+ 1347 0526 36       		.byte	54
+ 1348 0527 41       		.byte	65
+ 1349 0528 81       		.byte	-127
+ 1350 0529 01       		.byte	1
+ 1351 052a 84       		.byte	-124
+ 1352 052b 10       		.byte	16
+ 1353 052c 97       		.byte	-105
+ 1354 052d 20       		.byte	32
+ 1355 052e 9C       		.byte	-100
+ 1356 052f 10       		.byte	16
+ 1357 0530 9F       		.byte	-97
+ 1358 0531 80       		.byte	-128
+ 1359 0532 A0       		.byte	-96
+ 1360 0533 60       		.byte	96
+ 1361 0534 A3       		.byte	-93
+ 1362 0535 20       		.byte	32
+ 1363 0536 AE       		.byte	-82
+ 1364 0537 04       		.byte	4
+ 1365 0538 B3       		.byte	-77
+ 1366 0539 01       		.byte	1
+ 1367 053a CC       		.byte	-52
+ 1368 053b F0       		.byte	-16
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 25
+
+
+ 1369 053c E2       		.byte	-30
+ 1370 053d 20       		.byte	32
+ 1371 053e E6       		.byte	-26
+ 1372 053f 40       		.byte	64
+ 1373 0540 EE       		.byte	-18
+ 1374 0541 10       		.byte	16
+ 1375 0542 59       		.byte	89
+ 1376 0543 01       		.byte	1
+ 1377 0544 8F       		.byte	-113
+ 1378 0545 80       		.byte	-128
+ 1379 0546 96       		.byte	-106
+ 1380 0547 08       		.byte	8
+ 1381 0548 97       		.byte	-105
+ 1382 0549 20       		.byte	32
+ 1383 054a 99       		.byte	-103
+ 1384 054b 01       		.byte	1
+ 1385 054c 9F       		.byte	-97
+ 1386 054d 80       		.byte	-128
+ 1387 054e A0       		.byte	-96
+ 1388 054f 60       		.byte	96
+ 1389 0550 A3       		.byte	-93
+ 1390 0551 20       		.byte	32
+ 1391 0552 A6       		.byte	-90
+ 1392 0553 41       		.byte	65
+ 1393 0554 B2       		.byte	-78
+ 1394 0555 20       		.byte	32
+ 1395 0556 D6       		.byte	-42
+ 1396 0557 40       		.byte	64
+ 1397 0558 1D       		.byte	29
+ 1398 0559 08       		.byte	8
+ 1399 055a 68       		.byte	104
+ 1400 055b 20       		.byte	32
+ 1401 055c 70       		.byte	112
+ 1402 055d 20       		.byte	32
+ 1403 055e 74       		.byte	116
+ 1404 055f 40       		.byte	64
+ 1405 0560 82       		.byte	-126
+ 1406 0561 01       		.byte	1
+ 1407 0562 85       		.byte	-123
+ 1408 0563 08       		.byte	8
+ 1409 0564 86       		.byte	-122
+ 1410 0565 04       		.byte	4
+ 1411 0566 96       		.byte	-106
+ 1412 0567 08       		.byte	8
+ 1413 0568 97       		.byte	-105
+ 1414 0569 20       		.byte	32
+ 1415 056a A0       		.byte	-96
+ 1416 056b 60       		.byte	96
+ 1417 056c A3       		.byte	-93
+ 1418 056d 20       		.byte	32
+ 1419 056e A6       		.byte	-90
+ 1420 056f 41       		.byte	65
+ 1421 0570 C6       		.byte	-58
+ 1422 0571 20       		.byte	32
+ 1423 0572 DA       		.byte	-38
+ 1424 0573 40       		.byte	64
+ 1425 0574 DC       		.byte	-36
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 26
+
+
+ 1426 0575 60       		.byte	96
+ 1427 0576 E0       		.byte	-32
+ 1428 0577 40       		.byte	64
+ 1429 0578 E6       		.byte	-26
+ 1430 0579 90       		.byte	-112
+ 1431 057a 17       		.byte	23
+ 1432 057b 04       		.byte	4
+ 1433 057c 28       		.byte	40
+ 1434 057d 02       		.byte	2
+ 1435 057e 39       		.byte	57
+ 1436 057f 10       		.byte	16
+ 1437 0580 5A       		.byte	90
+ 1438 0581 80       		.byte	-128
+ 1439 0582 5F       		.byte	95
+ 1440 0583 02       		.byte	2
+ 1441 0584 71       		.byte	113
+ 1442 0585 04       		.byte	4
+ 1443 0586 74       		.byte	116
+ 1444 0587 08       		.byte	8
+ 1445 0588 83       		.byte	-125
+ 1446 0589 04       		.byte	4
+ 1447 058a C4       		.byte	-60
+ 1448 058b 04       		.byte	4
+ 1449 058c CA       		.byte	-54
+ 1450 058d 08       		.byte	8
+ 1451 058e CE       		.byte	-50
+ 1452 058f 08       		.byte	8
+ 1453 0590 D4       		.byte	-44
+ 1454 0591 01       		.byte	1
+ 1455 0592 D6       		.byte	-42
+ 1456 0593 01       		.byte	1
+ 1457 0594 DC       		.byte	-36
+ 1458 0595 01       		.byte	1
+ 1459 0596 DE       		.byte	-34
+ 1460 0597 04       		.byte	4
+ 1461 0598 82       		.byte	-126
+ 1462 0599 40       		.byte	64
+ 1463 059a 87       		.byte	-121
+ 1464 059b 02       		.byte	2
+ 1465 059c 89       		.byte	-119
+ 1466 059d 10       		.byte	16
+ 1467 059e 95       		.byte	-107
+ 1468 059f 10       		.byte	16
+ 1469 05a0 96       		.byte	-106
+ 1470 05a1 80       		.byte	-128
+ 1471 05a2 9D       		.byte	-99
+ 1472 05a3 04       		.byte	4
+ 1473 05a4 9F       		.byte	-97
+ 1474 05a5 02       		.byte	2
+ 1475 05a6 A4       		.byte	-92
+ 1476 05a7 08       		.byte	8
+ 1477 05a8 B4       		.byte	-76
+ 1478 05a9 02       		.byte	2
+ 1479 05aa E0       		.byte	-32
+ 1480 05ab 01       		.byte	1
+ 1481 05ac EA       		.byte	-22
+ 1482 05ad 08       		.byte	8
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 27
+
+
+ 1483 05ae 8C       		.byte	-116
+ 1484 05af 08       		.byte	8
+ 1485 05b0 9D       		.byte	-99
+ 1486 05b1 04       		.byte	4
+ 1487 05b2 A4       		.byte	-92
+ 1488 05b3 08       		.byte	8
+ 1489 05b4 E4       		.byte	-28
+ 1490 05b5 08       		.byte	8
+ 1491 05b6 08       		.byte	8
+ 1492 05b7 80       		.byte	-128
+ 1493 05b8 0B       		.byte	11
+ 1494 05b9 40       		.byte	64
+ 1495 05ba 0E       		.byte	14
+ 1496 05bb 20       		.byte	32
+ 1497 05bc 80       		.byte	-128
+ 1498 05bd 80       		.byte	-128
+ 1499 05be 86       		.byte	-122
+ 1500 05bf 10       		.byte	16
+ 1501 05c0 B5       		.byte	-75
+ 1502 05c1 04       		.byte	4
+ 1503 05c2 C2       		.byte	-62
+ 1504 05c3 0E       		.byte	14
+ 1505 05c4 E8       		.byte	-24
+ 1506 05c5 08       		.byte	8
+ 1507 05c6 68       		.byte	104
+ 1508 05c7 20       		.byte	32
+ 1509 05c8 6D       		.byte	109
+ 1510 05c9 20       		.byte	32
+ 1511 05ca 81       		.byte	-127
+ 1512 05cb 10       		.byte	16
+ 1513 05cc 87       		.byte	-121
+ 1514 05cd 10       		.byte	16
+ 1515 05ce 97       		.byte	-105
+ 1516 05cf 20       		.byte	32
+ 1517 05d0 A0       		.byte	-96
+ 1518 05d1 20       		.byte	32
+ 1519 05d2 A3       		.byte	-93
+ 1520 05d3 20       		.byte	32
+ 1521 05d4 AE       		.byte	-82
+ 1522 05d5 40       		.byte	64
+ 1523 05d6 DA       		.byte	-38
+ 1524 05d7 C0       		.byte	-64
+ 1525 05d8 E2       		.byte	-30
+ 1526 05d9 80       		.byte	-128
+ 1527 05da E6       		.byte	-26
+ 1528 05db 40       		.byte	64
+ 1529 05dc EE       		.byte	-18
+ 1530 05dd 40       		.byte	64
+ 1531 05de 7B       		.byte	123
+ 1532 05df 20       		.byte	32
+ 1533 05e0 A3       		.byte	-93
+ 1534 05e1 20       		.byte	32
+ 1535 05e2 DE       		.byte	-34
+ 1536 05e3 40       		.byte	64
+ 1537 05e4 AF       		.byte	-81
+ 1538 05e5 40       		.byte	64
+ 1539 05e6 00       		.byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 28
+
+
+ 1540 05e7 04       		.byte	4
+ 1541 05e8 01       		.byte	1
+ 1542 05e9 01       		.byte	1
+ 1543 05ea 0C       		.byte	12
+ 1544 05eb 04       		.byte	4
+ 1545 05ec 0D       		.byte	13
+ 1546 05ed 01       		.byte	1
+ 1547 05ee 0E       		.byte	14
+ 1548 05ef 04       		.byte	4
+ 1549 05f0 10       		.byte	16
+ 1550 05f1 01       		.byte	1
+ 1551 05f2 1A       		.byte	26
+ 1552 05f3 01       		.byte	1
+ 1553 05f4 00       		.byte	0
+ 1554 05f5 FF       		.byte	-1
+ 1555 05f6 01       		.byte	1
+ 1556 05f7 AF       		.byte	-81
+ 1557 05f8 02       		.byte	2
+ 1558 05f9 02       		.byte	2
+ 1559 05fa 00       		.byte	0
+ 1560 05fb 00       		.byte	0
+ 1561 05fc E0       		.byte	-32
+ 1562 05fd D0       		.byte	-48
+ 1563 05fe 10       		.byte	16
+ 1564 05ff 00       		.byte	0
+ 1565 0600 C0       		.byte	-64
+ 1566 0601 00       		.byte	0
+ 1567 0602 00       		.byte	0
+ 1568 0603 00       		.byte	0
+ 1569 0604 40       		.byte	64
+ 1570 0605 00       		.byte	0
+ 1571 0606 00       		.byte	0
+ 1572 0607 00       		.byte	0
+ 1573 0608 00       		.byte	0
+ 1574 0609 00       		.byte	0
+ 1575 060a 00       		.byte	0
+ 1576 060b 00       		.byte	0
+ 1577 060c C0       		.byte	-64
+ 1578 060d 00       		.byte	0
+ 1579 060e 00       		.byte	0
+ 1580 060f 00       		.byte	0
+ 1581 0610 00       		.byte	0
+ 1582 0611 0B       		.byte	11
+ 1583 0612 0B       		.byte	11
+ 1584 0613 00       		.byte	0
+ 1585 0614 00       		.byte	0
+ 1586 0615 00       		.byte	0
+ 1587 0616 00       		.byte	0
+ 1588 0617 00       		.byte	0
+ 1589 0618 00       		.byte	0
+ 1590 0619 7F       		.byte	127
+ 1591 061a 7F       		.byte	127
+ 1592 061b 00       		.byte	0
+ 1593 061c 00       		.byte	0
+ 1594 061d 00       		.byte	0
+ 1595 061e 00       		.byte	0
+ 1596 061f 00       		.byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 29
+
+
+ 1597 0620 00       		.byte	0
+ 1598 0621 00       		.byte	0
+ 1599 0622 60       		.byte	96
+ 1600 0623 00       		.byte	0
+ 1601 0624 00       		.byte	0
+ 1602 0625 00       		.byte	0
+ 1603 0626 00       		.byte	0
+ 1604 0627 00       		.byte	0
+ 1605 0628 41       		.byte	65
+ 1606 0629 41       		.byte	65
+ 1607 062a 00       		.byte	0
+ 1608 062b 00       		.byte	0
+ 1609 062c 41       		.byte	65
+ 1610 062d 00       		.byte	0
+ 1611 062e 10       		.byte	16
+ 1612 062f 00       		.byte	0
+ 1613              		.section	.cywolatch,"a",%progbits
+ 1614              		.align	2
+ 1615              		.type	cy_meta_wonvl, %object
+ 1616              		.size	cy_meta_wonvl, 4
+ 1617              	cy_meta_wonvl:
+ 1618 0000 BC       		.byte	-68
+ 1619 0001 90       		.byte	-112
+ 1620 0002 AC       		.byte	-84
+ 1621 0003 AF       		.byte	-81
+ 1622              		.section	.cycustnvl,"a",%progbits
+ 1623              		.align	2
+ 1624              		.type	cy_meta_custnvl, %object
+ 1625              		.size	cy_meta_custnvl, 4
+ 1626              	cy_meta_custnvl:
+ 1627 0000 00       		.byte	0
+ 1628 0001 00       		.byte	0
+ 1629 0002 40       		.byte	64
+ 1630 0003 05       		.byte	5
+ 1631              		.section	.cymeta,"a",%progbits
+ 1632              		.align	2
+ 1633              		.type	cy_metadata, %object
+ 1634              		.size	cy_metadata, 12
+ 1635              	cy_metadata:
+ 1636 0000 00       		.byte	0
+ 1637 0001 01       		.byte	1
+ 1638 0002 2E       		.byte	46
+ 1639 0003 12       		.byte	18
+ 1640 0004 30       		.byte	48
+ 1641 0005 69       		.byte	105
+ 1642 0006 00       		.byte	0
+ 1643 0007 01       		.byte	1
+ 1644 0008 00       		.byte	0
+ 1645 0009 00       		.byte	0
+ 1646 000a 00       		.byte	0
+ 1647 000b 00       		.byte	0
+ 1648              		.section	.cyflashprotect,"a",%progbits
+ 1649              		.align	2
+ 1650              		.type	cy_meta_flashprotect, %object
+ 1651              		.size	cy_meta_flashprotect, 256
+ 1652              	cy_meta_flashprotect:
+ 1653 0000 00000000 		.space	256
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 30
+
+
+ 1653      00000000 
+ 1653      00000000 
+ 1653      00000000 
+ 1653      00000000 
+ 1654              		.text
+ 1655              	.Letext0:
+ 1656              		.file 1 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 1657              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 1658              		.file 3 "Generated_Source\\PSoC5\\cymetadata.c"
+ 1659              		.section	.debug_info,"",%progbits
+ 1660              	.Ldebug_info0:
+ 1661 0000 34010000 		.4byte	0x134
+ 1662 0004 0400     		.2byte	0x4
+ 1663 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 1664 000a 04       		.byte	0x4
+ 1665 000b 01       		.uleb128 0x1
+ 1666 000c 24000000 		.4byte	.LASF17
+ 1667 0010 0C       		.byte	0xc
+ 1668 0011 F3010000 		.4byte	.LASF18
+ 1669 0015 D7000000 		.4byte	.LASF19
+ 1670 0019 00000000 		.4byte	.Ldebug_line0
+ 1671 001d 02       		.uleb128 0x2
+ 1672 001e 01       		.byte	0x1
+ 1673 001f 06       		.byte	0x6
+ 1674 0020 E7010000 		.4byte	.LASF0
+ 1675 0024 03       		.uleb128 0x3
+ 1676 0025 00000000 		.4byte	.LASF9
+ 1677 0029 01       		.byte	0x1
+ 1678 002a 1D       		.byte	0x1d
+ 1679 002b 2F000000 		.4byte	0x2f
+ 1680 002f 02       		.uleb128 0x2
+ 1681 0030 01       		.byte	0x1
+ 1682 0031 08       		.byte	0x8
+ 1683 0032 16000000 		.4byte	.LASF1
+ 1684 0036 02       		.uleb128 0x2
+ 1685 0037 02       		.byte	0x2
+ 1686 0038 05       		.byte	0x5
+ 1687 0039 D4010000 		.4byte	.LASF2
+ 1688 003d 02       		.uleb128 0x2
+ 1689 003e 02       		.byte	0x2
+ 1690 003f 07       		.byte	0x7
+ 1691 0040 C4000000 		.4byte	.LASF3
+ 1692 0044 02       		.uleb128 0x2
+ 1693 0045 04       		.byte	0x4
+ 1694 0046 05       		.byte	0x5
+ 1695 0047 DE010000 		.4byte	.LASF4
+ 1696 004b 02       		.uleb128 0x2
+ 1697 004c 04       		.byte	0x4
+ 1698 004d 07       		.byte	0x7
+ 1699 004e B2000000 		.4byte	.LASF5
+ 1700 0052 02       		.uleb128 0x2
+ 1701 0053 08       		.byte	0x8
+ 1702 0054 05       		.byte	0x5
+ 1703 0055 C6010000 		.4byte	.LASF6
+ 1704 0059 02       		.uleb128 0x2
+ 1705 005a 08       		.byte	0x8
+ 1706 005b 07       		.byte	0x7
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 31
+
+
+ 1707 005c 7B010000 		.4byte	.LASF7
+ 1708 0060 04       		.uleb128 0x4
+ 1709 0061 04       		.byte	0x4
+ 1710 0062 05       		.byte	0x5
+ 1711 0063 696E7400 		.ascii	"int\000"
+ 1712 0067 02       		.uleb128 0x2
+ 1713 0068 04       		.byte	0x4
+ 1714 0069 07       		.byte	0x7
+ 1715 006a 6E010000 		.4byte	.LASF8
+ 1716 006e 03       		.uleb128 0x3
+ 1717 006f 92010000 		.4byte	.LASF10
+ 1718 0073 02       		.byte	0x2
+ 1719 0074 18       		.byte	0x18
+ 1720 0075 24000000 		.4byte	0x24
+ 1721 0079 05       		.uleb128 0x5
+ 1722 007a 91000000 		.4byte	0x91
+ 1723 007e 8A000000 		.4byte	0x8a
+ 1724 0082 06       		.uleb128 0x6
+ 1725 0083 8A000000 		.4byte	0x8a
+ 1726 0087 2F06     		.2byte	0x62f
+ 1727 0089 00       		.byte	0
+ 1728 008a 02       		.uleb128 0x2
+ 1729 008b 04       		.byte	0x4
+ 1730 008c 07       		.byte	0x7
+ 1731 008d BD010000 		.4byte	.LASF11
+ 1732 0091 07       		.uleb128 0x7
+ 1733 0092 6E000000 		.4byte	0x6e
+ 1734 0096 08       		.uleb128 0x8
+ 1735 0097 5C010000 		.4byte	.LASF12
+ 1736 009b 03       		.byte	0x3
+ 1737 009c 1F       		.byte	0x1f
+ 1738 009d A7000000 		.4byte	0xa7
+ 1739 00a1 05       		.uleb128 0x5
+ 1740 00a2 03       		.byte	0x3
+ 1741 00a3 00000000 		.4byte	cy_meta_configecc
+ 1742 00a7 07       		.uleb128 0x7
+ 1743 00a8 79000000 		.4byte	0x79
+ 1744 00ac 05       		.uleb128 0x5
+ 1745 00ad 91000000 		.4byte	0x91
+ 1746 00b1 BC000000 		.4byte	0xbc
+ 1747 00b5 09       		.uleb128 0x9
+ 1748 00b6 8A000000 		.4byte	0x8a
+ 1749 00ba 03       		.byte	0x3
+ 1750 00bb 00       		.byte	0
+ 1751 00bc 08       		.uleb128 0x8
+ 1752 00bd 4C010000 		.4byte	.LASF13
+ 1753 00c1 03       		.byte	0x3
+ 1754 00c2 F2       		.byte	0xf2
+ 1755 00c3 CD000000 		.4byte	0xcd
+ 1756 00c7 05       		.uleb128 0x5
+ 1757 00c8 03       		.byte	0x3
+ 1758 00c9 00000000 		.4byte	cy_meta_custnvl
+ 1759 00cd 07       		.uleb128 0x7
+ 1760 00ce AC000000 		.4byte	0xac
+ 1761 00d2 0A       		.uleb128 0xa
+ 1762 00d3 AF010000 		.4byte	.LASF14
+ 1763 00d7 03       		.byte	0x3
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 32
+
+
+ 1764 00d8 0001     		.2byte	0x100
+ 1765 00da E4000000 		.4byte	0xe4
+ 1766 00de 05       		.uleb128 0x5
+ 1767 00df 03       		.byte	0x3
+ 1768 00e0 00000000 		.4byte	cy_meta_wonvl
+ 1769 00e4 07       		.uleb128 0x7
+ 1770 00e5 AC000000 		.4byte	0xac
+ 1771 00e9 05       		.uleb128 0x5
+ 1772 00ea 91000000 		.4byte	0x91
+ 1773 00ee F9000000 		.4byte	0xf9
+ 1774 00f2 09       		.uleb128 0x9
+ 1775 00f3 8A000000 		.4byte	0x8a
+ 1776 00f7 FF       		.byte	0xff
+ 1777 00f8 00       		.byte	0
+ 1778 00f9 0A       		.uleb128 0xa
+ 1779 00fa 9A010000 		.4byte	.LASF15
+ 1780 00fe 03       		.byte	0x3
+ 1781 00ff 0E01     		.2byte	0x10e
+ 1782 0101 0B010000 		.4byte	0x10b
+ 1783 0105 05       		.uleb128 0x5
+ 1784 0106 03       		.byte	0x3
+ 1785 0107 00000000 		.4byte	cy_meta_flashprotect
+ 1786 010b 07       		.uleb128 0x7
+ 1787 010c E9000000 		.4byte	0xe9
+ 1788 0110 05       		.uleb128 0x5
+ 1789 0111 91000000 		.4byte	0x91
+ 1790 0115 20010000 		.4byte	0x120
+ 1791 0119 09       		.uleb128 0x9
+ 1792 011a 8A000000 		.4byte	0x8a
+ 1793 011e 0B       		.byte	0xb
+ 1794 011f 00       		.byte	0
+ 1795 0120 0A       		.uleb128 0xa
+ 1796 0121 0A000000 		.4byte	.LASF16
+ 1797 0125 03       		.byte	0x3
+ 1798 0126 3B01     		.2byte	0x13b
+ 1799 0128 32010000 		.4byte	0x132
+ 1800 012c 05       		.uleb128 0x5
+ 1801 012d 03       		.byte	0x3
+ 1802 012e 00000000 		.4byte	cy_metadata
+ 1803 0132 07       		.uleb128 0x7
+ 1804 0133 10010000 		.4byte	0x110
+ 1805 0137 00       		.byte	0
+ 1806              		.section	.debug_abbrev,"",%progbits
+ 1807              	.Ldebug_abbrev0:
+ 1808 0000 01       		.uleb128 0x1
+ 1809 0001 11       		.uleb128 0x11
+ 1810 0002 01       		.byte	0x1
+ 1811 0003 25       		.uleb128 0x25
+ 1812 0004 0E       		.uleb128 0xe
+ 1813 0005 13       		.uleb128 0x13
+ 1814 0006 0B       		.uleb128 0xb
+ 1815 0007 03       		.uleb128 0x3
+ 1816 0008 0E       		.uleb128 0xe
+ 1817 0009 1B       		.uleb128 0x1b
+ 1818 000a 0E       		.uleb128 0xe
+ 1819 000b 10       		.uleb128 0x10
+ 1820 000c 17       		.uleb128 0x17
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 33
+
+
+ 1821 000d 00       		.byte	0
+ 1822 000e 00       		.byte	0
+ 1823 000f 02       		.uleb128 0x2
+ 1824 0010 24       		.uleb128 0x24
+ 1825 0011 00       		.byte	0
+ 1826 0012 0B       		.uleb128 0xb
+ 1827 0013 0B       		.uleb128 0xb
+ 1828 0014 3E       		.uleb128 0x3e
+ 1829 0015 0B       		.uleb128 0xb
+ 1830 0016 03       		.uleb128 0x3
+ 1831 0017 0E       		.uleb128 0xe
+ 1832 0018 00       		.byte	0
+ 1833 0019 00       		.byte	0
+ 1834 001a 03       		.uleb128 0x3
+ 1835 001b 16       		.uleb128 0x16
+ 1836 001c 00       		.byte	0
+ 1837 001d 03       		.uleb128 0x3
+ 1838 001e 0E       		.uleb128 0xe
+ 1839 001f 3A       		.uleb128 0x3a
+ 1840 0020 0B       		.uleb128 0xb
+ 1841 0021 3B       		.uleb128 0x3b
+ 1842 0022 0B       		.uleb128 0xb
+ 1843 0023 49       		.uleb128 0x49
+ 1844 0024 13       		.uleb128 0x13
+ 1845 0025 00       		.byte	0
+ 1846 0026 00       		.byte	0
+ 1847 0027 04       		.uleb128 0x4
+ 1848 0028 24       		.uleb128 0x24
+ 1849 0029 00       		.byte	0
+ 1850 002a 0B       		.uleb128 0xb
+ 1851 002b 0B       		.uleb128 0xb
+ 1852 002c 3E       		.uleb128 0x3e
+ 1853 002d 0B       		.uleb128 0xb
+ 1854 002e 03       		.uleb128 0x3
+ 1855 002f 08       		.uleb128 0x8
+ 1856 0030 00       		.byte	0
+ 1857 0031 00       		.byte	0
+ 1858 0032 05       		.uleb128 0x5
+ 1859 0033 01       		.uleb128 0x1
+ 1860 0034 01       		.byte	0x1
+ 1861 0035 49       		.uleb128 0x49
+ 1862 0036 13       		.uleb128 0x13
+ 1863 0037 01       		.uleb128 0x1
+ 1864 0038 13       		.uleb128 0x13
+ 1865 0039 00       		.byte	0
+ 1866 003a 00       		.byte	0
+ 1867 003b 06       		.uleb128 0x6
+ 1868 003c 21       		.uleb128 0x21
+ 1869 003d 00       		.byte	0
+ 1870 003e 49       		.uleb128 0x49
+ 1871 003f 13       		.uleb128 0x13
+ 1872 0040 2F       		.uleb128 0x2f
+ 1873 0041 05       		.uleb128 0x5
+ 1874 0042 00       		.byte	0
+ 1875 0043 00       		.byte	0
+ 1876 0044 07       		.uleb128 0x7
+ 1877 0045 26       		.uleb128 0x26
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 34
+
+
+ 1878 0046 00       		.byte	0
+ 1879 0047 49       		.uleb128 0x49
+ 1880 0048 13       		.uleb128 0x13
+ 1881 0049 00       		.byte	0
+ 1882 004a 00       		.byte	0
+ 1883 004b 08       		.uleb128 0x8
+ 1884 004c 34       		.uleb128 0x34
+ 1885 004d 00       		.byte	0
+ 1886 004e 03       		.uleb128 0x3
+ 1887 004f 0E       		.uleb128 0xe
+ 1888 0050 3A       		.uleb128 0x3a
+ 1889 0051 0B       		.uleb128 0xb
+ 1890 0052 3B       		.uleb128 0x3b
+ 1891 0053 0B       		.uleb128 0xb
+ 1892 0054 49       		.uleb128 0x49
+ 1893 0055 13       		.uleb128 0x13
+ 1894 0056 3F       		.uleb128 0x3f
+ 1895 0057 19       		.uleb128 0x19
+ 1896 0058 02       		.uleb128 0x2
+ 1897 0059 18       		.uleb128 0x18
+ 1898 005a 00       		.byte	0
+ 1899 005b 00       		.byte	0
+ 1900 005c 09       		.uleb128 0x9
+ 1901 005d 21       		.uleb128 0x21
+ 1902 005e 00       		.byte	0
+ 1903 005f 49       		.uleb128 0x49
+ 1904 0060 13       		.uleb128 0x13
+ 1905 0061 2F       		.uleb128 0x2f
+ 1906 0062 0B       		.uleb128 0xb
+ 1907 0063 00       		.byte	0
+ 1908 0064 00       		.byte	0
+ 1909 0065 0A       		.uleb128 0xa
+ 1910 0066 34       		.uleb128 0x34
+ 1911 0067 00       		.byte	0
+ 1912 0068 03       		.uleb128 0x3
+ 1913 0069 0E       		.uleb128 0xe
+ 1914 006a 3A       		.uleb128 0x3a
+ 1915 006b 0B       		.uleb128 0xb
+ 1916 006c 3B       		.uleb128 0x3b
+ 1917 006d 05       		.uleb128 0x5
+ 1918 006e 49       		.uleb128 0x49
+ 1919 006f 13       		.uleb128 0x13
+ 1920 0070 3F       		.uleb128 0x3f
+ 1921 0071 19       		.uleb128 0x19
+ 1922 0072 02       		.uleb128 0x2
+ 1923 0073 18       		.uleb128 0x18
+ 1924 0074 00       		.byte	0
+ 1925 0075 00       		.byte	0
+ 1926 0076 00       		.byte	0
+ 1927              		.section	.debug_aranges,"",%progbits
+ 1928 0000 14000000 		.4byte	0x14
+ 1929 0004 0200     		.2byte	0x2
+ 1930 0006 00000000 		.4byte	.Ldebug_info0
+ 1931 000a 04       		.byte	0x4
+ 1932 000b 00       		.byte	0
+ 1933 000c 0000     		.2byte	0
+ 1934 000e 0000     		.2byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 35
+
+
+ 1935 0010 00000000 		.4byte	0
+ 1936 0014 00000000 		.4byte	0
+ 1937              		.section	.debug_line,"",%progbits
+ 1938              	.Ldebug_line0:
+ 1939 0000 3D010000 		.section	.debug_str,"MS",%progbits,1
+ 1939      02003701 
+ 1939      00000201 
+ 1939      FB0E0D00 
+ 1939      01010101 
+ 1940              	.LASF9:
+ 1941 0000 5F5F7569 		.ascii	"__uint8_t\000"
+ 1941      6E74385F 
+ 1941      7400
+ 1942              	.LASF16:
+ 1943 000a 63795F6D 		.ascii	"cy_metadata\000"
+ 1943      65746164 
+ 1943      61746100 
+ 1944              	.LASF1:
+ 1945 0016 756E7369 		.ascii	"unsigned char\000"
+ 1945      676E6564 
+ 1945      20636861 
+ 1945      7200
+ 1946              	.LASF17:
+ 1947 0024 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 1947      43313120 
+ 1947      352E342E 
+ 1947      31203230 
+ 1947      31363036 
+ 1948 0057 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m3 -mthumb -g -O"
+ 1948      20726576 
+ 1948      6973696F 
+ 1948      6E203233 
+ 1948      37373135 
+ 1949 008a 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 1949      66756E63 
+ 1949      74696F6E 
+ 1949      2D736563 
+ 1949      74696F6E 
+ 1950              	.LASF5:
+ 1951 00b2 6C6F6E67 		.ascii	"long unsigned int\000"
+ 1951      20756E73 
+ 1951      69676E65 
+ 1951      6420696E 
+ 1951      7400
+ 1952              	.LASF3:
+ 1953 00c4 73686F72 		.ascii	"short unsigned int\000"
+ 1953      7420756E 
+ 1953      7369676E 
+ 1953      65642069 
+ 1953      6E7400
+ 1954              	.LASF19:
+ 1955 00d7 433A5C55 		.ascii	"C:\\Users\\henrichsc\\Desktop\\School\\Senior_year\\"
+ 1955      73657273 
+ 1955      5C68656E 
+ 1955      72696368 
+ 1955      73635C44 
+ 1956 0105 77696E74 		.ascii	"winter\\ce4950\\ce4950-term-project\\Workspace1\\ce"
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 36
+
+
+ 1956      65725C63 
+ 1956      65343935 
+ 1956      305C6365 
+ 1956      34393530 
+ 1957 0134 34393530 		.ascii	"4950-term-project.cydsn\000"
+ 1957      2D746572 
+ 1957      6D2D7072 
+ 1957      6F6A6563 
+ 1957      742E6379 
+ 1958              	.LASF13:
+ 1959 014c 63795F6D 		.ascii	"cy_meta_custnvl\000"
+ 1959      6574615F 
+ 1959      63757374 
+ 1959      6E766C00 
+ 1960              	.LASF12:
+ 1961 015c 63795F6D 		.ascii	"cy_meta_configecc\000"
+ 1961      6574615F 
+ 1961      636F6E66 
+ 1961      69676563 
+ 1961      6300
+ 1962              	.LASF8:
+ 1963 016e 756E7369 		.ascii	"unsigned int\000"
+ 1963      676E6564 
+ 1963      20696E74 
+ 1963      00
+ 1964              	.LASF7:
+ 1965 017b 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 1965      206C6F6E 
+ 1965      6720756E 
+ 1965      7369676E 
+ 1965      65642069 
+ 1966              	.LASF10:
+ 1967 0192 75696E74 		.ascii	"uint8_t\000"
+ 1967      385F7400 
+ 1968              	.LASF15:
+ 1969 019a 63795F6D 		.ascii	"cy_meta_flashprotect\000"
+ 1969      6574615F 
+ 1969      666C6173 
+ 1969      6870726F 
+ 1969      74656374 
+ 1970              	.LASF14:
+ 1971 01af 63795F6D 		.ascii	"cy_meta_wonvl\000"
+ 1971      6574615F 
+ 1971      776F6E76 
+ 1971      6C00
+ 1972              	.LASF11:
+ 1973 01bd 73697A65 		.ascii	"sizetype\000"
+ 1973      74797065 
+ 1973      00
+ 1974              	.LASF6:
+ 1975 01c6 6C6F6E67 		.ascii	"long long int\000"
+ 1975      206C6F6E 
+ 1975      6720696E 
+ 1975      7400
+ 1976              	.LASF2:
+ 1977 01d4 73686F72 		.ascii	"short int\000"
+ 1977      7420696E 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccha97UE.s 			page 37
+
+
+ 1977      7400
+ 1978              	.LASF4:
+ 1979 01de 6C6F6E67 		.ascii	"long int\000"
+ 1979      20696E74 
+ 1979      00
+ 1980              	.LASF0:
+ 1981 01e7 7369676E 		.ascii	"signed char\000"
+ 1981      65642063 
+ 1981      68617200 
+ 1982              	.LASF18:
+ 1983 01f3 47656E65 		.ascii	"Generated_Source\\PSoC5\\cymetadata.c\000"
+ 1983      72617465 
+ 1983      645F536F 
+ 1983      75726365 
+ 1983      5C50536F 
+ 1984              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

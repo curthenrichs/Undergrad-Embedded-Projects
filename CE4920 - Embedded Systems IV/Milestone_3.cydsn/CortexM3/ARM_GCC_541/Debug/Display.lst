@@ -1,0 +1,2630 @@
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"Display.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text._fill_blocks,"ax",%progbits
+  20              		.align	2
+  21              		.thumb
+  22              		.thumb_func
+  23              		.type	_fill_blocks, %function
+  24              	_fill_blocks:
+  25              	.LFB72:
+  26              		.file 1 "Display.c"
+   1:Display.c     **** /**
+   2:Display.c     ****  * Display
+   3:Display.c     ****  * @author Curt Henrichs
+   4:Display.c     ****  * @date 9-10-17
+   5:Display.c     ****  *
+   6:Display.c     ****  * Display module abstracts the LCD interface into general high level messages
+   7:Display.c     ****  * for user. All functions that rely on low level interface should be 
+   8:Display.c     ****  * implemented in this module.
+   9:Display.c     ****  */
+  10:Display.c     **** 
+  11:Display.c     **** //=============================================================================
+  12:Display.c     **** //                                  Libraries
+  13:Display.c     **** //=============================================================================
+  14:Display.c     **** 
+  15:Display.c     **** #include "Display.h"
+  16:Display.c     **** #include <project.h>
+  17:Display.c     **** #include <stdint.h>
+  18:Display.c     **** #include <stdio.h>
+  19:Display.c     **** 
+  20:Display.c     **** //=============================================================================
+  21:Display.c     **** //                         Constant and Macro Defintions
+  22:Display.c     **** //=============================================================================
+  23:Display.c     **** 
+  24:Display.c     **** #define BLOCK_CHAR  LCD_CUSTOM_0 //! Custom Block Character for top row
+  25:Display.c     **** #define FILL_TO_MSG_DELAY_TIME 250 //! time to transition in welcome message
+  26:Display.c     **** 
+  27:Display.c     **** //=============================================================================
+  28:Display.c     **** //                         Private Function Prototypes
+  29:Display.c     **** //=============================================================================
+  30:Display.c     **** 
+  31:Display.c     **** /**
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 2
+
+
+  32:Display.c     ****  * Fills the screen with blocks for startup to representing the loading to
+  33:Display.c     ****  * the user.
+  34:Display.c     ****  */
+  35:Display.c     **** static void _fill_blocks(void);
+  36:Display.c     **** /**
+  37:Display.c     ****  * Welcome message displayed to the user 
+  38:Display.c     ****  */
+  39:Display.c     **** static void _welcome_msg(void);
+  40:Display.c     **** 
+  41:Display.c     **** //=============================================================================
+  42:Display.c     **** //                        Public Function Implementation
+  43:Display.c     **** //=============================================================================
+  44:Display.c     **** 
+  45:Display.c     **** /**
+  46:Display.c     ****  * Intialization function for display module starts hardware
+  47:Display.c     ****  */
+  48:Display.c     **** void display_init(void){
+  49:Display.c     ****     LCD_Start();
+  50:Display.c     **** }
+  51:Display.c     **** 
+  52:Display.c     **** /**
+  53:Display.c     ****  * Displays welcome message to the user, intended for startup of the module
+  54:Display.c     ****  */
+  55:Display.c     **** void display_welcome(void){
+  56:Display.c     ****     _fill_blocks();
+  57:Display.c     ****     display_clear();
+  58:Display.c     ****     CyDelay(FILL_TO_MSG_DELAY_TIME);
+  59:Display.c     ****     _welcome_msg();
+  60:Display.c     **** }
+  61:Display.c     **** 
+  62:Display.c     **** /**
+  63:Display.c     ****  * Displays the profile menu title screen to explain process to user
+  64:Display.c     ****  */
+  65:Display.c     **** void display_profile_title(void){
+  66:Display.c     ****     display_clear();
+  67:Display.c     ****     LCD_Position(0,0);
+  68:Display.c     ****     LCD_PrintString("Profile Menu");
+  69:Display.c     ****     LCD_Position(1,0);
+  70:Display.c     ****     LCD_PrintString("Select L, Next R");
+  71:Display.c     **** }
+  72:Display.c     **** 
+  73:Display.c     **** /**
+  74:Display.c     ****  * Displays a general profile page used for both selection and operation
+  75:Display.c     ****  * display purposes
+  76:Display.c     ****  * @param name is Profile name string
+  77:Display.c     ****  * @param detail is second line string for specific details for profile
+  78:Display.c     ****  */
+  79:Display.c     **** void display_profile(const char* name, const char* detail){
+  80:Display.c     ****     if(name == NULL || detail == NULL){
+  81:Display.c     ****         return; //invalid input   
+  82:Display.c     ****     }else if(strlen(name) > MAX_PROFILE_NAME_LENGTH){
+  83:Display.c     ****         return; //invalid length
+  84:Display.c     ****     }else if(strlen(detail) > MAX_PROFILE_DETAIL_LENGTH){
+  85:Display.c     ****         return; //invalid length
+  86:Display.c     ****     }
+  87:Display.c     ****     
+  88:Display.c     ****     display_clear();
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 3
+
+
+  89:Display.c     ****     LCD_Position(0,0);
+  90:Display.c     ****     char temp[17];
+  91:Display.c     ****     sprintf(temp,"Type: %s",name);
+  92:Display.c     ****     LCD_PrintString(temp);
+  93:Display.c     ****     LCD_Position(1,0);
+  94:Display.c     ****     LCD_PrintString(detail);
+  95:Display.c     ****     
+  96:Display.c     **** }
+  97:Display.c     **** 
+  98:Display.c     **** /**
+  99:Display.c     ****  * Displays a flashing text message on the LCD screen
+ 100:Display.c     ****  * @param l1 is line one text
+ 101:Display.c     ****  * @param l2 is line two text
+ 102:Display.c     ****  * @param c is count or number of times to flash
+ 103:Display.c     ****  * @param don is delay (in milliseconds) on per count
+ 104:Display.c     ****  * @param doff is delay (in millseconds) off per count
+ 105:Display.c     ****  */
+ 106:Display.c     **** void display_flash_text(const char* l1, const char* l2, uint32_t c, 
+ 107:Display.c     ****         uint32_t don, uint32_t doff){
+ 108:Display.c     ****     //sanity check
+ 109:Display.c     ****     if(l1 == NULL || l2 == NULL){
+ 110:Display.c     ****         return;
+ 111:Display.c     ****     }else if(strlen(l1) > LCD_WIDTH || strlen(l2) > LCD_WIDTH){
+ 112:Display.c     ****         return;
+ 113:Display.c     ****     }else if(c == 0){
+ 114:Display.c     ****         return;   
+ 115:Display.c     ****     }
+ 116:Display.c     ****     
+ 117:Display.c     ****     //flash text
+ 118:Display.c     ****     display_clear();
+ 119:Display.c     ****     for(uint32_t i=0; i<c; ++i){ 
+ 120:Display.c     ****         if(don > 0){
+ 121:Display.c     ****             LCD_Position(0,0);
+ 122:Display.c     ****             LCD_PrintString(l1);
+ 123:Display.c     ****             LCD_Position(1,0);
+ 124:Display.c     ****             LCD_PrintString(l2);
+ 125:Display.c     ****             CyDelay(don);
+ 126:Display.c     ****         }   
+ 127:Display.c     ****         if(doff > 0){
+ 128:Display.c     ****             display_clear();
+ 129:Display.c     ****             CyDelay(doff);
+ 130:Display.c     ****         }
+ 131:Display.c     ****     }
+ 132:Display.c     ****     display_clear();
+ 133:Display.c     **** }
+ 134:Display.c     ****         
+ 135:Display.c     **** /**
+ 136:Display.c     ****  * Displays ramping motor text to user
+ 137:Display.c     ****  */
+ 138:Display.c     **** void display_ramp_text(void){
+ 139:Display.c     ****     LCD_Position(0,1);
+ 140:Display.c     ****     LCD_PrintString("Ramping  Motor");
+ 141:Display.c     ****     LCD_Position(1,2);
+ 142:Display.c     ****     LCD_PrintString("To Set Point");
+ 143:Display.c     **** }
+ 144:Display.c     **** 
+ 145:Display.c     **** /**
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 4
+
+
+ 146:Display.c     ****  * Displays stopping motor text to user
+ 147:Display.c     ****  */
+ 148:Display.c     **** void display_stop_text(void){
+ 149:Display.c     ****     LCD_Position(0,4);
+ 150:Display.c     ****     LCD_PrintString("Stopping");
+ 151:Display.c     ****     LCD_Position(1,5);
+ 152:Display.c     ****     LCD_PrintString("Motor");
+ 153:Display.c     **** }
+ 154:Display.c     **** 
+ 155:Display.c     **** /**
+ 156:Display.c     ****  * Displays a string at the provided position without clearing
+ 157:Display.c     ****  * screen.
+ 158:Display.c     ****  * @param r is row position of string origin
+ 159:Display.c     ****  * @param c is column position of string origin
+ 160:Display.c     ****  * @param str is the string to print to the display
+ 161:Display.c     ****  */
+ 162:Display.c     **** void display_print_string(uint8_t r, uint8_t c, const char* str){
+ 163:Display.c     ****     LCD_Position(r,c);
+ 164:Display.c     ****     LCD_PrintString(str);
+ 165:Display.c     **** }
+ 166:Display.c     **** 
+ 167:Display.c     **** //=============================================================================
+ 168:Display.c     **** //                        Private Function Implementation
+ 169:Display.c     **** //=============================================================================
+ 170:Display.c     **** 
+ 171:Display.c     **** /**
+ 172:Display.c     ****  * Fills the screen with blocks for startup to representing the loading to
+ 173:Display.c     ****  * the user.
+ 174:Display.c     ****  */
+ 175:Display.c     **** static void _fill_blocks(void){
+  27              		.loc 1 175 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31 0000 10B5     		push	{r4, lr}
+  32              		.cfi_def_cfa_offset 8
+  33              		.cfi_offset 4, -8
+  34              		.cfi_offset 14, -4
+ 176:Display.c     ****     display_clear();
+  35              		.loc 1 176 0
+  36 0002 0120     		movs	r0, #1
+  37 0004 FFF7FEFF 		bl	LCD_WriteControl
+  38              	.LVL0:
+ 177:Display.c     ****     LCD_Position(0,0);
+  39              		.loc 1 177 0
+  40 0008 0021     		movs	r1, #0
+  41 000a 0846     		mov	r0, r1
+  42 000c FFF7FEFF 		bl	LCD_Position
+  43              	.LVL1:
+  44              	.LBB2:
+ 178:Display.c     ****     for(uint8_t c=0; c<16; ++c){
+  45              		.loc 1 178 0
+  46 0010 0024     		movs	r4, #0
+  47 0012 07E0     		b	.L2
+  48              	.LVL2:
+  49              	.L3:
+ 179:Display.c     ****         LCD_PutChar(BLOCK_CHAR);
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 5
+
+
+  50              		.loc 1 179 0 discriminator 3
+  51 0014 0020     		movs	r0, #0
+  52 0016 FFF7FEFF 		bl	LCD_PutChar
+  53              	.LVL3:
+ 180:Display.c     ****         CyDelay(100);
+  54              		.loc 1 180 0 discriminator 3
+  55 001a 6420     		movs	r0, #100
+  56 001c FFF7FEFF 		bl	CyDelay
+  57              	.LVL4:
+ 178:Display.c     ****     for(uint8_t c=0; c<16; ++c){
+  58              		.loc 1 178 0 discriminator 3
+  59 0020 0134     		adds	r4, r4, #1
+  60              	.LVL5:
+  61 0022 E4B2     		uxtb	r4, r4
+  62              	.LVL6:
+  63              	.L2:
+ 178:Display.c     ****     for(uint8_t c=0; c<16; ++c){
+  64              		.loc 1 178 0 is_stmt 0 discriminator 1
+  65 0024 0F2C     		cmp	r4, #15
+  66 0026 F5D9     		bls	.L3
+  67              	.LBE2:
+ 181:Display.c     ****     }
+ 182:Display.c     **** }
+  68              		.loc 1 182 0 is_stmt 1
+  69 0028 10BD     		pop	{r4, pc}
+  70              		.cfi_endproc
+  71              	.LFE72:
+  72              		.size	_fill_blocks, .-_fill_blocks
+  73 002a 00BF     		.section	.text._welcome_msg,"ax",%progbits
+  74              		.align	2
+  75              		.thumb
+  76              		.thumb_func
+  77              		.type	_welcome_msg, %function
+  78              	_welcome_msg:
+  79              	.LFB73:
+ 183:Display.c     **** 
+ 184:Display.c     **** /**
+ 185:Display.c     ****  * Welcome message displayed to the user 
+ 186:Display.c     ****  */
+ 187:Display.c     **** static void _welcome_msg(void){
+  80              		.loc 1 187 0
+  81              		.cfi_startproc
+  82              		@ args = 0, pretend = 0, frame = 0
+  83              		@ frame_needed = 0, uses_anonymous_args = 0
+  84 0000 08B5     		push	{r3, lr}
+  85              		.cfi_def_cfa_offset 8
+  86              		.cfi_offset 3, -8
+  87              		.cfi_offset 14, -4
+ 188:Display.c     ****     display_clear();
+  88              		.loc 1 188 0
+  89 0002 0120     		movs	r0, #1
+  90 0004 FFF7FEFF 		bl	LCD_WriteControl
+  91              	.LVL7:
+ 189:Display.c     ****     LCD_Position(0,3);
+  92              		.loc 1 189 0
+  93 0008 0321     		movs	r1, #3
+  94 000a 0020     		movs	r0, #0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 6
+
+
+  95 000c FFF7FEFF 		bl	LCD_Position
+  96              	.LVL8:
+ 190:Display.c     ****     LCD_PrintString("Welcome to");
+  97              		.loc 1 190 0
+  98 0010 0548     		ldr	r0, .L7
+  99 0012 FFF7FEFF 		bl	LCD_PrintString
+ 100              	.LVL9:
+ 191:Display.c     ****     LCD_Position(1,2);
+ 101              		.loc 1 191 0
+ 102 0016 0221     		movs	r1, #2
+ 103 0018 0120     		movs	r0, #1
+ 104 001a FFF7FEFF 		bl	LCD_Position
+ 105              	.LVL10:
+ 192:Display.c     ****     LCD_PrintString("My Treadmill");
+ 106              		.loc 1 192 0
+ 107 001e 0348     		ldr	r0, .L7+4
+ 108 0020 FFF7FEFF 		bl	LCD_PrintString
+ 109              	.LVL11:
+ 110 0024 08BD     		pop	{r3, pc}
+ 111              	.L8:
+ 112 0026 00BF     		.align	2
+ 113              	.L7:
+ 114 0028 00000000 		.word	.LC0
+ 115 002c 0C000000 		.word	.LC1
+ 116              		.cfi_endproc
+ 117              	.LFE73:
+ 118              		.size	_welcome_msg, .-_welcome_msg
+ 119              		.section	.text.display_init,"ax",%progbits
+ 120              		.align	2
+ 121              		.global	display_init
+ 122              		.thumb
+ 123              		.thumb_func
+ 124              		.type	display_init, %function
+ 125              	display_init:
+ 126              	.LFB64:
+  48:Display.c     ****     LCD_Start();
+ 127              		.loc 1 48 0
+ 128              		.cfi_startproc
+ 129              		@ args = 0, pretend = 0, frame = 0
+ 130              		@ frame_needed = 0, uses_anonymous_args = 0
+ 131 0000 08B5     		push	{r3, lr}
+ 132              		.cfi_def_cfa_offset 8
+ 133              		.cfi_offset 3, -8
+ 134              		.cfi_offset 14, -4
+  49:Display.c     **** }
+ 135              		.loc 1 49 0
+ 136 0002 FFF7FEFF 		bl	LCD_Start
+ 137              	.LVL12:
+ 138 0006 08BD     		pop	{r3, pc}
+ 139              		.cfi_endproc
+ 140              	.LFE64:
+ 141              		.size	display_init, .-display_init
+ 142              		.section	.text.display_welcome,"ax",%progbits
+ 143              		.align	2
+ 144              		.global	display_welcome
+ 145              		.thumb
+ 146              		.thumb_func
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 7
+
+
+ 147              		.type	display_welcome, %function
+ 148              	display_welcome:
+ 149              	.LFB65:
+  55:Display.c     ****     _fill_blocks();
+ 150              		.loc 1 55 0
+ 151              		.cfi_startproc
+ 152              		@ args = 0, pretend = 0, frame = 0
+ 153              		@ frame_needed = 0, uses_anonymous_args = 0
+ 154 0000 08B5     		push	{r3, lr}
+ 155              		.cfi_def_cfa_offset 8
+ 156              		.cfi_offset 3, -8
+ 157              		.cfi_offset 14, -4
+  56:Display.c     ****     display_clear();
+ 158              		.loc 1 56 0
+ 159 0002 FFF7FEFF 		bl	_fill_blocks
+ 160              	.LVL13:
+  57:Display.c     ****     CyDelay(FILL_TO_MSG_DELAY_TIME);
+ 161              		.loc 1 57 0
+ 162 0006 0120     		movs	r0, #1
+ 163 0008 FFF7FEFF 		bl	LCD_WriteControl
+ 164              	.LVL14:
+  58:Display.c     ****     _welcome_msg();
+ 165              		.loc 1 58 0
+ 166 000c FA20     		movs	r0, #250
+ 167 000e FFF7FEFF 		bl	CyDelay
+ 168              	.LVL15:
+  59:Display.c     **** }
+ 169              		.loc 1 59 0
+ 170 0012 FFF7FEFF 		bl	_welcome_msg
+ 171              	.LVL16:
+ 172 0016 08BD     		pop	{r3, pc}
+ 173              		.cfi_endproc
+ 174              	.LFE65:
+ 175              		.size	display_welcome, .-display_welcome
+ 176              		.section	.text.display_profile_title,"ax",%progbits
+ 177              		.align	2
+ 178              		.global	display_profile_title
+ 179              		.thumb
+ 180              		.thumb_func
+ 181              		.type	display_profile_title, %function
+ 182              	display_profile_title:
+ 183              	.LFB66:
+  65:Display.c     ****     display_clear();
+ 184              		.loc 1 65 0
+ 185              		.cfi_startproc
+ 186              		@ args = 0, pretend = 0, frame = 0
+ 187              		@ frame_needed = 0, uses_anonymous_args = 0
+ 188 0000 08B5     		push	{r3, lr}
+ 189              		.cfi_def_cfa_offset 8
+ 190              		.cfi_offset 3, -8
+ 191              		.cfi_offset 14, -4
+  66:Display.c     ****     LCD_Position(0,0);
+ 192              		.loc 1 66 0
+ 193 0002 0120     		movs	r0, #1
+ 194 0004 FFF7FEFF 		bl	LCD_WriteControl
+ 195              	.LVL17:
+  67:Display.c     ****     LCD_PrintString("Profile Menu");
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 8
+
+
+ 196              		.loc 1 67 0
+ 197 0008 0021     		movs	r1, #0
+ 198 000a 0846     		mov	r0, r1
+ 199 000c FFF7FEFF 		bl	LCD_Position
+ 200              	.LVL18:
+  68:Display.c     ****     LCD_Position(1,0);
+ 201              		.loc 1 68 0
+ 202 0010 0548     		ldr	r0, .L15
+ 203 0012 FFF7FEFF 		bl	LCD_PrintString
+ 204              	.LVL19:
+  69:Display.c     ****     LCD_PrintString("Select L, Next R");
+ 205              		.loc 1 69 0
+ 206 0016 0021     		movs	r1, #0
+ 207 0018 0120     		movs	r0, #1
+ 208 001a FFF7FEFF 		bl	LCD_Position
+ 209              	.LVL20:
+  70:Display.c     **** }
+ 210              		.loc 1 70 0
+ 211 001e 0348     		ldr	r0, .L15+4
+ 212 0020 FFF7FEFF 		bl	LCD_PrintString
+ 213              	.LVL21:
+ 214 0024 08BD     		pop	{r3, pc}
+ 215              	.L16:
+ 216 0026 00BF     		.align	2
+ 217              	.L15:
+ 218 0028 1C000000 		.word	.LC2
+ 219 002c 2C000000 		.word	.LC3
+ 220              		.cfi_endproc
+ 221              	.LFE66:
+ 222              		.size	display_profile_title, .-display_profile_title
+ 223              		.section	.text.display_profile,"ax",%progbits
+ 224              		.align	2
+ 225              		.global	display_profile
+ 226              		.thumb
+ 227              		.thumb_func
+ 228              		.type	display_profile, %function
+ 229              	display_profile:
+ 230              	.LFB67:
+  79:Display.c     ****     if(name == NULL || detail == NULL){
+ 231              		.loc 1 79 0
+ 232              		.cfi_startproc
+ 233              		@ args = 0, pretend = 0, frame = 24
+ 234              		@ frame_needed = 0, uses_anonymous_args = 0
+ 235              	.LVL22:
+  80:Display.c     ****         return; //invalid input   
+ 236              		.loc 1 80 0
+ 237 0000 28B3     		cbz	r0, .L21
+  80:Display.c     ****         return; //invalid input   
+ 238              		.loc 1 80 0 is_stmt 0 discriminator 1
+ 239 0002 21B3     		cbz	r1, .L21
+  79:Display.c     ****     if(name == NULL || detail == NULL){
+ 240              		.loc 1 79 0 is_stmt 1
+ 241 0004 30B5     		push	{r4, r5, lr}
+ 242              		.cfi_def_cfa_offset 12
+ 243              		.cfi_offset 4, -12
+ 244              		.cfi_offset 5, -8
+ 245              		.cfi_offset 14, -4
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 9
+
+
+ 246 0006 87B0     		sub	sp, sp, #28
+ 247              		.cfi_def_cfa_offset 40
+ 248 0008 0546     		mov	r5, r0
+ 249 000a 0C46     		mov	r4, r1
+  82:Display.c     ****         return; //invalid length
+ 250              		.loc 1 82 0
+ 251 000c FFF7FEFF 		bl	strlen
+ 252              	.LVL23:
+ 253 0010 0A28     		cmp	r0, #10
+ 254 0012 1AD8     		bhi	.L17
+  84:Display.c     ****         return; //invalid length
+ 255              		.loc 1 84 0
+ 256 0014 2046     		mov	r0, r4
+ 257 0016 FFF7FEFF 		bl	strlen
+ 258              	.LVL24:
+ 259 001a 1028     		cmp	r0, #16
+ 260 001c 15D8     		bhi	.L17
+  88:Display.c     ****     LCD_Position(0,0);
+ 261              		.loc 1 88 0
+ 262 001e 0120     		movs	r0, #1
+ 263 0020 FFF7FEFF 		bl	LCD_WriteControl
+ 264              	.LVL25:
+  89:Display.c     ****     char temp[17];
+ 265              		.loc 1 89 0
+ 266 0024 0021     		movs	r1, #0
+ 267 0026 0846     		mov	r0, r1
+ 268 0028 FFF7FEFF 		bl	LCD_Position
+ 269              	.LVL26:
+  91:Display.c     ****     LCD_PrintString(temp);
+ 270              		.loc 1 91 0
+ 271 002c 2A46     		mov	r2, r5
+ 272 002e 0849     		ldr	r1, .L22
+ 273 0030 01A8     		add	r0, sp, #4
+ 274 0032 FFF7FEFF 		bl	sprintf
+ 275              	.LVL27:
+  92:Display.c     ****     LCD_Position(1,0);
+ 276              		.loc 1 92 0
+ 277 0036 01A8     		add	r0, sp, #4
+ 278 0038 FFF7FEFF 		bl	LCD_PrintString
+ 279              	.LVL28:
+  93:Display.c     ****     LCD_PrintString(detail);
+ 280              		.loc 1 93 0
+ 281 003c 0021     		movs	r1, #0
+ 282 003e 0120     		movs	r0, #1
+ 283 0040 FFF7FEFF 		bl	LCD_Position
+ 284              	.LVL29:
+  94:Display.c     ****     
+ 285              		.loc 1 94 0
+ 286 0044 2046     		mov	r0, r4
+ 287 0046 FFF7FEFF 		bl	LCD_PrintString
+ 288              	.LVL30:
+ 289              	.L17:
+  96:Display.c     **** 
+ 290              		.loc 1 96 0
+ 291 004a 07B0     		add	sp, sp, #28
+ 292              		.cfi_def_cfa_offset 12
+ 293              		@ sp needed
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 10
+
+
+ 294 004c 30BD     		pop	{r4, r5, pc}
+ 295              	.LVL31:
+ 296              	.L21:
+ 297              		.cfi_def_cfa_offset 0
+ 298              		.cfi_restore 4
+ 299              		.cfi_restore 5
+ 300              		.cfi_restore 14
+ 301 004e 7047     		bx	lr
+ 302              	.L23:
+ 303              		.align	2
+ 304              	.L22:
+ 305 0050 40000000 		.word	.LC4
+ 306              		.cfi_endproc
+ 307              	.LFE67:
+ 308              		.size	display_profile, .-display_profile
+ 309              		.section	.text.display_flash_text,"ax",%progbits
+ 310              		.align	2
+ 311              		.global	display_flash_text
+ 312              		.thumb
+ 313              		.thumb_func
+ 314              		.type	display_flash_text, %function
+ 315              	display_flash_text:
+ 316              	.LFB68:
+ 107:Display.c     ****     //sanity check
+ 317              		.loc 1 107 0
+ 318              		.cfi_startproc
+ 319              		@ args = 4, pretend = 0, frame = 0
+ 320              		@ frame_needed = 0, uses_anonymous_args = 0
+ 321              	.LVL32:
+ 322 0000 2DE9F843 		push	{r3, r4, r5, r6, r7, r8, r9, lr}
+ 323              		.cfi_def_cfa_offset 32
+ 324              		.cfi_offset 3, -32
+ 325              		.cfi_offset 4, -28
+ 326              		.cfi_offset 5, -24
+ 327              		.cfi_offset 6, -20
+ 328              		.cfi_offset 7, -16
+ 329              		.cfi_offset 8, -12
+ 330              		.cfi_offset 9, -8
+ 331              		.cfi_offset 14, -4
+ 332 0004 089E     		ldr	r6, [sp, #32]
+ 109:Display.c     ****         return;
+ 333              		.loc 1 109 0
+ 334 0006 A0B3     		cbz	r0, .L24
+ 335 0008 8046     		mov	r8, r0
+ 109:Display.c     ****         return;
+ 336              		.loc 1 109 0 is_stmt 0 discriminator 1
+ 337 000a 91B3     		cbz	r1, .L24
+ 338 000c 1F46     		mov	r7, r3
+ 339 000e 1546     		mov	r5, r2
+ 340 0010 0C46     		mov	r4, r1
+ 111:Display.c     ****         return;
+ 341              		.loc 1 111 0 is_stmt 1
+ 342 0012 FFF7FEFF 		bl	strlen
+ 343              	.LVL33:
+ 344 0016 1028     		cmp	r0, #16
+ 345 0018 2BD8     		bhi	.L24
+ 111:Display.c     ****         return;
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 11
+
+
+ 346              		.loc 1 111 0 is_stmt 0 discriminator 1
+ 347 001a 2046     		mov	r0, r4
+ 348 001c FFF7FEFF 		bl	strlen
+ 349              	.LVL34:
+ 350 0020 1028     		cmp	r0, #16
+ 351 0022 26D8     		bhi	.L24
+ 113:Display.c     ****         return;   
+ 352              		.loc 1 113 0 is_stmt 1
+ 353 0024 2DB3     		cbz	r5, .L24
+ 118:Display.c     ****     for(uint32_t i=0; i<c; ++i){ 
+ 354              		.loc 1 118 0
+ 355 0026 0120     		movs	r0, #1
+ 356 0028 FFF7FEFF 		bl	LCD_WriteControl
+ 357              	.LVL35:
+ 358              	.LBB3:
+ 119:Display.c     ****         if(don > 0){
+ 359              		.loc 1 119 0
+ 360 002c 4FF00009 		mov	r9, #0
+ 361 0030 1AE0     		b	.L26
+ 362              	.LVL36:
+ 363              	.L29:
+ 120:Display.c     ****             LCD_Position(0,0);
+ 364              		.loc 1 120 0
+ 365 0032 87B1     		cbz	r7, .L27
+ 121:Display.c     ****             LCD_PrintString(l1);
+ 366              		.loc 1 121 0
+ 367 0034 0021     		movs	r1, #0
+ 368 0036 0846     		mov	r0, r1
+ 369 0038 FFF7FEFF 		bl	LCD_Position
+ 370              	.LVL37:
+ 122:Display.c     ****             LCD_Position(1,0);
+ 371              		.loc 1 122 0
+ 372 003c 4046     		mov	r0, r8
+ 373 003e FFF7FEFF 		bl	LCD_PrintString
+ 374              	.LVL38:
+ 123:Display.c     ****             LCD_PrintString(l2);
+ 375              		.loc 1 123 0
+ 376 0042 0021     		movs	r1, #0
+ 377 0044 0120     		movs	r0, #1
+ 378 0046 FFF7FEFF 		bl	LCD_Position
+ 379              	.LVL39:
+ 124:Display.c     ****             CyDelay(don);
+ 380              		.loc 1 124 0
+ 381 004a 2046     		mov	r0, r4
+ 382 004c FFF7FEFF 		bl	LCD_PrintString
+ 383              	.LVL40:
+ 125:Display.c     ****         }   
+ 384              		.loc 1 125 0
+ 385 0050 3846     		mov	r0, r7
+ 386 0052 FFF7FEFF 		bl	CyDelay
+ 387              	.LVL41:
+ 388              	.L27:
+ 127:Display.c     ****             display_clear();
+ 389              		.loc 1 127 0
+ 390 0056 2EB1     		cbz	r6, .L28
+ 128:Display.c     ****             CyDelay(doff);
+ 391              		.loc 1 128 0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 12
+
+
+ 392 0058 0120     		movs	r0, #1
+ 393 005a FFF7FEFF 		bl	LCD_WriteControl
+ 394              	.LVL42:
+ 129:Display.c     ****         }
+ 395              		.loc 1 129 0
+ 396 005e 3046     		mov	r0, r6
+ 397 0060 FFF7FEFF 		bl	CyDelay
+ 398              	.LVL43:
+ 399              	.L28:
+ 119:Display.c     ****         if(don > 0){
+ 400              		.loc 1 119 0 discriminator 2
+ 401 0064 09F10109 		add	r9, r9, #1
+ 402              	.LVL44:
+ 403              	.L26:
+ 119:Display.c     ****         if(don > 0){
+ 404              		.loc 1 119 0 is_stmt 0 discriminator 1
+ 405 0068 A945     		cmp	r9, r5
+ 406 006a E2D3     		bcc	.L29
+ 407              	.LBE3:
+ 132:Display.c     **** }
+ 408              		.loc 1 132 0 is_stmt 1
+ 409 006c 0120     		movs	r0, #1
+ 410 006e FFF7FEFF 		bl	LCD_WriteControl
+ 411              	.LVL45:
+ 412              	.L24:
+ 413 0072 BDE8F883 		pop	{r3, r4, r5, r6, r7, r8, r9, pc}
+ 414              		.cfi_endproc
+ 415              	.LFE68:
+ 416              		.size	display_flash_text, .-display_flash_text
+ 417 0076 00BF     		.section	.text.display_ramp_text,"ax",%progbits
+ 418              		.align	2
+ 419              		.global	display_ramp_text
+ 420              		.thumb
+ 421              		.thumb_func
+ 422              		.type	display_ramp_text, %function
+ 423              	display_ramp_text:
+ 424              	.LFB69:
+ 138:Display.c     ****     LCD_Position(0,1);
+ 425              		.loc 1 138 0
+ 426              		.cfi_startproc
+ 427              		@ args = 0, pretend = 0, frame = 0
+ 428              		@ frame_needed = 0, uses_anonymous_args = 0
+ 429 0000 08B5     		push	{r3, lr}
+ 430              		.cfi_def_cfa_offset 8
+ 431              		.cfi_offset 3, -8
+ 432              		.cfi_offset 14, -4
+ 139:Display.c     ****     LCD_PrintString("Ramping  Motor");
+ 433              		.loc 1 139 0
+ 434 0002 0121     		movs	r1, #1
+ 435 0004 0020     		movs	r0, #0
+ 436 0006 FFF7FEFF 		bl	LCD_Position
+ 437              	.LVL46:
+ 140:Display.c     ****     LCD_Position(1,2);
+ 438              		.loc 1 140 0
+ 439 000a 0548     		ldr	r0, .L33
+ 440 000c FFF7FEFF 		bl	LCD_PrintString
+ 441              	.LVL47:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 13
+
+
+ 141:Display.c     ****     LCD_PrintString("To Set Point");
+ 442              		.loc 1 141 0
+ 443 0010 0221     		movs	r1, #2
+ 444 0012 0120     		movs	r0, #1
+ 445 0014 FFF7FEFF 		bl	LCD_Position
+ 446              	.LVL48:
+ 142:Display.c     **** }
+ 447              		.loc 1 142 0
+ 448 0018 0248     		ldr	r0, .L33+4
+ 449 001a FFF7FEFF 		bl	LCD_PrintString
+ 450              	.LVL49:
+ 451 001e 08BD     		pop	{r3, pc}
+ 452              	.L34:
+ 453              		.align	2
+ 454              	.L33:
+ 455 0020 4C000000 		.word	.LC5
+ 456 0024 5C000000 		.word	.LC6
+ 457              		.cfi_endproc
+ 458              	.LFE69:
+ 459              		.size	display_ramp_text, .-display_ramp_text
+ 460              		.section	.text.display_stop_text,"ax",%progbits
+ 461              		.align	2
+ 462              		.global	display_stop_text
+ 463              		.thumb
+ 464              		.thumb_func
+ 465              		.type	display_stop_text, %function
+ 466              	display_stop_text:
+ 467              	.LFB70:
+ 148:Display.c     ****     LCD_Position(0,4);
+ 468              		.loc 1 148 0
+ 469              		.cfi_startproc
+ 470              		@ args = 0, pretend = 0, frame = 0
+ 471              		@ frame_needed = 0, uses_anonymous_args = 0
+ 472 0000 08B5     		push	{r3, lr}
+ 473              		.cfi_def_cfa_offset 8
+ 474              		.cfi_offset 3, -8
+ 475              		.cfi_offset 14, -4
+ 149:Display.c     ****     LCD_PrintString("Stopping");
+ 476              		.loc 1 149 0
+ 477 0002 0421     		movs	r1, #4
+ 478 0004 0020     		movs	r0, #0
+ 479 0006 FFF7FEFF 		bl	LCD_Position
+ 480              	.LVL50:
+ 150:Display.c     ****     LCD_Position(1,5);
+ 481              		.loc 1 150 0
+ 482 000a 0548     		ldr	r0, .L37
+ 483 000c FFF7FEFF 		bl	LCD_PrintString
+ 484              	.LVL51:
+ 151:Display.c     ****     LCD_PrintString("Motor");
+ 485              		.loc 1 151 0
+ 486 0010 0521     		movs	r1, #5
+ 487 0012 0120     		movs	r0, #1
+ 488 0014 FFF7FEFF 		bl	LCD_Position
+ 489              	.LVL52:
+ 152:Display.c     **** }
+ 490              		.loc 1 152 0
+ 491 0018 0248     		ldr	r0, .L37+4
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 14
+
+
+ 492 001a FFF7FEFF 		bl	LCD_PrintString
+ 493              	.LVL53:
+ 494 001e 08BD     		pop	{r3, pc}
+ 495              	.L38:
+ 496              		.align	2
+ 497              	.L37:
+ 498 0020 6C000000 		.word	.LC7
+ 499 0024 78000000 		.word	.LC8
+ 500              		.cfi_endproc
+ 501              	.LFE70:
+ 502              		.size	display_stop_text, .-display_stop_text
+ 503              		.section	.text.display_print_string,"ax",%progbits
+ 504              		.align	2
+ 505              		.global	display_print_string
+ 506              		.thumb
+ 507              		.thumb_func
+ 508              		.type	display_print_string, %function
+ 509              	display_print_string:
+ 510              	.LFB71:
+ 162:Display.c     ****     LCD_Position(r,c);
+ 511              		.loc 1 162 0
+ 512              		.cfi_startproc
+ 513              		@ args = 0, pretend = 0, frame = 0
+ 514              		@ frame_needed = 0, uses_anonymous_args = 0
+ 515              	.LVL54:
+ 516 0000 10B5     		push	{r4, lr}
+ 517              		.cfi_def_cfa_offset 8
+ 518              		.cfi_offset 4, -8
+ 519              		.cfi_offset 14, -4
+ 520 0002 1446     		mov	r4, r2
+ 163:Display.c     ****     LCD_PrintString(str);
+ 521              		.loc 1 163 0
+ 522 0004 FFF7FEFF 		bl	LCD_Position
+ 523              	.LVL55:
+ 164:Display.c     **** }
+ 524              		.loc 1 164 0
+ 525 0008 2046     		mov	r0, r4
+ 526 000a FFF7FEFF 		bl	LCD_PrintString
+ 527              	.LVL56:
+ 528 000e 10BD     		pop	{r4, pc}
+ 529              		.cfi_endproc
+ 530              	.LFE71:
+ 531              		.size	display_print_string, .-display_print_string
+ 532              		.section	.rodata.str1.4,"aMS",%progbits,1
+ 533              		.align	2
+ 534              	.LC0:
+ 535 0000 57656C63 		.ascii	"Welcome to\000"
+ 535      6F6D6520 
+ 535      746F00
+ 536 000b 00       		.space	1
+ 537              	.LC1:
+ 538 000c 4D792054 		.ascii	"My Treadmill\000"
+ 538      72656164 
+ 538      6D696C6C 
+ 538      00
+ 539 0019 000000   		.space	3
+ 540              	.LC2:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 15
+
+
+ 541 001c 50726F66 		.ascii	"Profile Menu\000"
+ 541      696C6520 
+ 541      4D656E75 
+ 541      00
+ 542 0029 000000   		.space	3
+ 543              	.LC3:
+ 544 002c 53656C65 		.ascii	"Select L, Next R\000"
+ 544      6374204C 
+ 544      2C204E65 
+ 544      78742052 
+ 544      00
+ 545 003d 000000   		.space	3
+ 546              	.LC4:
+ 547 0040 54797065 		.ascii	"Type: %s\000"
+ 547      3A202573 
+ 547      00
+ 548 0049 000000   		.space	3
+ 549              	.LC5:
+ 550 004c 52616D70 		.ascii	"Ramping  Motor\000"
+ 550      696E6720 
+ 550      204D6F74 
+ 550      6F7200
+ 551 005b 00       		.space	1
+ 552              	.LC6:
+ 553 005c 546F2053 		.ascii	"To Set Point\000"
+ 553      65742050 
+ 553      6F696E74 
+ 553      00
+ 554 0069 000000   		.space	3
+ 555              	.LC7:
+ 556 006c 53746F70 		.ascii	"Stopping\000"
+ 556      70696E67 
+ 556      00
+ 557 0075 000000   		.space	3
+ 558              	.LC8:
+ 559 0078 4D6F746F 		.ascii	"Motor\000"
+ 559      7200
+ 560              		.text
+ 561              	.Letext0:
+ 562              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 563              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 564              		.file 4 "Generated_Source\\PSoC5/LCD.h"
+ 565              		.file 5 "Generated_Source\\PSoC5/CyLib.h"
+ 566              		.file 6 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 567              		.file 7 "c:\\program files (x86)\\cypress\\psoc creator\\4.1\\psoc creator\\import\\gnu\\arm\\5.4.
+ 568              		.file 8 "Generated_Source\\PSoC5/core_cm3.h"
+ 569              		.section	.debug_info,"",%progbits
+ 570              	.Ldebug_info0:
+ 571 0000 BC060000 		.4byte	0x6bc
+ 572 0004 0400     		.2byte	0x4
+ 573 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 574 000a 04       		.byte	0x4
+ 575 000b 01       		.uleb128 0x1
+ 576 000c EE000000 		.4byte	.LASF42
+ 577 0010 0C       		.byte	0xc
+ 578 0011 9A020000 		.4byte	.LASF43
+ 579 0015 78000000 		.4byte	.LASF44
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 16
+
+
+ 580 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 581 001d 00000000 		.4byte	0
+ 582 0021 00000000 		.4byte	.Ldebug_line0
+ 583 0025 02       		.uleb128 0x2
+ 584 0026 01       		.byte	0x1
+ 585 0027 06       		.byte	0x6
+ 586 0028 CF020000 		.4byte	.LASF0
+ 587 002c 03       		.uleb128 0x3
+ 588 002d 1B000000 		.4byte	.LASF4
+ 589 0031 02       		.byte	0x2
+ 590 0032 1D       		.byte	0x1d
+ 591 0033 37000000 		.4byte	0x37
+ 592 0037 02       		.uleb128 0x2
+ 593 0038 01       		.byte	0x1
+ 594 0039 08       		.byte	0x8
+ 595 003a BE010000 		.4byte	.LASF1
+ 596 003e 02       		.uleb128 0x2
+ 597 003f 02       		.byte	0x2
+ 598 0040 05       		.byte	0x5
+ 599 0041 D3010000 		.4byte	.LASF2
+ 600 0045 02       		.uleb128 0x2
+ 601 0046 02       		.byte	0x2
+ 602 0047 07       		.byte	0x7
+ 603 0048 9E010000 		.4byte	.LASF3
+ 604 004c 03       		.uleb128 0x3
+ 605 004d 38000000 		.4byte	.LASF5
+ 606 0051 02       		.byte	0x2
+ 607 0052 3F       		.byte	0x3f
+ 608 0053 57000000 		.4byte	0x57
+ 609 0057 02       		.uleb128 0x2
+ 610 0058 04       		.byte	0x4
+ 611 0059 05       		.byte	0x5
+ 612 005a AD020000 		.4byte	.LASF6
+ 613 005e 03       		.uleb128 0x3
+ 614 005f 7C010000 		.4byte	.LASF7
+ 615 0063 02       		.byte	0x2
+ 616 0064 41       		.byte	0x41
+ 617 0065 69000000 		.4byte	0x69
+ 618 0069 02       		.uleb128 0x2
+ 619 006a 04       		.byte	0x4
+ 620 006b 07       		.byte	0x7
+ 621 006c 87010000 		.4byte	.LASF8
+ 622 0070 02       		.uleb128 0x2
+ 623 0071 08       		.byte	0x8
+ 624 0072 05       		.byte	0x5
+ 625 0073 00000000 		.4byte	.LASF9
+ 626 0077 02       		.uleb128 0x2
+ 627 0078 08       		.byte	0x8
+ 628 0079 07       		.byte	0x7
+ 629 007a 04020000 		.4byte	.LASF10
+ 630 007e 04       		.uleb128 0x4
+ 631 007f 04       		.byte	0x4
+ 632 0080 05       		.byte	0x5
+ 633 0081 696E7400 		.ascii	"int\000"
+ 634 0085 02       		.uleb128 0x2
+ 635 0086 04       		.byte	0x4
+ 636 0087 07       		.byte	0x7
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 17
+
+
+ 637 0088 66000000 		.4byte	.LASF11
+ 638 008c 03       		.uleb128 0x3
+ 639 008d 1B020000 		.4byte	.LASF12
+ 640 0091 03       		.byte	0x3
+ 641 0092 18       		.byte	0x18
+ 642 0093 2C000000 		.4byte	0x2c
+ 643 0097 03       		.uleb128 0x3
+ 644 0098 49020000 		.4byte	.LASF13
+ 645 009c 03       		.byte	0x3
+ 646 009d 2C       		.byte	0x2c
+ 647 009e 4C000000 		.4byte	0x4c
+ 648 00a2 03       		.uleb128 0x3
+ 649 00a3 A4020000 		.4byte	.LASF14
+ 650 00a7 03       		.byte	0x3
+ 651 00a8 30       		.byte	0x30
+ 652 00a9 5E000000 		.4byte	0x5e
+ 653 00ad 02       		.uleb128 0x2
+ 654 00ae 04       		.byte	0x4
+ 655 00af 04       		.byte	0x4
+ 656 00b0 C8000000 		.4byte	.LASF15
+ 657 00b4 02       		.uleb128 0x2
+ 658 00b5 08       		.byte	0x8
+ 659 00b6 04       		.byte	0x4
+ 660 00b7 CC010000 		.4byte	.LASF16
+ 661 00bb 02       		.uleb128 0x2
+ 662 00bc 01       		.byte	0x1
+ 663 00bd 08       		.byte	0x8
+ 664 00be 6A020000 		.4byte	.LASF17
+ 665 00c2 02       		.uleb128 0x2
+ 666 00c3 08       		.byte	0x8
+ 667 00c4 04       		.byte	0x4
+ 668 00c5 C3020000 		.4byte	.LASF18
+ 669 00c9 02       		.uleb128 0x2
+ 670 00ca 04       		.byte	0x4
+ 671 00cb 07       		.byte	0x7
+ 672 00cc 51020000 		.4byte	.LASF19
+ 673 00d0 05       		.uleb128 0x5
+ 674 00d1 04       		.byte	0x4
+ 675 00d2 D6000000 		.4byte	0xd6
+ 676 00d6 06       		.uleb128 0x6
+ 677 00d7 BB000000 		.4byte	0xbb
+ 678 00db 07       		.uleb128 0x7
+ 679 00dc 3C020000 		.4byte	.LASF20
+ 680 00e0 01       		.byte	0x1
+ 681 00e1 AF       		.byte	0xaf
+ 682 00e2 00000000 		.4byte	.LFB72
+ 683 00e6 2A000000 		.4byte	.LFE72-.LFB72
+ 684 00ea 01       		.uleb128 0x1
+ 685 00eb 9C       		.byte	0x9c
+ 686 00ec 56010000 		.4byte	0x156
+ 687 00f0 08       		.uleb128 0x8
+ 688 00f1 10000000 		.4byte	.LBB2
+ 689 00f5 18000000 		.4byte	.LBE2-.LBB2
+ 690 00f9 2E010000 		.4byte	0x12e
+ 691 00fd 09       		.uleb128 0x9
+ 692 00fe 6300     		.ascii	"c\000"
+ 693 0100 01       		.byte	0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 18
+
+
+ 694 0101 B2       		.byte	0xb2
+ 695 0102 8C000000 		.4byte	0x8c
+ 696 0106 00000000 		.4byte	.LLST0
+ 697 010a 0A       		.uleb128 0xa
+ 698 010b 1A000000 		.4byte	.LVL3
+ 699 010f 67060000 		.4byte	0x667
+ 700 0113 1D010000 		.4byte	0x11d
+ 701 0117 0B       		.uleb128 0xb
+ 702 0118 01       		.uleb128 0x1
+ 703 0119 50       		.byte	0x50
+ 704 011a 01       		.uleb128 0x1
+ 705 011b 30       		.byte	0x30
+ 706 011c 00       		.byte	0
+ 707 011d 0C       		.uleb128 0xc
+ 708 011e 20000000 		.4byte	.LVL4
+ 709 0122 72060000 		.4byte	0x672
+ 710 0126 0B       		.uleb128 0xb
+ 711 0127 01       		.uleb128 0x1
+ 712 0128 50       		.byte	0x50
+ 713 0129 02       		.uleb128 0x2
+ 714 012a 08       		.byte	0x8
+ 715 012b 64       		.byte	0x64
+ 716 012c 00       		.byte	0
+ 717 012d 00       		.byte	0
+ 718 012e 0A       		.uleb128 0xa
+ 719 012f 08000000 		.4byte	.LVL0
+ 720 0133 7D060000 		.4byte	0x67d
+ 721 0137 41010000 		.4byte	0x141
+ 722 013b 0B       		.uleb128 0xb
+ 723 013c 01       		.uleb128 0x1
+ 724 013d 50       		.byte	0x50
+ 725 013e 01       		.uleb128 0x1
+ 726 013f 31       		.byte	0x31
+ 727 0140 00       		.byte	0
+ 728 0141 0C       		.uleb128 0xc
+ 729 0142 10000000 		.4byte	.LVL1
+ 730 0146 88060000 		.4byte	0x688
+ 731 014a 0B       		.uleb128 0xb
+ 732 014b 01       		.uleb128 0x1
+ 733 014c 50       		.byte	0x50
+ 734 014d 01       		.uleb128 0x1
+ 735 014e 30       		.byte	0x30
+ 736 014f 0B       		.uleb128 0xb
+ 737 0150 01       		.uleb128 0x1
+ 738 0151 51       		.byte	0x51
+ 739 0152 01       		.uleb128 0x1
+ 740 0153 30       		.byte	0x30
+ 741 0154 00       		.byte	0
+ 742 0155 00       		.byte	0
+ 743 0156 07       		.uleb128 0x7
+ 744 0157 0E000000 		.4byte	.LASF21
+ 745 015b 01       		.byte	0x1
+ 746 015c BB       		.byte	0xbb
+ 747 015d 00000000 		.4byte	.LFB73
+ 748 0161 30000000 		.4byte	.LFE73-.LFB73
+ 749 0165 01       		.uleb128 0x1
+ 750 0166 9C       		.byte	0x9c
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 19
+
+
+ 751 0167 D9010000 		.4byte	0x1d9
+ 752 016b 0A       		.uleb128 0xa
+ 753 016c 08000000 		.4byte	.LVL7
+ 754 0170 7D060000 		.4byte	0x67d
+ 755 0174 7E010000 		.4byte	0x17e
+ 756 0178 0B       		.uleb128 0xb
+ 757 0179 01       		.uleb128 0x1
+ 758 017a 50       		.byte	0x50
+ 759 017b 01       		.uleb128 0x1
+ 760 017c 31       		.byte	0x31
+ 761 017d 00       		.byte	0
+ 762 017e 0A       		.uleb128 0xa
+ 763 017f 10000000 		.4byte	.LVL8
+ 764 0183 88060000 		.4byte	0x688
+ 765 0187 96010000 		.4byte	0x196
+ 766 018b 0B       		.uleb128 0xb
+ 767 018c 01       		.uleb128 0x1
+ 768 018d 50       		.byte	0x50
+ 769 018e 01       		.uleb128 0x1
+ 770 018f 30       		.byte	0x30
+ 771 0190 0B       		.uleb128 0xb
+ 772 0191 01       		.uleb128 0x1
+ 773 0192 51       		.byte	0x51
+ 774 0193 01       		.uleb128 0x1
+ 775 0194 33       		.byte	0x33
+ 776 0195 00       		.byte	0
+ 777 0196 0A       		.uleb128 0xa
+ 778 0197 16000000 		.4byte	.LVL9
+ 779 019b 93060000 		.4byte	0x693
+ 780 019f AD010000 		.4byte	0x1ad
+ 781 01a3 0B       		.uleb128 0xb
+ 782 01a4 01       		.uleb128 0x1
+ 783 01a5 50       		.byte	0x50
+ 784 01a6 05       		.uleb128 0x5
+ 785 01a7 03       		.byte	0x3
+ 786 01a8 00000000 		.4byte	.LC0
+ 787 01ac 00       		.byte	0
+ 788 01ad 0A       		.uleb128 0xa
+ 789 01ae 1E000000 		.4byte	.LVL10
+ 790 01b2 88060000 		.4byte	0x688
+ 791 01b6 C5010000 		.4byte	0x1c5
+ 792 01ba 0B       		.uleb128 0xb
+ 793 01bb 01       		.uleb128 0x1
+ 794 01bc 50       		.byte	0x50
+ 795 01bd 01       		.uleb128 0x1
+ 796 01be 31       		.byte	0x31
+ 797 01bf 0B       		.uleb128 0xb
+ 798 01c0 01       		.uleb128 0x1
+ 799 01c1 51       		.byte	0x51
+ 800 01c2 01       		.uleb128 0x1
+ 801 01c3 32       		.byte	0x32
+ 802 01c4 00       		.byte	0
+ 803 01c5 0C       		.uleb128 0xc
+ 804 01c6 24000000 		.4byte	.LVL11
+ 805 01ca 93060000 		.4byte	0x693
+ 806 01ce 0B       		.uleb128 0xb
+ 807 01cf 01       		.uleb128 0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 20
+
+
+ 808 01d0 50       		.byte	0x50
+ 809 01d1 05       		.uleb128 0x5
+ 810 01d2 03       		.byte	0x3
+ 811 01d3 0C000000 		.4byte	.LC1
+ 812 01d7 00       		.byte	0
+ 813 01d8 00       		.byte	0
+ 814 01d9 0D       		.uleb128 0xd
+ 815 01da B6020000 		.4byte	.LASF22
+ 816 01de 01       		.byte	0x1
+ 817 01df 30       		.byte	0x30
+ 818 01e0 00000000 		.4byte	.LFB64
+ 819 01e4 08000000 		.4byte	.LFE64-.LFB64
+ 820 01e8 01       		.uleb128 0x1
+ 821 01e9 9C       		.byte	0x9c
+ 822 01ea F8010000 		.4byte	0x1f8
+ 823 01ee 0E       		.uleb128 0xe
+ 824 01ef 06000000 		.4byte	.LVL12
+ 825 01f3 9E060000 		.4byte	0x69e
+ 826 01f7 00       		.byte	0
+ 827 01f8 0D       		.uleb128 0xd
+ 828 01f9 ED010000 		.4byte	.LASF23
+ 829 01fd 01       		.byte	0x1
+ 830 01fe 37       		.byte	0x37
+ 831 01ff 00000000 		.4byte	.LFB65
+ 832 0203 18000000 		.4byte	.LFE65-.LFB65
+ 833 0207 01       		.uleb128 0x1
+ 834 0208 9C       		.byte	0x9c
+ 835 0209 47020000 		.4byte	0x247
+ 836 020d 0E       		.uleb128 0xe
+ 837 020e 06000000 		.4byte	.LVL13
+ 838 0212 DB000000 		.4byte	0xdb
+ 839 0216 0A       		.uleb128 0xa
+ 840 0217 0C000000 		.4byte	.LVL14
+ 841 021b 7D060000 		.4byte	0x67d
+ 842 021f 29020000 		.4byte	0x229
+ 843 0223 0B       		.uleb128 0xb
+ 844 0224 01       		.uleb128 0x1
+ 845 0225 50       		.byte	0x50
+ 846 0226 01       		.uleb128 0x1
+ 847 0227 31       		.byte	0x31
+ 848 0228 00       		.byte	0
+ 849 0229 0A       		.uleb128 0xa
+ 850 022a 12000000 		.4byte	.LVL15
+ 851 022e 72060000 		.4byte	0x672
+ 852 0232 3D020000 		.4byte	0x23d
+ 853 0236 0B       		.uleb128 0xb
+ 854 0237 01       		.uleb128 0x1
+ 855 0238 50       		.byte	0x50
+ 856 0239 02       		.uleb128 0x2
+ 857 023a 08       		.byte	0x8
+ 858 023b FA       		.byte	0xfa
+ 859 023c 00       		.byte	0
+ 860 023d 0E       		.uleb128 0xe
+ 861 023e 16000000 		.4byte	.LVL16
+ 862 0242 56010000 		.4byte	0x156
+ 863 0246 00       		.byte	0
+ 864 0247 0D       		.uleb128 0xd
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 21
+
+
+ 865 0248 D8000000 		.4byte	.LASF24
+ 866 024c 01       		.byte	0x1
+ 867 024d 41       		.byte	0x41
+ 868 024e 00000000 		.4byte	.LFB66
+ 869 0252 30000000 		.4byte	.LFE66-.LFB66
+ 870 0256 01       		.uleb128 0x1
+ 871 0257 9C       		.byte	0x9c
+ 872 0258 CA020000 		.4byte	0x2ca
+ 873 025c 0A       		.uleb128 0xa
+ 874 025d 08000000 		.4byte	.LVL17
+ 875 0261 7D060000 		.4byte	0x67d
+ 876 0265 6F020000 		.4byte	0x26f
+ 877 0269 0B       		.uleb128 0xb
+ 878 026a 01       		.uleb128 0x1
+ 879 026b 50       		.byte	0x50
+ 880 026c 01       		.uleb128 0x1
+ 881 026d 31       		.byte	0x31
+ 882 026e 00       		.byte	0
+ 883 026f 0A       		.uleb128 0xa
+ 884 0270 10000000 		.4byte	.LVL18
+ 885 0274 88060000 		.4byte	0x688
+ 886 0278 87020000 		.4byte	0x287
+ 887 027c 0B       		.uleb128 0xb
+ 888 027d 01       		.uleb128 0x1
+ 889 027e 50       		.byte	0x50
+ 890 027f 01       		.uleb128 0x1
+ 891 0280 30       		.byte	0x30
+ 892 0281 0B       		.uleb128 0xb
+ 893 0282 01       		.uleb128 0x1
+ 894 0283 51       		.byte	0x51
+ 895 0284 01       		.uleb128 0x1
+ 896 0285 30       		.byte	0x30
+ 897 0286 00       		.byte	0
+ 898 0287 0A       		.uleb128 0xa
+ 899 0288 16000000 		.4byte	.LVL19
+ 900 028c 93060000 		.4byte	0x693
+ 901 0290 9E020000 		.4byte	0x29e
+ 902 0294 0B       		.uleb128 0xb
+ 903 0295 01       		.uleb128 0x1
+ 904 0296 50       		.byte	0x50
+ 905 0297 05       		.uleb128 0x5
+ 906 0298 03       		.byte	0x3
+ 907 0299 1C000000 		.4byte	.LC2
+ 908 029d 00       		.byte	0
+ 909 029e 0A       		.uleb128 0xa
+ 910 029f 1E000000 		.4byte	.LVL20
+ 911 02a3 88060000 		.4byte	0x688
+ 912 02a7 B6020000 		.4byte	0x2b6
+ 913 02ab 0B       		.uleb128 0xb
+ 914 02ac 01       		.uleb128 0x1
+ 915 02ad 50       		.byte	0x50
+ 916 02ae 01       		.uleb128 0x1
+ 917 02af 31       		.byte	0x31
+ 918 02b0 0B       		.uleb128 0xb
+ 919 02b1 01       		.uleb128 0x1
+ 920 02b2 51       		.byte	0x51
+ 921 02b3 01       		.uleb128 0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 22
+
+
+ 922 02b4 30       		.byte	0x30
+ 923 02b5 00       		.byte	0
+ 924 02b6 0C       		.uleb128 0xc
+ 925 02b7 24000000 		.4byte	.LVL21
+ 926 02bb 93060000 		.4byte	0x693
+ 927 02bf 0B       		.uleb128 0xb
+ 928 02c0 01       		.uleb128 0x1
+ 929 02c1 50       		.byte	0x50
+ 930 02c2 05       		.uleb128 0x5
+ 931 02c3 03       		.byte	0x3
+ 932 02c4 2C000000 		.4byte	.LC3
+ 933 02c8 00       		.byte	0
+ 934 02c9 00       		.byte	0
+ 935 02ca 0D       		.uleb128 0xd
+ 936 02cb 5A020000 		.4byte	.LASF25
+ 937 02cf 01       		.byte	0x1
+ 938 02d0 4F       		.byte	0x4f
+ 939 02d1 00000000 		.4byte	.LFB67
+ 940 02d5 54000000 		.4byte	.LFE67-.LFB67
+ 941 02d9 01       		.uleb128 0x1
+ 942 02da 9C       		.byte	0x9c
+ 943 02db BE030000 		.4byte	0x3be
+ 944 02df 0F       		.uleb128 0xf
+ 945 02e0 73000000 		.4byte	.LASF26
+ 946 02e4 01       		.byte	0x1
+ 947 02e5 4F       		.byte	0x4f
+ 948 02e6 D0000000 		.4byte	0xd0
+ 949 02ea 2A000000 		.4byte	.LLST1
+ 950 02ee 0F       		.uleb128 0xf
+ 951 02ef DB020000 		.4byte	.LASF27
+ 952 02f3 01       		.byte	0x1
+ 953 02f4 4F       		.byte	0x4f
+ 954 02f5 D0000000 		.4byte	0xd0
+ 955 02f9 53000000 		.4byte	.LLST2
+ 956 02fd 10       		.uleb128 0x10
+ 957 02fe 99010000 		.4byte	.LASF28
+ 958 0302 01       		.byte	0x1
+ 959 0303 5A       		.byte	0x5a
+ 960 0304 BE030000 		.4byte	0x3be
+ 961 0308 02       		.uleb128 0x2
+ 962 0309 91       		.byte	0x91
+ 963 030a 5C       		.sleb128 -36
+ 964 030b 0A       		.uleb128 0xa
+ 965 030c 10000000 		.4byte	.LVL23
+ 966 0310 A9060000 		.4byte	0x6a9
+ 967 0314 1F030000 		.4byte	0x31f
+ 968 0318 0B       		.uleb128 0xb
+ 969 0319 01       		.uleb128 0x1
+ 970 031a 50       		.byte	0x50
+ 971 031b 02       		.uleb128 0x2
+ 972 031c 75       		.byte	0x75
+ 973 031d 00       		.sleb128 0
+ 974 031e 00       		.byte	0
+ 975 031f 0A       		.uleb128 0xa
+ 976 0320 1A000000 		.4byte	.LVL24
+ 977 0324 A9060000 		.4byte	0x6a9
+ 978 0328 33030000 		.4byte	0x333
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 23
+
+
+ 979 032c 0B       		.uleb128 0xb
+ 980 032d 01       		.uleb128 0x1
+ 981 032e 50       		.byte	0x50
+ 982 032f 02       		.uleb128 0x2
+ 983 0330 74       		.byte	0x74
+ 984 0331 00       		.sleb128 0
+ 985 0332 00       		.byte	0
+ 986 0333 0A       		.uleb128 0xa
+ 987 0334 24000000 		.4byte	.LVL25
+ 988 0338 7D060000 		.4byte	0x67d
+ 989 033c 46030000 		.4byte	0x346
+ 990 0340 0B       		.uleb128 0xb
+ 991 0341 01       		.uleb128 0x1
+ 992 0342 50       		.byte	0x50
+ 993 0343 01       		.uleb128 0x1
+ 994 0344 31       		.byte	0x31
+ 995 0345 00       		.byte	0
+ 996 0346 0A       		.uleb128 0xa
+ 997 0347 2C000000 		.4byte	.LVL26
+ 998 034b 88060000 		.4byte	0x688
+ 999 034f 5E030000 		.4byte	0x35e
+ 1000 0353 0B       		.uleb128 0xb
+ 1001 0354 01       		.uleb128 0x1
+ 1002 0355 50       		.byte	0x50
+ 1003 0356 01       		.uleb128 0x1
+ 1004 0357 30       		.byte	0x30
+ 1005 0358 0B       		.uleb128 0xb
+ 1006 0359 01       		.uleb128 0x1
+ 1007 035a 51       		.byte	0x51
+ 1008 035b 01       		.uleb128 0x1
+ 1009 035c 30       		.byte	0x30
+ 1010 035d 00       		.byte	0
+ 1011 035e 0A       		.uleb128 0xa
+ 1012 035f 36000000 		.4byte	.LVL27
+ 1013 0363 B4060000 		.4byte	0x6b4
+ 1014 0367 81030000 		.4byte	0x381
+ 1015 036b 0B       		.uleb128 0xb
+ 1016 036c 01       		.uleb128 0x1
+ 1017 036d 50       		.byte	0x50
+ 1018 036e 02       		.uleb128 0x2
+ 1019 036f 91       		.byte	0x91
+ 1020 0370 5C       		.sleb128 -36
+ 1021 0371 0B       		.uleb128 0xb
+ 1022 0372 01       		.uleb128 0x1
+ 1023 0373 51       		.byte	0x51
+ 1024 0374 05       		.uleb128 0x5
+ 1025 0375 03       		.byte	0x3
+ 1026 0376 40000000 		.4byte	.LC4
+ 1027 037a 0B       		.uleb128 0xb
+ 1028 037b 01       		.uleb128 0x1
+ 1029 037c 52       		.byte	0x52
+ 1030 037d 02       		.uleb128 0x2
+ 1031 037e 75       		.byte	0x75
+ 1032 037f 00       		.sleb128 0
+ 1033 0380 00       		.byte	0
+ 1034 0381 0A       		.uleb128 0xa
+ 1035 0382 3C000000 		.4byte	.LVL28
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 24
+
+
+ 1036 0386 93060000 		.4byte	0x693
+ 1037 038a 95030000 		.4byte	0x395
+ 1038 038e 0B       		.uleb128 0xb
+ 1039 038f 01       		.uleb128 0x1
+ 1040 0390 50       		.byte	0x50
+ 1041 0391 02       		.uleb128 0x2
+ 1042 0392 91       		.byte	0x91
+ 1043 0393 5C       		.sleb128 -36
+ 1044 0394 00       		.byte	0
+ 1045 0395 0A       		.uleb128 0xa
+ 1046 0396 44000000 		.4byte	.LVL29
+ 1047 039a 88060000 		.4byte	0x688
+ 1048 039e AD030000 		.4byte	0x3ad
+ 1049 03a2 0B       		.uleb128 0xb
+ 1050 03a3 01       		.uleb128 0x1
+ 1051 03a4 50       		.byte	0x50
+ 1052 03a5 01       		.uleb128 0x1
+ 1053 03a6 31       		.byte	0x31
+ 1054 03a7 0B       		.uleb128 0xb
+ 1055 03a8 01       		.uleb128 0x1
+ 1056 03a9 51       		.byte	0x51
+ 1057 03aa 01       		.uleb128 0x1
+ 1058 03ab 30       		.byte	0x30
+ 1059 03ac 00       		.byte	0
+ 1060 03ad 0C       		.uleb128 0xc
+ 1061 03ae 4A000000 		.4byte	.LVL30
+ 1062 03b2 93060000 		.4byte	0x693
+ 1063 03b6 0B       		.uleb128 0xb
+ 1064 03b7 01       		.uleb128 0x1
+ 1065 03b8 50       		.byte	0x50
+ 1066 03b9 02       		.uleb128 0x2
+ 1067 03ba 74       		.byte	0x74
+ 1068 03bb 00       		.sleb128 0
+ 1069 03bc 00       		.byte	0
+ 1070 03bd 00       		.byte	0
+ 1071 03be 11       		.uleb128 0x11
+ 1072 03bf BB000000 		.4byte	0xbb
+ 1073 03c3 CE030000 		.4byte	0x3ce
+ 1074 03c7 12       		.uleb128 0x12
+ 1075 03c8 C9000000 		.4byte	0xc9
+ 1076 03cc 10       		.byte	0x10
+ 1077 03cd 00       		.byte	0
+ 1078 03ce 0D       		.uleb128 0xd
+ 1079 03cf 25000000 		.4byte	.LASF29
+ 1080 03d3 01       		.byte	0x1
+ 1081 03d4 6A       		.byte	0x6a
+ 1082 03d5 00000000 		.4byte	.LFB68
+ 1083 03d9 76000000 		.4byte	.LFE68-.LFB68
+ 1084 03dd 01       		.uleb128 0x1
+ 1085 03de 9C       		.byte	0x9c
+ 1086 03df 1E050000 		.4byte	0x51e
+ 1087 03e3 13       		.uleb128 0x13
+ 1088 03e4 6C3100   		.ascii	"l1\000"
+ 1089 03e7 01       		.byte	0x1
+ 1090 03e8 6A       		.byte	0x6a
+ 1091 03e9 D0000000 		.4byte	0xd0
+ 1092 03ed 7C000000 		.4byte	.LLST3
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 25
+
+
+ 1093 03f1 13       		.uleb128 0x13
+ 1094 03f2 6C3200   		.ascii	"l2\000"
+ 1095 03f5 01       		.byte	0x1
+ 1096 03f6 6A       		.byte	0x6a
+ 1097 03f7 D0000000 		.4byte	0xd0
+ 1098 03fb A8000000 		.4byte	.LLST4
+ 1099 03ff 13       		.uleb128 0x13
+ 1100 0400 6300     		.ascii	"c\000"
+ 1101 0402 01       		.byte	0x1
+ 1102 0403 6A       		.byte	0x6a
+ 1103 0404 A2000000 		.4byte	0xa2
+ 1104 0408 D4000000 		.4byte	.LLST5
+ 1105 040c 13       		.uleb128 0x13
+ 1106 040d 646F6E00 		.ascii	"don\000"
+ 1107 0411 01       		.byte	0x1
+ 1108 0412 6B       		.byte	0x6b
+ 1109 0413 A2000000 		.4byte	0xa2
+ 1110 0417 00010000 		.4byte	.LLST6
+ 1111 041b 14       		.uleb128 0x14
+ 1112 041c 80020000 		.4byte	.LASF30
+ 1113 0420 01       		.byte	0x1
+ 1114 0421 6B       		.byte	0x6b
+ 1115 0422 A2000000 		.4byte	0xa2
+ 1116 0426 02       		.uleb128 0x2
+ 1117 0427 91       		.byte	0x91
+ 1118 0428 00       		.sleb128 0
+ 1119 0429 08       		.uleb128 0x8
+ 1120 042a 2C000000 		.4byte	.LBB3
+ 1121 042e 40000000 		.4byte	.LBE3-.LBB3
+ 1122 0432 D3040000 		.4byte	0x4d3
+ 1123 0436 09       		.uleb128 0x9
+ 1124 0437 6900     		.ascii	"i\000"
+ 1125 0439 01       		.byte	0x1
+ 1126 043a 77       		.byte	0x77
+ 1127 043b A2000000 		.4byte	0xa2
+ 1128 043f 2C010000 		.4byte	.LLST7
+ 1129 0443 0A       		.uleb128 0xa
+ 1130 0444 3C000000 		.4byte	.LVL37
+ 1131 0448 88060000 		.4byte	0x688
+ 1132 044c 5B040000 		.4byte	0x45b
+ 1133 0450 0B       		.uleb128 0xb
+ 1134 0451 01       		.uleb128 0x1
+ 1135 0452 50       		.byte	0x50
+ 1136 0453 01       		.uleb128 0x1
+ 1137 0454 30       		.byte	0x30
+ 1138 0455 0B       		.uleb128 0xb
+ 1139 0456 01       		.uleb128 0x1
+ 1140 0457 51       		.byte	0x51
+ 1141 0458 01       		.uleb128 0x1
+ 1142 0459 30       		.byte	0x30
+ 1143 045a 00       		.byte	0
+ 1144 045b 0A       		.uleb128 0xa
+ 1145 045c 42000000 		.4byte	.LVL38
+ 1146 0460 93060000 		.4byte	0x693
+ 1147 0464 6F040000 		.4byte	0x46f
+ 1148 0468 0B       		.uleb128 0xb
+ 1149 0469 01       		.uleb128 0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 26
+
+
+ 1150 046a 50       		.byte	0x50
+ 1151 046b 02       		.uleb128 0x2
+ 1152 046c 78       		.byte	0x78
+ 1153 046d 00       		.sleb128 0
+ 1154 046e 00       		.byte	0
+ 1155 046f 0A       		.uleb128 0xa
+ 1156 0470 4A000000 		.4byte	.LVL39
+ 1157 0474 88060000 		.4byte	0x688
+ 1158 0478 87040000 		.4byte	0x487
+ 1159 047c 0B       		.uleb128 0xb
+ 1160 047d 01       		.uleb128 0x1
+ 1161 047e 50       		.byte	0x50
+ 1162 047f 01       		.uleb128 0x1
+ 1163 0480 31       		.byte	0x31
+ 1164 0481 0B       		.uleb128 0xb
+ 1165 0482 01       		.uleb128 0x1
+ 1166 0483 51       		.byte	0x51
+ 1167 0484 01       		.uleb128 0x1
+ 1168 0485 30       		.byte	0x30
+ 1169 0486 00       		.byte	0
+ 1170 0487 0A       		.uleb128 0xa
+ 1171 0488 50000000 		.4byte	.LVL40
+ 1172 048c 93060000 		.4byte	0x693
+ 1173 0490 9B040000 		.4byte	0x49b
+ 1174 0494 0B       		.uleb128 0xb
+ 1175 0495 01       		.uleb128 0x1
+ 1176 0496 50       		.byte	0x50
+ 1177 0497 02       		.uleb128 0x2
+ 1178 0498 74       		.byte	0x74
+ 1179 0499 00       		.sleb128 0
+ 1180 049a 00       		.byte	0
+ 1181 049b 0A       		.uleb128 0xa
+ 1182 049c 56000000 		.4byte	.LVL41
+ 1183 04a0 72060000 		.4byte	0x672
+ 1184 04a4 AF040000 		.4byte	0x4af
+ 1185 04a8 0B       		.uleb128 0xb
+ 1186 04a9 01       		.uleb128 0x1
+ 1187 04aa 50       		.byte	0x50
+ 1188 04ab 02       		.uleb128 0x2
+ 1189 04ac 77       		.byte	0x77
+ 1190 04ad 00       		.sleb128 0
+ 1191 04ae 00       		.byte	0
+ 1192 04af 0A       		.uleb128 0xa
+ 1193 04b0 5E000000 		.4byte	.LVL42
+ 1194 04b4 7D060000 		.4byte	0x67d
+ 1195 04b8 C2040000 		.4byte	0x4c2
+ 1196 04bc 0B       		.uleb128 0xb
+ 1197 04bd 01       		.uleb128 0x1
+ 1198 04be 50       		.byte	0x50
+ 1199 04bf 01       		.uleb128 0x1
+ 1200 04c0 31       		.byte	0x31
+ 1201 04c1 00       		.byte	0
+ 1202 04c2 0C       		.uleb128 0xc
+ 1203 04c3 64000000 		.4byte	.LVL43
+ 1204 04c7 72060000 		.4byte	0x672
+ 1205 04cb 0B       		.uleb128 0xb
+ 1206 04cc 01       		.uleb128 0x1
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 27
+
+
+ 1207 04cd 50       		.byte	0x50
+ 1208 04ce 02       		.uleb128 0x2
+ 1209 04cf 76       		.byte	0x76
+ 1210 04d0 00       		.sleb128 0
+ 1211 04d1 00       		.byte	0
+ 1212 04d2 00       		.byte	0
+ 1213 04d3 0A       		.uleb128 0xa
+ 1214 04d4 16000000 		.4byte	.LVL33
+ 1215 04d8 A9060000 		.4byte	0x6a9
+ 1216 04dc E7040000 		.4byte	0x4e7
+ 1217 04e0 0B       		.uleb128 0xb
+ 1218 04e1 01       		.uleb128 0x1
+ 1219 04e2 50       		.byte	0x50
+ 1220 04e3 02       		.uleb128 0x2
+ 1221 04e4 78       		.byte	0x78
+ 1222 04e5 00       		.sleb128 0
+ 1223 04e6 00       		.byte	0
+ 1224 04e7 0A       		.uleb128 0xa
+ 1225 04e8 20000000 		.4byte	.LVL34
+ 1226 04ec A9060000 		.4byte	0x6a9
+ 1227 04f0 FB040000 		.4byte	0x4fb
+ 1228 04f4 0B       		.uleb128 0xb
+ 1229 04f5 01       		.uleb128 0x1
+ 1230 04f6 50       		.byte	0x50
+ 1231 04f7 02       		.uleb128 0x2
+ 1232 04f8 74       		.byte	0x74
+ 1233 04f9 00       		.sleb128 0
+ 1234 04fa 00       		.byte	0
+ 1235 04fb 0A       		.uleb128 0xa
+ 1236 04fc 2C000000 		.4byte	.LVL35
+ 1237 0500 7D060000 		.4byte	0x67d
+ 1238 0504 0E050000 		.4byte	0x50e
+ 1239 0508 0B       		.uleb128 0xb
+ 1240 0509 01       		.uleb128 0x1
+ 1241 050a 50       		.byte	0x50
+ 1242 050b 01       		.uleb128 0x1
+ 1243 050c 31       		.byte	0x31
+ 1244 050d 00       		.byte	0
+ 1245 050e 0C       		.uleb128 0xc
+ 1246 050f 72000000 		.4byte	.LVL45
+ 1247 0513 7D060000 		.4byte	0x67d
+ 1248 0517 0B       		.uleb128 0xb
+ 1249 0518 01       		.uleb128 0x1
+ 1250 0519 50       		.byte	0x50
+ 1251 051a 01       		.uleb128 0x1
+ 1252 051b 31       		.byte	0x31
+ 1253 051c 00       		.byte	0
+ 1254 051d 00       		.byte	0
+ 1255 051e 0D       		.uleb128 0xd
+ 1256 051f 42000000 		.4byte	.LASF31
+ 1257 0523 01       		.byte	0x1
+ 1258 0524 8A       		.byte	0x8a
+ 1259 0525 00000000 		.4byte	.LFB69
+ 1260 0529 28000000 		.4byte	.LFE69-.LFB69
+ 1261 052d 01       		.uleb128 0x1
+ 1262 052e 9C       		.byte	0x9c
+ 1263 052f 8E050000 		.4byte	0x58e
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 28
+
+
+ 1264 0533 0A       		.uleb128 0xa
+ 1265 0534 0A000000 		.4byte	.LVL46
+ 1266 0538 88060000 		.4byte	0x688
+ 1267 053c 4B050000 		.4byte	0x54b
+ 1268 0540 0B       		.uleb128 0xb
+ 1269 0541 01       		.uleb128 0x1
+ 1270 0542 50       		.byte	0x50
+ 1271 0543 01       		.uleb128 0x1
+ 1272 0544 30       		.byte	0x30
+ 1273 0545 0B       		.uleb128 0xb
+ 1274 0546 01       		.uleb128 0x1
+ 1275 0547 51       		.byte	0x51
+ 1276 0548 01       		.uleb128 0x1
+ 1277 0549 31       		.byte	0x31
+ 1278 054a 00       		.byte	0
+ 1279 054b 0A       		.uleb128 0xa
+ 1280 054c 10000000 		.4byte	.LVL47
+ 1281 0550 93060000 		.4byte	0x693
+ 1282 0554 62050000 		.4byte	0x562
+ 1283 0558 0B       		.uleb128 0xb
+ 1284 0559 01       		.uleb128 0x1
+ 1285 055a 50       		.byte	0x50
+ 1286 055b 05       		.uleb128 0x5
+ 1287 055c 03       		.byte	0x3
+ 1288 055d 4C000000 		.4byte	.LC5
+ 1289 0561 00       		.byte	0
+ 1290 0562 0A       		.uleb128 0xa
+ 1291 0563 18000000 		.4byte	.LVL48
+ 1292 0567 88060000 		.4byte	0x688
+ 1293 056b 7A050000 		.4byte	0x57a
+ 1294 056f 0B       		.uleb128 0xb
+ 1295 0570 01       		.uleb128 0x1
+ 1296 0571 50       		.byte	0x50
+ 1297 0572 01       		.uleb128 0x1
+ 1298 0573 31       		.byte	0x31
+ 1299 0574 0B       		.uleb128 0xb
+ 1300 0575 01       		.uleb128 0x1
+ 1301 0576 51       		.byte	0x51
+ 1302 0577 01       		.uleb128 0x1
+ 1303 0578 32       		.byte	0x32
+ 1304 0579 00       		.byte	0
+ 1305 057a 0C       		.uleb128 0xc
+ 1306 057b 1E000000 		.4byte	.LVL49
+ 1307 057f 93060000 		.4byte	0x693
+ 1308 0583 0B       		.uleb128 0xb
+ 1309 0584 01       		.uleb128 0x1
+ 1310 0585 50       		.byte	0x50
+ 1311 0586 05       		.uleb128 0x5
+ 1312 0587 03       		.byte	0x3
+ 1313 0588 5C000000 		.4byte	.LC6
+ 1314 058c 00       		.byte	0
+ 1315 058d 00       		.byte	0
+ 1316 058e 0D       		.uleb128 0xd
+ 1317 058f 54000000 		.4byte	.LASF32
+ 1318 0593 01       		.byte	0x1
+ 1319 0594 94       		.byte	0x94
+ 1320 0595 00000000 		.4byte	.LFB70
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 29
+
+
+ 1321 0599 28000000 		.4byte	.LFE70-.LFB70
+ 1322 059d 01       		.uleb128 0x1
+ 1323 059e 9C       		.byte	0x9c
+ 1324 059f FE050000 		.4byte	0x5fe
+ 1325 05a3 0A       		.uleb128 0xa
+ 1326 05a4 0A000000 		.4byte	.LVL50
+ 1327 05a8 88060000 		.4byte	0x688
+ 1328 05ac BB050000 		.4byte	0x5bb
+ 1329 05b0 0B       		.uleb128 0xb
+ 1330 05b1 01       		.uleb128 0x1
+ 1331 05b2 50       		.byte	0x50
+ 1332 05b3 01       		.uleb128 0x1
+ 1333 05b4 30       		.byte	0x30
+ 1334 05b5 0B       		.uleb128 0xb
+ 1335 05b6 01       		.uleb128 0x1
+ 1336 05b7 51       		.byte	0x51
+ 1337 05b8 01       		.uleb128 0x1
+ 1338 05b9 34       		.byte	0x34
+ 1339 05ba 00       		.byte	0
+ 1340 05bb 0A       		.uleb128 0xa
+ 1341 05bc 10000000 		.4byte	.LVL51
+ 1342 05c0 93060000 		.4byte	0x693
+ 1343 05c4 D2050000 		.4byte	0x5d2
+ 1344 05c8 0B       		.uleb128 0xb
+ 1345 05c9 01       		.uleb128 0x1
+ 1346 05ca 50       		.byte	0x50
+ 1347 05cb 05       		.uleb128 0x5
+ 1348 05cc 03       		.byte	0x3
+ 1349 05cd 6C000000 		.4byte	.LC7
+ 1350 05d1 00       		.byte	0
+ 1351 05d2 0A       		.uleb128 0xa
+ 1352 05d3 18000000 		.4byte	.LVL52
+ 1353 05d7 88060000 		.4byte	0x688
+ 1354 05db EA050000 		.4byte	0x5ea
+ 1355 05df 0B       		.uleb128 0xb
+ 1356 05e0 01       		.uleb128 0x1
+ 1357 05e1 50       		.byte	0x50
+ 1358 05e2 01       		.uleb128 0x1
+ 1359 05e3 31       		.byte	0x31
+ 1360 05e4 0B       		.uleb128 0xb
+ 1361 05e5 01       		.uleb128 0x1
+ 1362 05e6 51       		.byte	0x51
+ 1363 05e7 01       		.uleb128 0x1
+ 1364 05e8 35       		.byte	0x35
+ 1365 05e9 00       		.byte	0
+ 1366 05ea 0C       		.uleb128 0xc
+ 1367 05eb 1E000000 		.4byte	.LVL53
+ 1368 05ef 93060000 		.4byte	0x693
+ 1369 05f3 0B       		.uleb128 0xb
+ 1370 05f4 01       		.uleb128 0x1
+ 1371 05f5 50       		.byte	0x50
+ 1372 05f6 05       		.uleb128 0x5
+ 1373 05f7 03       		.byte	0x3
+ 1374 05f8 78000000 		.4byte	.LC8
+ 1375 05fc 00       		.byte	0
+ 1376 05fd 00       		.byte	0
+ 1377 05fe 0D       		.uleb128 0xd
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 30
+
+
+ 1378 05ff 85020000 		.4byte	.LASF33
+ 1379 0603 01       		.byte	0x1
+ 1380 0604 A2       		.byte	0xa2
+ 1381 0605 00000000 		.4byte	.LFB71
+ 1382 0609 10000000 		.4byte	.LFE71-.LFB71
+ 1383 060d 01       		.uleb128 0x1
+ 1384 060e 9C       		.byte	0x9c
+ 1385 060f 56060000 		.4byte	0x656
+ 1386 0613 13       		.uleb128 0x13
+ 1387 0614 7200     		.ascii	"r\000"
+ 1388 0616 01       		.byte	0x1
+ 1389 0617 A2       		.byte	0xa2
+ 1390 0618 8C000000 		.4byte	0x8c
+ 1391 061c 4B010000 		.4byte	.LLST8
+ 1392 0620 13       		.uleb128 0x13
+ 1393 0621 6300     		.ascii	"c\000"
+ 1394 0623 01       		.byte	0x1
+ 1395 0624 A2       		.byte	0xa2
+ 1396 0625 8C000000 		.4byte	0x8c
+ 1397 0629 6C010000 		.4byte	.LLST9
+ 1398 062d 13       		.uleb128 0x13
+ 1399 062e 73747200 		.ascii	"str\000"
+ 1400 0632 01       		.byte	0x1
+ 1401 0633 A2       		.byte	0xa2
+ 1402 0634 D0000000 		.4byte	0xd0
+ 1403 0638 8D010000 		.4byte	.LLST10
+ 1404 063c 0E       		.uleb128 0xe
+ 1405 063d 08000000 		.4byte	.LVL55
+ 1406 0641 88060000 		.4byte	0x688
+ 1407 0645 0C       		.uleb128 0xc
+ 1408 0646 0E000000 		.4byte	.LVL56
+ 1409 064a 93060000 		.4byte	0x693
+ 1410 064e 0B       		.uleb128 0xb
+ 1411 064f 01       		.uleb128 0x1
+ 1412 0650 50       		.byte	0x50
+ 1413 0651 02       		.uleb128 0x2
+ 1414 0652 74       		.byte	0x74
+ 1415 0653 00       		.sleb128 0
+ 1416 0654 00       		.byte	0
+ 1417 0655 00       		.byte	0
+ 1418 0656 15       		.uleb128 0x15
+ 1419 0657 B1010000 		.4byte	.LASF45
+ 1420 065b 08       		.byte	0x8
+ 1421 065c 1207     		.2byte	0x712
+ 1422 065e 62060000 		.4byte	0x662
+ 1423 0662 16       		.uleb128 0x16
+ 1424 0663 97000000 		.4byte	0x97
+ 1425 0667 17       		.uleb128 0x17
+ 1426 0668 30020000 		.4byte	.LASF34
+ 1427 066c 30020000 		.4byte	.LASF34
+ 1428 0670 04       		.byte	0x4
+ 1429 0671 3E       		.byte	0x3e
+ 1430 0672 17       		.uleb128 0x17
+ 1431 0673 EA020000 		.4byte	.LASF35
+ 1432 0677 EA020000 		.4byte	.LASF35
+ 1433 067b 05       		.byte	0x5
+ 1434 067c 76       		.byte	0x76
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 31
+
+
+ 1435 067d 17       		.uleb128 0x17
+ 1436 067e 6F020000 		.4byte	.LASF36
+ 1437 0682 6F020000 		.4byte	.LASF36
+ 1438 0686 04       		.byte	0x4
+ 1439 0687 3A       		.byte	0x3a
+ 1440 0688 17       		.uleb128 0x17
+ 1441 0689 23020000 		.4byte	.LASF37
+ 1442 068d 23020000 		.4byte	.LASF37
+ 1443 0691 04       		.byte	0x4
+ 1444 0692 3D       		.byte	0x3d
+ 1445 0693 17       		.uleb128 0x17
+ 1446 0694 DD010000 		.4byte	.LASF38
+ 1447 0698 DD010000 		.4byte	.LASF38
+ 1448 069c 04       		.byte	0x4
+ 1449 069d 3C       		.byte	0x3c
+ 1450 069e 17       		.uleb128 0x17
+ 1451 069f CE000000 		.4byte	.LASF39
+ 1452 06a3 CE000000 		.4byte	.LASF39
+ 1453 06a7 04       		.byte	0x4
+ 1454 06a8 38       		.byte	0x38
+ 1455 06a9 17       		.uleb128 0x17
+ 1456 06aa FD010000 		.4byte	.LASF40
+ 1457 06ae FD010000 		.4byte	.LASF40
+ 1458 06b2 06       		.byte	0x6
+ 1459 06b3 21       		.byte	0x21
+ 1460 06b4 17       		.uleb128 0x17
+ 1461 06b5 E2020000 		.4byte	.LASF41
+ 1462 06b9 E2020000 		.4byte	.LASF41
+ 1463 06bd 07       		.byte	0x7
+ 1464 06be E7       		.byte	0xe7
+ 1465 06bf 00       		.byte	0
+ 1466              		.section	.debug_abbrev,"",%progbits
+ 1467              	.Ldebug_abbrev0:
+ 1468 0000 01       		.uleb128 0x1
+ 1469 0001 11       		.uleb128 0x11
+ 1470 0002 01       		.byte	0x1
+ 1471 0003 25       		.uleb128 0x25
+ 1472 0004 0E       		.uleb128 0xe
+ 1473 0005 13       		.uleb128 0x13
+ 1474 0006 0B       		.uleb128 0xb
+ 1475 0007 03       		.uleb128 0x3
+ 1476 0008 0E       		.uleb128 0xe
+ 1477 0009 1B       		.uleb128 0x1b
+ 1478 000a 0E       		.uleb128 0xe
+ 1479 000b 55       		.uleb128 0x55
+ 1480 000c 17       		.uleb128 0x17
+ 1481 000d 11       		.uleb128 0x11
+ 1482 000e 01       		.uleb128 0x1
+ 1483 000f 10       		.uleb128 0x10
+ 1484 0010 17       		.uleb128 0x17
+ 1485 0011 00       		.byte	0
+ 1486 0012 00       		.byte	0
+ 1487 0013 02       		.uleb128 0x2
+ 1488 0014 24       		.uleb128 0x24
+ 1489 0015 00       		.byte	0
+ 1490 0016 0B       		.uleb128 0xb
+ 1491 0017 0B       		.uleb128 0xb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 32
+
+
+ 1492 0018 3E       		.uleb128 0x3e
+ 1493 0019 0B       		.uleb128 0xb
+ 1494 001a 03       		.uleb128 0x3
+ 1495 001b 0E       		.uleb128 0xe
+ 1496 001c 00       		.byte	0
+ 1497 001d 00       		.byte	0
+ 1498 001e 03       		.uleb128 0x3
+ 1499 001f 16       		.uleb128 0x16
+ 1500 0020 00       		.byte	0
+ 1501 0021 03       		.uleb128 0x3
+ 1502 0022 0E       		.uleb128 0xe
+ 1503 0023 3A       		.uleb128 0x3a
+ 1504 0024 0B       		.uleb128 0xb
+ 1505 0025 3B       		.uleb128 0x3b
+ 1506 0026 0B       		.uleb128 0xb
+ 1507 0027 49       		.uleb128 0x49
+ 1508 0028 13       		.uleb128 0x13
+ 1509 0029 00       		.byte	0
+ 1510 002a 00       		.byte	0
+ 1511 002b 04       		.uleb128 0x4
+ 1512 002c 24       		.uleb128 0x24
+ 1513 002d 00       		.byte	0
+ 1514 002e 0B       		.uleb128 0xb
+ 1515 002f 0B       		.uleb128 0xb
+ 1516 0030 3E       		.uleb128 0x3e
+ 1517 0031 0B       		.uleb128 0xb
+ 1518 0032 03       		.uleb128 0x3
+ 1519 0033 08       		.uleb128 0x8
+ 1520 0034 00       		.byte	0
+ 1521 0035 00       		.byte	0
+ 1522 0036 05       		.uleb128 0x5
+ 1523 0037 0F       		.uleb128 0xf
+ 1524 0038 00       		.byte	0
+ 1525 0039 0B       		.uleb128 0xb
+ 1526 003a 0B       		.uleb128 0xb
+ 1527 003b 49       		.uleb128 0x49
+ 1528 003c 13       		.uleb128 0x13
+ 1529 003d 00       		.byte	0
+ 1530 003e 00       		.byte	0
+ 1531 003f 06       		.uleb128 0x6
+ 1532 0040 26       		.uleb128 0x26
+ 1533 0041 00       		.byte	0
+ 1534 0042 49       		.uleb128 0x49
+ 1535 0043 13       		.uleb128 0x13
+ 1536 0044 00       		.byte	0
+ 1537 0045 00       		.byte	0
+ 1538 0046 07       		.uleb128 0x7
+ 1539 0047 2E       		.uleb128 0x2e
+ 1540 0048 01       		.byte	0x1
+ 1541 0049 03       		.uleb128 0x3
+ 1542 004a 0E       		.uleb128 0xe
+ 1543 004b 3A       		.uleb128 0x3a
+ 1544 004c 0B       		.uleb128 0xb
+ 1545 004d 3B       		.uleb128 0x3b
+ 1546 004e 0B       		.uleb128 0xb
+ 1547 004f 27       		.uleb128 0x27
+ 1548 0050 19       		.uleb128 0x19
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 33
+
+
+ 1549 0051 11       		.uleb128 0x11
+ 1550 0052 01       		.uleb128 0x1
+ 1551 0053 12       		.uleb128 0x12
+ 1552 0054 06       		.uleb128 0x6
+ 1553 0055 40       		.uleb128 0x40
+ 1554 0056 18       		.uleb128 0x18
+ 1555 0057 9742     		.uleb128 0x2117
+ 1556 0059 19       		.uleb128 0x19
+ 1557 005a 01       		.uleb128 0x1
+ 1558 005b 13       		.uleb128 0x13
+ 1559 005c 00       		.byte	0
+ 1560 005d 00       		.byte	0
+ 1561 005e 08       		.uleb128 0x8
+ 1562 005f 0B       		.uleb128 0xb
+ 1563 0060 01       		.byte	0x1
+ 1564 0061 11       		.uleb128 0x11
+ 1565 0062 01       		.uleb128 0x1
+ 1566 0063 12       		.uleb128 0x12
+ 1567 0064 06       		.uleb128 0x6
+ 1568 0065 01       		.uleb128 0x1
+ 1569 0066 13       		.uleb128 0x13
+ 1570 0067 00       		.byte	0
+ 1571 0068 00       		.byte	0
+ 1572 0069 09       		.uleb128 0x9
+ 1573 006a 34       		.uleb128 0x34
+ 1574 006b 00       		.byte	0
+ 1575 006c 03       		.uleb128 0x3
+ 1576 006d 08       		.uleb128 0x8
+ 1577 006e 3A       		.uleb128 0x3a
+ 1578 006f 0B       		.uleb128 0xb
+ 1579 0070 3B       		.uleb128 0x3b
+ 1580 0071 0B       		.uleb128 0xb
+ 1581 0072 49       		.uleb128 0x49
+ 1582 0073 13       		.uleb128 0x13
+ 1583 0074 02       		.uleb128 0x2
+ 1584 0075 17       		.uleb128 0x17
+ 1585 0076 00       		.byte	0
+ 1586 0077 00       		.byte	0
+ 1587 0078 0A       		.uleb128 0xa
+ 1588 0079 898201   		.uleb128 0x4109
+ 1589 007c 01       		.byte	0x1
+ 1590 007d 11       		.uleb128 0x11
+ 1591 007e 01       		.uleb128 0x1
+ 1592 007f 31       		.uleb128 0x31
+ 1593 0080 13       		.uleb128 0x13
+ 1594 0081 01       		.uleb128 0x1
+ 1595 0082 13       		.uleb128 0x13
+ 1596 0083 00       		.byte	0
+ 1597 0084 00       		.byte	0
+ 1598 0085 0B       		.uleb128 0xb
+ 1599 0086 8A8201   		.uleb128 0x410a
+ 1600 0089 00       		.byte	0
+ 1601 008a 02       		.uleb128 0x2
+ 1602 008b 18       		.uleb128 0x18
+ 1603 008c 9142     		.uleb128 0x2111
+ 1604 008e 18       		.uleb128 0x18
+ 1605 008f 00       		.byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 34
+
+
+ 1606 0090 00       		.byte	0
+ 1607 0091 0C       		.uleb128 0xc
+ 1608 0092 898201   		.uleb128 0x4109
+ 1609 0095 01       		.byte	0x1
+ 1610 0096 11       		.uleb128 0x11
+ 1611 0097 01       		.uleb128 0x1
+ 1612 0098 31       		.uleb128 0x31
+ 1613 0099 13       		.uleb128 0x13
+ 1614 009a 00       		.byte	0
+ 1615 009b 00       		.byte	0
+ 1616 009c 0D       		.uleb128 0xd
+ 1617 009d 2E       		.uleb128 0x2e
+ 1618 009e 01       		.byte	0x1
+ 1619 009f 3F       		.uleb128 0x3f
+ 1620 00a0 19       		.uleb128 0x19
+ 1621 00a1 03       		.uleb128 0x3
+ 1622 00a2 0E       		.uleb128 0xe
+ 1623 00a3 3A       		.uleb128 0x3a
+ 1624 00a4 0B       		.uleb128 0xb
+ 1625 00a5 3B       		.uleb128 0x3b
+ 1626 00a6 0B       		.uleb128 0xb
+ 1627 00a7 27       		.uleb128 0x27
+ 1628 00a8 19       		.uleb128 0x19
+ 1629 00a9 11       		.uleb128 0x11
+ 1630 00aa 01       		.uleb128 0x1
+ 1631 00ab 12       		.uleb128 0x12
+ 1632 00ac 06       		.uleb128 0x6
+ 1633 00ad 40       		.uleb128 0x40
+ 1634 00ae 18       		.uleb128 0x18
+ 1635 00af 9742     		.uleb128 0x2117
+ 1636 00b1 19       		.uleb128 0x19
+ 1637 00b2 01       		.uleb128 0x1
+ 1638 00b3 13       		.uleb128 0x13
+ 1639 00b4 00       		.byte	0
+ 1640 00b5 00       		.byte	0
+ 1641 00b6 0E       		.uleb128 0xe
+ 1642 00b7 898201   		.uleb128 0x4109
+ 1643 00ba 00       		.byte	0
+ 1644 00bb 11       		.uleb128 0x11
+ 1645 00bc 01       		.uleb128 0x1
+ 1646 00bd 31       		.uleb128 0x31
+ 1647 00be 13       		.uleb128 0x13
+ 1648 00bf 00       		.byte	0
+ 1649 00c0 00       		.byte	0
+ 1650 00c1 0F       		.uleb128 0xf
+ 1651 00c2 05       		.uleb128 0x5
+ 1652 00c3 00       		.byte	0
+ 1653 00c4 03       		.uleb128 0x3
+ 1654 00c5 0E       		.uleb128 0xe
+ 1655 00c6 3A       		.uleb128 0x3a
+ 1656 00c7 0B       		.uleb128 0xb
+ 1657 00c8 3B       		.uleb128 0x3b
+ 1658 00c9 0B       		.uleb128 0xb
+ 1659 00ca 49       		.uleb128 0x49
+ 1660 00cb 13       		.uleb128 0x13
+ 1661 00cc 02       		.uleb128 0x2
+ 1662 00cd 17       		.uleb128 0x17
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 35
+
+
+ 1663 00ce 00       		.byte	0
+ 1664 00cf 00       		.byte	0
+ 1665 00d0 10       		.uleb128 0x10
+ 1666 00d1 34       		.uleb128 0x34
+ 1667 00d2 00       		.byte	0
+ 1668 00d3 03       		.uleb128 0x3
+ 1669 00d4 0E       		.uleb128 0xe
+ 1670 00d5 3A       		.uleb128 0x3a
+ 1671 00d6 0B       		.uleb128 0xb
+ 1672 00d7 3B       		.uleb128 0x3b
+ 1673 00d8 0B       		.uleb128 0xb
+ 1674 00d9 49       		.uleb128 0x49
+ 1675 00da 13       		.uleb128 0x13
+ 1676 00db 02       		.uleb128 0x2
+ 1677 00dc 18       		.uleb128 0x18
+ 1678 00dd 00       		.byte	0
+ 1679 00de 00       		.byte	0
+ 1680 00df 11       		.uleb128 0x11
+ 1681 00e0 01       		.uleb128 0x1
+ 1682 00e1 01       		.byte	0x1
+ 1683 00e2 49       		.uleb128 0x49
+ 1684 00e3 13       		.uleb128 0x13
+ 1685 00e4 01       		.uleb128 0x1
+ 1686 00e5 13       		.uleb128 0x13
+ 1687 00e6 00       		.byte	0
+ 1688 00e7 00       		.byte	0
+ 1689 00e8 12       		.uleb128 0x12
+ 1690 00e9 21       		.uleb128 0x21
+ 1691 00ea 00       		.byte	0
+ 1692 00eb 49       		.uleb128 0x49
+ 1693 00ec 13       		.uleb128 0x13
+ 1694 00ed 2F       		.uleb128 0x2f
+ 1695 00ee 0B       		.uleb128 0xb
+ 1696 00ef 00       		.byte	0
+ 1697 00f0 00       		.byte	0
+ 1698 00f1 13       		.uleb128 0x13
+ 1699 00f2 05       		.uleb128 0x5
+ 1700 00f3 00       		.byte	0
+ 1701 00f4 03       		.uleb128 0x3
+ 1702 00f5 08       		.uleb128 0x8
+ 1703 00f6 3A       		.uleb128 0x3a
+ 1704 00f7 0B       		.uleb128 0xb
+ 1705 00f8 3B       		.uleb128 0x3b
+ 1706 00f9 0B       		.uleb128 0xb
+ 1707 00fa 49       		.uleb128 0x49
+ 1708 00fb 13       		.uleb128 0x13
+ 1709 00fc 02       		.uleb128 0x2
+ 1710 00fd 17       		.uleb128 0x17
+ 1711 00fe 00       		.byte	0
+ 1712 00ff 00       		.byte	0
+ 1713 0100 14       		.uleb128 0x14
+ 1714 0101 05       		.uleb128 0x5
+ 1715 0102 00       		.byte	0
+ 1716 0103 03       		.uleb128 0x3
+ 1717 0104 0E       		.uleb128 0xe
+ 1718 0105 3A       		.uleb128 0x3a
+ 1719 0106 0B       		.uleb128 0xb
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 36
+
+
+ 1720 0107 3B       		.uleb128 0x3b
+ 1721 0108 0B       		.uleb128 0xb
+ 1722 0109 49       		.uleb128 0x49
+ 1723 010a 13       		.uleb128 0x13
+ 1724 010b 02       		.uleb128 0x2
+ 1725 010c 18       		.uleb128 0x18
+ 1726 010d 00       		.byte	0
+ 1727 010e 00       		.byte	0
+ 1728 010f 15       		.uleb128 0x15
+ 1729 0110 34       		.uleb128 0x34
+ 1730 0111 00       		.byte	0
+ 1731 0112 03       		.uleb128 0x3
+ 1732 0113 0E       		.uleb128 0xe
+ 1733 0114 3A       		.uleb128 0x3a
+ 1734 0115 0B       		.uleb128 0xb
+ 1735 0116 3B       		.uleb128 0x3b
+ 1736 0117 05       		.uleb128 0x5
+ 1737 0118 49       		.uleb128 0x49
+ 1738 0119 13       		.uleb128 0x13
+ 1739 011a 3F       		.uleb128 0x3f
+ 1740 011b 19       		.uleb128 0x19
+ 1741 011c 3C       		.uleb128 0x3c
+ 1742 011d 19       		.uleb128 0x19
+ 1743 011e 00       		.byte	0
+ 1744 011f 00       		.byte	0
+ 1745 0120 16       		.uleb128 0x16
+ 1746 0121 35       		.uleb128 0x35
+ 1747 0122 00       		.byte	0
+ 1748 0123 49       		.uleb128 0x49
+ 1749 0124 13       		.uleb128 0x13
+ 1750 0125 00       		.byte	0
+ 1751 0126 00       		.byte	0
+ 1752 0127 17       		.uleb128 0x17
+ 1753 0128 2E       		.uleb128 0x2e
+ 1754 0129 00       		.byte	0
+ 1755 012a 3F       		.uleb128 0x3f
+ 1756 012b 19       		.uleb128 0x19
+ 1757 012c 3C       		.uleb128 0x3c
+ 1758 012d 19       		.uleb128 0x19
+ 1759 012e 6E       		.uleb128 0x6e
+ 1760 012f 0E       		.uleb128 0xe
+ 1761 0130 03       		.uleb128 0x3
+ 1762 0131 0E       		.uleb128 0xe
+ 1763 0132 3A       		.uleb128 0x3a
+ 1764 0133 0B       		.uleb128 0xb
+ 1765 0134 3B       		.uleb128 0x3b
+ 1766 0135 0B       		.uleb128 0xb
+ 1767 0136 00       		.byte	0
+ 1768 0137 00       		.byte	0
+ 1769 0138 00       		.byte	0
+ 1770              		.section	.debug_loc,"",%progbits
+ 1771              	.Ldebug_loc0:
+ 1772              	.LLST0:
+ 1773 0000 10000000 		.4byte	.LVL1
+ 1774 0004 14000000 		.4byte	.LVL2
+ 1775 0008 0200     		.2byte	0x2
+ 1776 000a 30       		.byte	0x30
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 37
+
+
+ 1777 000b 9F       		.byte	0x9f
+ 1778 000c 14000000 		.4byte	.LVL2
+ 1779 0010 22000000 		.4byte	.LVL5
+ 1780 0014 0100     		.2byte	0x1
+ 1781 0016 54       		.byte	0x54
+ 1782 0017 24000000 		.4byte	.LVL6
+ 1783 001b 2A000000 		.4byte	.LFE72
+ 1784 001f 0100     		.2byte	0x1
+ 1785 0021 54       		.byte	0x54
+ 1786 0022 00000000 		.4byte	0
+ 1787 0026 00000000 		.4byte	0
+ 1788              	.LLST1:
+ 1789 002a 00000000 		.4byte	.LVL22
+ 1790 002e 0F000000 		.4byte	.LVL23-1
+ 1791 0032 0100     		.2byte	0x1
+ 1792 0034 50       		.byte	0x50
+ 1793 0035 0F000000 		.4byte	.LVL23-1
+ 1794 0039 4E000000 		.4byte	.LVL31
+ 1795 003d 0100     		.2byte	0x1
+ 1796 003f 55       		.byte	0x55
+ 1797 0040 4E000000 		.4byte	.LVL31
+ 1798 0044 54000000 		.4byte	.LFE67
+ 1799 0048 0100     		.2byte	0x1
+ 1800 004a 50       		.byte	0x50
+ 1801 004b 00000000 		.4byte	0
+ 1802 004f 00000000 		.4byte	0
+ 1803              	.LLST2:
+ 1804 0053 00000000 		.4byte	.LVL22
+ 1805 0057 0F000000 		.4byte	.LVL23-1
+ 1806 005b 0100     		.2byte	0x1
+ 1807 005d 51       		.byte	0x51
+ 1808 005e 0F000000 		.4byte	.LVL23-1
+ 1809 0062 4E000000 		.4byte	.LVL31
+ 1810 0066 0100     		.2byte	0x1
+ 1811 0068 54       		.byte	0x54
+ 1812 0069 4E000000 		.4byte	.LVL31
+ 1813 006d 54000000 		.4byte	.LFE67
+ 1814 0071 0100     		.2byte	0x1
+ 1815 0073 51       		.byte	0x51
+ 1816 0074 00000000 		.4byte	0
+ 1817 0078 00000000 		.4byte	0
+ 1818              	.LLST3:
+ 1819 007c 00000000 		.4byte	.LVL32
+ 1820 0080 15000000 		.4byte	.LVL33-1
+ 1821 0084 0100     		.2byte	0x1
+ 1822 0086 50       		.byte	0x50
+ 1823 0087 15000000 		.4byte	.LVL33-1
+ 1824 008b 72000000 		.4byte	.LVL45
+ 1825 008f 0100     		.2byte	0x1
+ 1826 0091 58       		.byte	0x58
+ 1827 0092 72000000 		.4byte	.LVL45
+ 1828 0096 76000000 		.4byte	.LFE68
+ 1829 009a 0400     		.2byte	0x4
+ 1830 009c F3       		.byte	0xf3
+ 1831 009d 01       		.uleb128 0x1
+ 1832 009e 50       		.byte	0x50
+ 1833 009f 9F       		.byte	0x9f
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 38
+
+
+ 1834 00a0 00000000 		.4byte	0
+ 1835 00a4 00000000 		.4byte	0
+ 1836              	.LLST4:
+ 1837 00a8 00000000 		.4byte	.LVL32
+ 1838 00ac 15000000 		.4byte	.LVL33-1
+ 1839 00b0 0100     		.2byte	0x1
+ 1840 00b2 51       		.byte	0x51
+ 1841 00b3 15000000 		.4byte	.LVL33-1
+ 1842 00b7 72000000 		.4byte	.LVL45
+ 1843 00bb 0100     		.2byte	0x1
+ 1844 00bd 54       		.byte	0x54
+ 1845 00be 72000000 		.4byte	.LVL45
+ 1846 00c2 76000000 		.4byte	.LFE68
+ 1847 00c6 0400     		.2byte	0x4
+ 1848 00c8 F3       		.byte	0xf3
+ 1849 00c9 01       		.uleb128 0x1
+ 1850 00ca 51       		.byte	0x51
+ 1851 00cb 9F       		.byte	0x9f
+ 1852 00cc 00000000 		.4byte	0
+ 1853 00d0 00000000 		.4byte	0
+ 1854              	.LLST5:
+ 1855 00d4 00000000 		.4byte	.LVL32
+ 1856 00d8 15000000 		.4byte	.LVL33-1
+ 1857 00dc 0100     		.2byte	0x1
+ 1858 00de 52       		.byte	0x52
+ 1859 00df 15000000 		.4byte	.LVL33-1
+ 1860 00e3 72000000 		.4byte	.LVL45
+ 1861 00e7 0100     		.2byte	0x1
+ 1862 00e9 55       		.byte	0x55
+ 1863 00ea 72000000 		.4byte	.LVL45
+ 1864 00ee 76000000 		.4byte	.LFE68
+ 1865 00f2 0400     		.2byte	0x4
+ 1866 00f4 F3       		.byte	0xf3
+ 1867 00f5 01       		.uleb128 0x1
+ 1868 00f6 52       		.byte	0x52
+ 1869 00f7 9F       		.byte	0x9f
+ 1870 00f8 00000000 		.4byte	0
+ 1871 00fc 00000000 		.4byte	0
+ 1872              	.LLST6:
+ 1873 0100 00000000 		.4byte	.LVL32
+ 1874 0104 15000000 		.4byte	.LVL33-1
+ 1875 0108 0100     		.2byte	0x1
+ 1876 010a 53       		.byte	0x53
+ 1877 010b 15000000 		.4byte	.LVL33-1
+ 1878 010f 72000000 		.4byte	.LVL45
+ 1879 0113 0100     		.2byte	0x1
+ 1880 0115 57       		.byte	0x57
+ 1881 0116 72000000 		.4byte	.LVL45
+ 1882 011a 76000000 		.4byte	.LFE68
+ 1883 011e 0400     		.2byte	0x4
+ 1884 0120 F3       		.byte	0xf3
+ 1885 0121 01       		.uleb128 0x1
+ 1886 0122 53       		.byte	0x53
+ 1887 0123 9F       		.byte	0x9f
+ 1888 0124 00000000 		.4byte	0
+ 1889 0128 00000000 		.4byte	0
+ 1890              	.LLST7:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 39
+
+
+ 1891 012c 2C000000 		.4byte	.LVL35
+ 1892 0130 32000000 		.4byte	.LVL36
+ 1893 0134 0200     		.2byte	0x2
+ 1894 0136 30       		.byte	0x30
+ 1895 0137 9F       		.byte	0x9f
+ 1896 0138 32000000 		.4byte	.LVL36
+ 1897 013c 72000000 		.4byte	.LVL45
+ 1898 0140 0100     		.2byte	0x1
+ 1899 0142 59       		.byte	0x59
+ 1900 0143 00000000 		.4byte	0
+ 1901 0147 00000000 		.4byte	0
+ 1902              	.LLST8:
+ 1903 014b 00000000 		.4byte	.LVL54
+ 1904 014f 07000000 		.4byte	.LVL55-1
+ 1905 0153 0100     		.2byte	0x1
+ 1906 0155 50       		.byte	0x50
+ 1907 0156 07000000 		.4byte	.LVL55-1
+ 1908 015a 10000000 		.4byte	.LFE71
+ 1909 015e 0400     		.2byte	0x4
+ 1910 0160 F3       		.byte	0xf3
+ 1911 0161 01       		.uleb128 0x1
+ 1912 0162 50       		.byte	0x50
+ 1913 0163 9F       		.byte	0x9f
+ 1914 0164 00000000 		.4byte	0
+ 1915 0168 00000000 		.4byte	0
+ 1916              	.LLST9:
+ 1917 016c 00000000 		.4byte	.LVL54
+ 1918 0170 07000000 		.4byte	.LVL55-1
+ 1919 0174 0100     		.2byte	0x1
+ 1920 0176 51       		.byte	0x51
+ 1921 0177 07000000 		.4byte	.LVL55-1
+ 1922 017b 10000000 		.4byte	.LFE71
+ 1923 017f 0400     		.2byte	0x4
+ 1924 0181 F3       		.byte	0xf3
+ 1925 0182 01       		.uleb128 0x1
+ 1926 0183 51       		.byte	0x51
+ 1927 0184 9F       		.byte	0x9f
+ 1928 0185 00000000 		.4byte	0
+ 1929 0189 00000000 		.4byte	0
+ 1930              	.LLST10:
+ 1931 018d 00000000 		.4byte	.LVL54
+ 1932 0191 07000000 		.4byte	.LVL55-1
+ 1933 0195 0100     		.2byte	0x1
+ 1934 0197 52       		.byte	0x52
+ 1935 0198 07000000 		.4byte	.LVL55-1
+ 1936 019c 10000000 		.4byte	.LFE71
+ 1937 01a0 0100     		.2byte	0x1
+ 1938 01a2 54       		.byte	0x54
+ 1939 01a3 00000000 		.4byte	0
+ 1940 01a7 00000000 		.4byte	0
+ 1941              		.section	.debug_aranges,"",%progbits
+ 1942 0000 64000000 		.4byte	0x64
+ 1943 0004 0200     		.2byte	0x2
+ 1944 0006 00000000 		.4byte	.Ldebug_info0
+ 1945 000a 04       		.byte	0x4
+ 1946 000b 00       		.byte	0
+ 1947 000c 0000     		.2byte	0
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 40
+
+
+ 1948 000e 0000     		.2byte	0
+ 1949 0010 00000000 		.4byte	.LFB72
+ 1950 0014 2A000000 		.4byte	.LFE72-.LFB72
+ 1951 0018 00000000 		.4byte	.LFB73
+ 1952 001c 30000000 		.4byte	.LFE73-.LFB73
+ 1953 0020 00000000 		.4byte	.LFB64
+ 1954 0024 08000000 		.4byte	.LFE64-.LFB64
+ 1955 0028 00000000 		.4byte	.LFB65
+ 1956 002c 18000000 		.4byte	.LFE65-.LFB65
+ 1957 0030 00000000 		.4byte	.LFB66
+ 1958 0034 30000000 		.4byte	.LFE66-.LFB66
+ 1959 0038 00000000 		.4byte	.LFB67
+ 1960 003c 54000000 		.4byte	.LFE67-.LFB67
+ 1961 0040 00000000 		.4byte	.LFB68
+ 1962 0044 76000000 		.4byte	.LFE68-.LFB68
+ 1963 0048 00000000 		.4byte	.LFB69
+ 1964 004c 28000000 		.4byte	.LFE69-.LFB69
+ 1965 0050 00000000 		.4byte	.LFB70
+ 1966 0054 28000000 		.4byte	.LFE70-.LFB70
+ 1967 0058 00000000 		.4byte	.LFB71
+ 1968 005c 10000000 		.4byte	.LFE71-.LFB71
+ 1969 0060 00000000 		.4byte	0
+ 1970 0064 00000000 		.4byte	0
+ 1971              		.section	.debug_ranges,"",%progbits
+ 1972              	.Ldebug_ranges0:
+ 1973 0000 00000000 		.4byte	.LFB72
+ 1974 0004 2A000000 		.4byte	.LFE72
+ 1975 0008 00000000 		.4byte	.LFB73
+ 1976 000c 30000000 		.4byte	.LFE73
+ 1977 0010 00000000 		.4byte	.LFB64
+ 1978 0014 08000000 		.4byte	.LFE64
+ 1979 0018 00000000 		.4byte	.LFB65
+ 1980 001c 18000000 		.4byte	.LFE65
+ 1981 0020 00000000 		.4byte	.LFB66
+ 1982 0024 30000000 		.4byte	.LFE66
+ 1983 0028 00000000 		.4byte	.LFB67
+ 1984 002c 54000000 		.4byte	.LFE67
+ 1985 0030 00000000 		.4byte	.LFB68
+ 1986 0034 76000000 		.4byte	.LFE68
+ 1987 0038 00000000 		.4byte	.LFB69
+ 1988 003c 28000000 		.4byte	.LFE69
+ 1989 0040 00000000 		.4byte	.LFB70
+ 1990 0044 28000000 		.4byte	.LFE70
+ 1991 0048 00000000 		.4byte	.LFB71
+ 1992 004c 10000000 		.4byte	.LFE71
+ 1993 0050 00000000 		.4byte	0
+ 1994 0054 00000000 		.4byte	0
+ 1995              		.section	.debug_line,"",%progbits
+ 1996              	.Ldebug_line0:
+ 1997 0000 EB020000 		.section	.debug_str,"MS",%progbits,1
+ 1997      0200D501 
+ 1997      00000201 
+ 1997      FB0E0D00 
+ 1997      01010101 
+ 1998              	.LASF9:
+ 1999 0000 6C6F6E67 		.ascii	"long long int\000"
+ 1999      206C6F6E 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 41
+
+
+ 1999      6720696E 
+ 1999      7400
+ 2000              	.LASF21:
+ 2001 000e 5F77656C 		.ascii	"_welcome_msg\000"
+ 2001      636F6D65 
+ 2001      5F6D7367 
+ 2001      00
+ 2002              	.LASF4:
+ 2003 001b 5F5F7569 		.ascii	"__uint8_t\000"
+ 2003      6E74385F 
+ 2003      7400
+ 2004              	.LASF29:
+ 2005 0025 64697370 		.ascii	"display_flash_text\000"
+ 2005      6C61795F 
+ 2005      666C6173 
+ 2005      685F7465 
+ 2005      787400
+ 2006              	.LASF5:
+ 2007 0038 5F5F696E 		.ascii	"__int32_t\000"
+ 2007      7433325F 
+ 2007      7400
+ 2008              	.LASF31:
+ 2009 0042 64697370 		.ascii	"display_ramp_text\000"
+ 2009      6C61795F 
+ 2009      72616D70 
+ 2009      5F746578 
+ 2009      7400
+ 2010              	.LASF32:
+ 2011 0054 64697370 		.ascii	"display_stop_text\000"
+ 2011      6C61795F 
+ 2011      73746F70 
+ 2011      5F746578 
+ 2011      7400
+ 2012              	.LASF11:
+ 2013 0066 756E7369 		.ascii	"unsigned int\000"
+ 2013      676E6564 
+ 2013      20696E74 
+ 2013      00
+ 2014              	.LASF26:
+ 2015 0073 6E616D65 		.ascii	"name\000"
+ 2015      00
+ 2016              	.LASF44:
+ 2017 0078 433A5C55 		.ascii	"C:\\Users\\henrichsc\\Desktop\\School\\Senior_year\\"
+ 2017      73657273 
+ 2017      5C68656E 
+ 2017      72696368 
+ 2017      73635C44 
+ 2018 00a6 66616C6C 		.ascii	"fall\\CE4920\\lab\\Milestone_3.cydsn\000"
+ 2018      5C434534 
+ 2018      3932305C 
+ 2018      6C61625C 
+ 2018      4D696C65 
+ 2019              	.LASF15:
+ 2020 00c8 666C6F61 		.ascii	"float\000"
+ 2020      7400
+ 2021              	.LASF39:
+ 2022 00ce 4C43445F 		.ascii	"LCD_Start\000"
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 42
+
+
+ 2022      53746172 
+ 2022      7400
+ 2023              	.LASF24:
+ 2024 00d8 64697370 		.ascii	"display_profile_title\000"
+ 2024      6C61795F 
+ 2024      70726F66 
+ 2024      696C655F 
+ 2024      7469746C 
+ 2025              	.LASF42:
+ 2026 00ee 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 2026      43313120 
+ 2026      352E342E 
+ 2026      31203230 
+ 2026      31363036 
+ 2027 0121 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m3 -mthumb -g -O"
+ 2027      20726576 
+ 2027      6973696F 
+ 2027      6E203233 
+ 2027      37373135 
+ 2028 0154 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 2028      66756E63 
+ 2028      74696F6E 
+ 2028      2D736563 
+ 2028      74696F6E 
+ 2029              	.LASF7:
+ 2030 017c 5F5F7569 		.ascii	"__uint32_t\000"
+ 2030      6E743332 
+ 2030      5F7400
+ 2031              	.LASF8:
+ 2032 0187 6C6F6E67 		.ascii	"long unsigned int\000"
+ 2032      20756E73 
+ 2032      69676E65 
+ 2032      6420696E 
+ 2032      7400
+ 2033              	.LASF28:
+ 2034 0199 74656D70 		.ascii	"temp\000"
+ 2034      00
+ 2035              	.LASF3:
+ 2036 019e 73686F72 		.ascii	"short unsigned int\000"
+ 2036      7420756E 
+ 2036      7369676E 
+ 2036      65642069 
+ 2036      6E7400
+ 2037              	.LASF45:
+ 2038 01b1 49544D5F 		.ascii	"ITM_RxBuffer\000"
+ 2038      52784275 
+ 2038      66666572 
+ 2038      00
+ 2039              	.LASF1:
+ 2040 01be 756E7369 		.ascii	"unsigned char\000"
+ 2040      676E6564 
+ 2040      20636861 
+ 2040      7200
+ 2041              	.LASF16:
+ 2042 01cc 646F7562 		.ascii	"double\000"
+ 2042      6C6500
+ 2043              	.LASF2:
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 43
+
+
+ 2044 01d3 73686F72 		.ascii	"short int\000"
+ 2044      7420696E 
+ 2044      7400
+ 2045              	.LASF38:
+ 2046 01dd 4C43445F 		.ascii	"LCD_PrintString\000"
+ 2046      5072696E 
+ 2046      74537472 
+ 2046      696E6700 
+ 2047              	.LASF23:
+ 2048 01ed 64697370 		.ascii	"display_welcome\000"
+ 2048      6C61795F 
+ 2048      77656C63 
+ 2048      6F6D6500 
+ 2049              	.LASF40:
+ 2050 01fd 7374726C 		.ascii	"strlen\000"
+ 2050      656E00
+ 2051              	.LASF10:
+ 2052 0204 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 2052      206C6F6E 
+ 2052      6720756E 
+ 2052      7369676E 
+ 2052      65642069 
+ 2053              	.LASF12:
+ 2054 021b 75696E74 		.ascii	"uint8_t\000"
+ 2054      385F7400 
+ 2055              	.LASF37:
+ 2056 0223 4C43445F 		.ascii	"LCD_Position\000"
+ 2056      506F7369 
+ 2056      74696F6E 
+ 2056      00
+ 2057              	.LASF34:
+ 2058 0230 4C43445F 		.ascii	"LCD_PutChar\000"
+ 2058      50757443 
+ 2058      68617200 
+ 2059              	.LASF20:
+ 2060 023c 5F66696C 		.ascii	"_fill_blocks\000"
+ 2060      6C5F626C 
+ 2060      6F636B73 
+ 2060      00
+ 2061              	.LASF13:
+ 2062 0249 696E7433 		.ascii	"int32_t\000"
+ 2062      325F7400 
+ 2063              	.LASF19:
+ 2064 0251 73697A65 		.ascii	"sizetype\000"
+ 2064      74797065 
+ 2064      00
+ 2065              	.LASF25:
+ 2066 025a 64697370 		.ascii	"display_profile\000"
+ 2066      6C61795F 
+ 2066      70726F66 
+ 2066      696C6500 
+ 2067              	.LASF17:
+ 2068 026a 63686172 		.ascii	"char\000"
+ 2068      00
+ 2069              	.LASF36:
+ 2070 026f 4C43445F 		.ascii	"LCD_WriteControl\000"
+ 2070      57726974 
+ARM GAS  C:\Users\HENRIC~1\AppData\Local\Temp\ccNCfjey.s 			page 44
+
+
+ 2070      65436F6E 
+ 2070      74726F6C 
+ 2070      00
+ 2071              	.LASF30:
+ 2072 0280 646F6666 		.ascii	"doff\000"
+ 2072      00
+ 2073              	.LASF33:
+ 2074 0285 64697370 		.ascii	"display_print_string\000"
+ 2074      6C61795F 
+ 2074      7072696E 
+ 2074      745F7374 
+ 2074      72696E67 
+ 2075              	.LASF43:
+ 2076 029a 44697370 		.ascii	"Display.c\000"
+ 2076      6C61792E 
+ 2076      6300
+ 2077              	.LASF14:
+ 2078 02a4 75696E74 		.ascii	"uint32_t\000"
+ 2078      33325F74 
+ 2078      00
+ 2079              	.LASF6:
+ 2080 02ad 6C6F6E67 		.ascii	"long int\000"
+ 2080      20696E74 
+ 2080      00
+ 2081              	.LASF22:
+ 2082 02b6 64697370 		.ascii	"display_init\000"
+ 2082      6C61795F 
+ 2082      696E6974 
+ 2082      00
+ 2083              	.LASF18:
+ 2084 02c3 6C6F6E67 		.ascii	"long double\000"
+ 2084      20646F75 
+ 2084      626C6500 
+ 2085              	.LASF0:
+ 2086 02cf 7369676E 		.ascii	"signed char\000"
+ 2086      65642063 
+ 2086      68617200 
+ 2087              	.LASF27:
+ 2088 02db 64657461 		.ascii	"detail\000"
+ 2088      696C00
+ 2089              	.LASF41:
+ 2090 02e2 73707269 		.ascii	"sprintf\000"
+ 2090      6E746600 
+ 2091              	.LASF35:
+ 2092 02ea 43794465 		.ascii	"CyDelay\000"
+ 2092      6C617900 
+ 2093              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran
